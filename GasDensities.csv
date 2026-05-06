@@ -1,0 +1,8 @@
+Gas, density @ 293 K (g/cm3), Pressure (atm)
+CF4, 0.00361, 1
+CF4, 0.01083, 3
+CF4, 0.03611, 10
+HeCF4(60% He 40% CF4), 0.001564, 1
+HeCF4CH4(58% He 37% CF4 5% CH4), 0.001484, 1
+HeCF4CH4(58% He 37% CF4 5% CH4), 0.000732, 0.5
+HeCF4CH4(58% He 37% CF4 5% CH4), 0.0001484, 0.1

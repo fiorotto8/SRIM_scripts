@@ -1,0 +1,13 @@
+# This repository is intentionally a thin wrapper around a local SRIM-2013
+# installation. Keep automation/configuration files only; exclude SRIM itself
+# and generated run artifacts.
+*
+
+!/.gitignore
+!/README.md
+!/GasDensities.csv
+!/srim_gas_sweep.py
+!/trim_qf_sweep.py
+!/fix_srim_no_admin.ps1
+!/fix_srim_no_admin.bat
+!/srim-root.txt
