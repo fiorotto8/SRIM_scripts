@@ -11,7 +11,7 @@ table, and writes range plus electronic-stopping quenching proxy values.
 and `TRIMAUTO`, launches `TRIM.exe`, parses `IONIZ.TXT`, and estimates an
 ionization quenching factor from the integrated ionization profile.
 
-The repository should contain only:
+The repository contains:
 
 ```text
 README.md
@@ -23,10 +23,6 @@ fix_srim_no_admin.ps1
 fix_srim_no_admin.bat
 srim-root.example.txt
 ```
-
-Do not commit the SRIM installer, SRIM executables, `Data/`, `SR Module/`,
-generated `work/`, `results/`, `plots/`, logs, or local output files. Those are
-provided by a local SRIM-2013 installation or generated at runtime.
 
 ## Supported Platforms
 
@@ -46,7 +42,7 @@ port may be possible, but it is not implemented, tested, or documented here.
 
 ## Requirements
 
-Install SRIM-2013 separately first. The standard path used by this project is:
+Install SRIM-2013 separately first http://www.srim.org/. The standard path used by this project is:
 
 ```text
 Windows: C:\SRIM-2013
@@ -75,7 +71,7 @@ matplotlib, optional, only needed for plots
 Install the optional plotting dependency with:
 
 ```bash
-python -m pip install matplotlib
+sudo apt install python3-matplotlib
 ```
 
 Without `matplotlib`, run with `--no-plots` or use only `--dry-run`.
@@ -86,10 +82,9 @@ You have three ways to tell the scripts where SRIM is installed:
 
 1. Pass `--srim-root` on the command line.
 2. Set the `SRIM_ROOT` environment variable.
-3. Copy `srim-root.example.txt` to `srim-root.txt` and edit the path.
+3. change `srim-root.txt` and edit the path.
 
-`srim-root.txt` is ignored by Git because it is machine-specific. It may contain
-a Windows path such as:
+`srim-root.txt`may contain a Windows path such as:
 
 ```text
 C:\SRIM-2013
@@ -124,13 +119,6 @@ percentages in parentheses. The script derives the recoil ions from the gas
 composition when `--ions gas` is used.
 
 ## Recommended Installation
-
-Clone this repository anywhere convenient, then create the local SRIM-root
-config file:
-
-```bash
-cp srim-root.example.txt srim-root.txt
-```
 
 Edit `srim-root.txt` so the first non-comment line points to the SRIM-2013
 installation. With that file present, the scripts can run from the repository
