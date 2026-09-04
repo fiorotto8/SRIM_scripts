@@ -1,220 +1,77 @@
 # SRIM Gas-Recoil Automation
 
-This repository contains the files that are not part of a clean SRIM-2013
-installation, but are needed to run the gas-recoil automation reproducibly.
+Automation scripts for running SRIM-2013 gas-recoil studies from Windows or
+WSL. The repository keeps only the project-specific Python scripts, gas table,
+and helper utilities; the SRIM-2013 installation itself stays outside Git.
 
-`srim_gas_sweep.py` is the fast deterministic SRModule workflow. It writes
-`SR.IN`, launches `SR Module/SRModule.exe`, parses the generated stopping/range
-table, and writes range plus electronic-stopping quenching proxy values.
+## Install
 
-`trim_qf_sweep.py` is the TRIM/IONIZ Monte Carlo workflow. It writes `TRIM.IN`
-and `TRIMAUTO`, launches `TRIM.exe`, parses `IONIZ.TXT`, and estimates an
-ionization quenching factor from the integrated ionization profile.
+1. Install SRIM-2013 on Windows.
 
-The repository should contain only:
+   Recommended path:
 
-```text
-README.md
-.gitignore
-srim_gas_sweep.py
-trim_qf_sweep.py
-GasDensities.csv
-fix_srim_no_admin.ps1
-fix_srim_no_admin.bat
-srim-root.example.txt
-```
+   ```text
+   C:\SRIM-2013
+   ```
 
-Do not commit the SRIM installer, SRIM executables, `Data/`, `SR Module/`,
-generated `work/`, `results/`, `plots/`, logs, or local output files. Those are
-provided by a local SRIM-2013 installation or generated at runtime.
+2. Clone this repository anywhere convenient.
 
-## Supported Platforms
+3. Create your local SRIM path config:
 
-The scripts depend on the Windows SRIM-2013 executables `SRModule.exe` and
-`TRIM.exe`.
+   ```bash
+   cp srim-root.example.txt srim-root.txt
+   ```
 
-Supported and documented:
+   Edit `srim-root.txt` so the first non-comment line points to your SRIM
+   installation:
 
-```text
-Windows Python 3.10+ with SRIM installed at C:\SRIM-2013
-WSL Python 3.10+ calling the Windows SRIM install at /mnt/c/SRIM-2013
-```
+   ```text
+   C:\SRIM-2013
+   ```
 
-Pure Linux and macOS are not supported by this script as-is. The blocking
-dependency is SRIM's Windows executable and its installation layout. A Wine-based
-port may be possible, but it is not implemented, tested, or documented here.
+   WSL users may also use:
 
-## Requirements
+   ```text
+   /mnt/c/SRIM-2013
+   ```
 
-Install SRIM-2013 separately first. The standard path used by this project is:
+4. Install optional plotting support:
 
-```text
-Windows: C:\SRIM-2013
-WSL:     /mnt/c/SRIM-2013
-```
+   ```bash
+   python -m pip install matplotlib
+   ```
 
-The SRIM installation must contain at least:
+5. Check that both workflows can see SRIM and the gas table:
 
-```text
-C:\SRIM-2013\Data\ATOMDATA
-C:\SRIM-2013\Data\Compound.dat
-C:\SRIM-2013\SR Module\SRModule.exe
-C:\SRIM-2013\SR Module\SCOEF03.dat
-C:\SRIM-2013\SR Module\SNUC03.dat
-C:\SRIM-2013\SR Module\VERSION
-C:\SRIM-2013\TRIM.exe
-```
+   ```bash
+   python srim_gas_sweep.py --dry-run --no-plots
+   python trim_qf_sweep.py --dry-run --no-plots
+   ```
 
-Python requirements:
-
-```text
-Python 3.10 or newer
-matplotlib, optional, only needed for plots
-```
-
-Install the optional plotting dependency with:
-
-```bash
-python -m pip install matplotlib
-```
-
-Without `matplotlib`, run with `--no-plots` or use only `--dry-run`.
-
-## SRIM Path Configuration
-
-You have three ways to tell the scripts where SRIM is installed:
-
-1. Pass `--srim-root` on the command line.
-2. Set the `SRIM_ROOT` environment variable.
-3. Copy `srim-root.example.txt` to `srim-root.txt` and edit the path.
-
-`srim-root.txt` is ignored by Git because it is machine-specific. It may contain
-a Windows path such as:
-
-```text
-C:\SRIM-2013
-```
-
-or, from WSL, the mounted path:
-
-```text
-/mnt/c/SRIM-2013
-```
-
-When running under WSL, a Windows path in `srim-root.txt` is converted with
-`wslpath`.
-
-## Gas Input CSV
-
-The scripts need a gas CSV. By default they look for `GasDensities.csv` in this
-repository. If that file is not present there, they fall back to looking inside
-`--srim-root`.
-
-Expected columns:
-
-```csv
-Gas, density @ 293 K (g/cm3), Pressure (atm)
-CF4, 0.00361, 1
-HeCF4(60% He 40% CF4), 0.001564, 1
-HeCF4CH4(58% He 37% CF4 5% CH4), 0.001484, 1
-```
-
-The `Gas` value can be a formula such as `CF4` or a mixture label using
-percentages in parentheses. The script derives the recoil ions from the gas
-composition when `--ions gas` is used.
-
-## Recommended Installation
-
-Clone this repository anywhere convenient, then create the local SRIM-root
-config file:
-
-```bash
-cp srim-root.example.txt srim-root.txt
-```
-
-Edit `srim-root.txt` so the first non-comment line points to the SRIM-2013
-installation. With that file present, the scripts can run from the repository
-without copying project files into `C:\SRIM-2013`.
-
-Run from Windows PowerShell:
+If SRIM asks for administrator permission, hangs behind a UAC dialog, or cannot
+write output files, run the included Windows helper:
 
 ```powershell
-cd path\to\this\repository
-python .\srim_gas_sweep.py --help
-python .\trim_qf_sweep.py --help
-python .\srim_gas_sweep.py --dry-run --no-plots
-python .\trim_qf_sweep.py --dry-run --no-plots
+.\fix_srim_no_admin.ps1 -Root C:\SRIM-2013
 ```
 
-Run from WSL:
+## Run the Full Analysis
+
+Run SRModule first. This creates the deterministic stopping/range table used as
+a reference for the TRIM comparison plots:
 
 ```bash
-cd /path/to/this/repository
-python3 srim_gas_sweep.py --help
-python3 trim_qf_sweep.py --help
-python3 srim_gas_sweep.py --dry-run --no-plots
-python3 trim_qf_sweep.py --dry-run --no-plots
-```
-
-You can skip `srim-root.txt` and pass the path explicitly instead:
-
-```bash
-python3 srim_gas_sweep.py \
-  --srim-root /mnt/c/SRIM-2013 \
-  --gas-csv GasDensities.csv \
-  --out results/srim_gas_sweep_results.csv \
-  --workdir work/srim_gas_sweep \
-  --no-plots
-```
-
-## SRModule Sweep
-
-Default behavior:
-
-```text
-gas rows:     every row in GasDensities.csv
-ions:         gas constituents only
-energy grid:  100 log-spaced points from 0.1 to 500 keV
-input CSV:    GasDensities.csv in this repository
-output CSV:   results/srim_gas_sweep_results.csv in this repository
-work folder:  work/srim_gas_sweep in this repository
-plots:        plots/ in this repository
-```
-
-Typical full run from the repository:
-
-```bash
-python3 srim_gas_sweep.py \
+python srim_gas_sweep.py \
   --out results/srmodule_all_gases_0p1_500keV_100pts.csv \
   --plots-dir plots/srmodule_all_gases_0p1_500keV_100pts \
   --workdir work/srmodule_all_gases_0p1_500keV_100pts \
   --keep-work
 ```
 
-Useful options:
-
-```text
---gases CF4                 run only matching gas rows
---ions H,He,C,F             choose explicit recoil ions
---emin-kev 1 --emax-kev 100 --points 20
---compound-mode none        default; use no SRIM compound dictionary comparison
---compound-mode dictionary  record dictionary metadata when available
---compound-mode compare     write rows for both none and dictionary decisions
---keep-work                 preserve generated SR.IN and raw SRModule output
---no-plots                  skip Matplotlib plot generation
---plot-only                 regenerate plots from an existing CSV
-```
-
-## TRIM QF Sweep
-
-`trim_qf_sweep.py` imports shared parsing helpers from `srim_gas_sweep.py`, so
-keep both scripts together. It uses the same `GasDensities.csv` and SRIM-root
-configuration.
-
-Typical full TRIM run:
+Then run the TRIM/IONIZ quenching-factor sweep:
 
 ```bash
-python3 trim_qf_sweep.py \
+python trim_qf_sweep.py \
   --out results/trim_qf_all_gases_0p1_500keV_100pts_100ions.csv \
   --plots-dir plots/trim_qf_all_gases_0p1_500keV_100pts_100ions \
   --workdir work/trim_qf_all_gases_0p1_500keV_100pts_100ions \
@@ -222,99 +79,126 @@ python3 trim_qf_sweep.py \
   --keep-work
 ```
 
-Useful TRIM-only options:
+On systems where `python` is Python 2, use `python3`.
+
+## Repository Layout
 
 ```text
---energies-kev 1,2,5,10      use exact energies instead of the log grid
---mode quick-depth-and-qf    default two-pass depth scan plus QF production
---mode quick-depth-scan      run only broad depth scans
---mode qf-production         run QF production with fallback or forced width
---mode full-cascade-validation
---n-ions 100                 production ions per job
---quick-n-ions 100           quick depth scan ions per job
---parse-only                 rebuild CSV from existing work folders
---density-mode csv           use density from GasDensities.csv
---density-mode ideal-gas     recompute gas density from pressure and mixture
+srim_gas_sweep.py       SRModule stopping/range sweep
+trim_qf_sweep.py        TRIM/IONIZ quenching-factor sweep
+GasDensities.csv        gas mixtures, densities, and pressures
+fix_srim_no_admin.ps1   Windows permission and compatibility repair helper
+fix_srim_no_admin.bat   BAT wrapper for the PowerShell helper
+srim-root.example.txt   template for local SRIM path configuration
+.gitignore              keeps SRIM binaries and generated outputs out of Git
 ```
 
-TRIM modifies top-level SRIM files while each job runs. The script restores the
-previous `TRIM.IN` and `TRIMAUTO` afterwards, but do not run multiple TRIM
-sweeps against the same SRIM installation at the same time.
+Local/generated files are intentionally ignored:
 
-If Python-driven TRIM launch is unreliable, the script still writes
-`work/.../run_trim_jobs.bat` and `trim_run_list.txt`. You can run that batch
-launcher from Windows and then rebuild the CSV with:
-
-```bash
-python3 trim_qf_sweep.py \
-  --parse-only \
-  --workdir work/trim_qf_all_gases_0p1_500keV_100pts_100ions \
-  --out results/trim_qf_all_gases_0p1_500keV_100pts_100ions.csv
+```text
+srim-root.txt
+results/
+plots/
+work/
+logs/
+SRIM executables and data folders
 ```
 
-## Output Meaning
+## How the Code Works
 
-The CSV includes gas metadata, parsed stoichiometry, ion metadata, stopping
-power, projected range, straggling, and an electronic-stopping quenching proxy.
+`srim_gas_sweep.py` is the fast deterministic path. For each gas row and recoil
+ion, it:
 
-The quenching proxy is calculated from SRModule stopping powers:
+1. Reads `GasDensities.csv`.
+2. Parses formulas such as `CF4` and mixture labels such as
+   `HeCF4(60% He 40% CF4)`.
+3. Reads SRIM element and compound metadata from `Data/ATOMDATA` and
+   `Data/Compound.dat`.
+4. Writes `SR Module/SR.IN`.
+5. Runs `SR Module/SRModule.exe`.
+6. Parses the SRModule stopping/range output.
+7. Interpolates the raw SRIM table onto a log-spaced energy grid.
+8. Writes CSV rows and optional plots.
+
+Its main output is a table of electronic stopping, nuclear stopping, projected
+range, straggling, and an electronic-stopping quenching proxy:
 
 ```text
 QF_electronic(E) = integrated electronic stopping energy / initial ion energy
-Eee              = QF_electronic(E) * Eion
 ```
 
-This is a stopping-power-derived electronic energy fraction. It is not a
-detector-calibrated scintillation, ionization, light-yield, or charge-yield
-model.
+`trim_qf_sweep.py` is the slower Monte Carlo path. For each gas, ion, and
+energy, it:
 
-For TRIM rows:
+1. Builds `TRIM.IN`, `TRIMAUTO`, and a per-job `manifest.json`.
+2. Runs `TRIM.exe`.
+3. Collects files such as `IONIZ.TXT`, `RANGE.TXT`, and `PHONON.TXT`.
+4. Integrates the `IONIZ.TXT` profile.
+5. Writes ionization quenching-factor rows and optional comparison plots.
+
+The default TRIM mode is `quick-depth-and-qf`, which performs two passes:
+
+1. A quick depth scan estimates the ionization depth for each gas/ion/energy.
+2. A production pass reruns TRIM with a target width based on that depth.
+
+The TRIM quenching factor is:
 
 ```text
 QF_ioniz(E) = integrated IONIZ energy / initial ion kinetic energy
-Eee         = QF_ioniz(E) * Eion
 ```
 
-That is an IONIZ-profile-derived ionization energy fraction, not a detector
-calibration.
+Both quantities are SRIM-derived energy fractions. They are not detector
+calibrations for scintillation, charge yield, or light yield.
 
-## No-Admin SRIM Fix
+## Configuration
 
-`fix_srim_no_admin.ps1` is included because SRIM installations can inherit file
-permissions or Windows compatibility flags that make batch execution fail from
-Python or WSL.
+The scripts find SRIM in this order:
 
-Run it from Windows PowerShell if SRModule/TRIM asks for elevation, times out
-behind a UAC prompt, or reports locked output files:
+1. `--srim-root`
+2. `SRIM_ROOT` environment variable
+3. `srim-root.txt`
+4. the directory containing the script
 
-```powershell
-cd path\to\this\repository
-.\fix_srim_no_admin.ps1 -Root C:\SRIM-2013
+Relative paths for `GasDensities.csv`, `results/`, `plots/`, and `work/` are
+kept relative to this repository when possible. SRIM data files and executables
+are read from `--srim-root`.
+
+Useful shared options:
+
+```text
+--gases CF4                 run only matching gas rows
+--ions H,He,C,F             choose explicit recoil ions
+--emin-kev 1 --emax-kev 100 --points 20
+--keep-work                 preserve raw generated inputs and outputs
+--no-plots                  skip Matplotlib plots
+--plot-only                 regenerate plots from an existing CSV
 ```
 
-The BAT wrapper does the same thing with PowerShell execution policy bypassed:
+Useful TRIM options:
 
-```cmd
-fix_srim_no_admin.bat -Root C:\SRIM-2013
+```text
+--energies-kev 1,2,5,10      use exact energies instead of the log grid
+--mode quick-depth-and-qf    default two-pass workflow
+--mode quick-depth-scan      run only broad depth scans
+--mode qf-production         run only QF production
+--parse-only                 rebuild CSV from existing work folders
+--n-ions 100                 production ions per job
+--quick-n-ions 100           quick-scan ions per job
 ```
 
-Useful check-only mode:
+## Platform Notes
 
-```powershell
-.\fix_srim_no_admin.ps1 -Root C:\SRIM-2013 -CheckOnly -SkipExecutionTest
+Supported:
+
+```text
+Windows Python 3.10+ with SRIM installed at C:\SRIM-2013
+WSL Python 3.10+ calling the Windows install at /mnt/c/SRIM-2013
 ```
 
-The script refuses protected folders such as `Program Files`, grants the current
-user write access under the SRIM root, inspects compatibility flags, and removes
-`RUNASADMIN` where possible.
+Pure Linux and macOS are not supported as-is because SRIM-2013 is a Windows
+application. A Wine-based workflow may be possible, but it is not implemented
+here.
 
-## Notes
-
-The script temporarily overwrites `SR Module/SR.IN` while running and restores
-the previous file at the end. Avoid running multiple copies against the same
-SRIM installation at the same time.
-
-If SRModule output files are locked, close stale `SRModule.exe` processes from
-Task Manager and retry. On WSL, the script calls Windows `cmd.exe` and
-PowerShell through WSL interop, so the SRIM path should live under `/mnt/c` or
-another Windows-mounted drive.
+Do not run multiple sweeps against the same SRIM installation at the same time.
+The scripts temporarily overwrite `SR.IN`, `TRIM.IN`, and `TRIMAUTO`, then
+restore the previous files when the run ends.
