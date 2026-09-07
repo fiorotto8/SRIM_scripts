@@ -1,204 +1,287 @@
-# SRIM Gas-Recoil Automation
+# SRIM Noble-Gas/CF4 Automation
 
-Automation scripts for running SRIM-2013 gas-recoil studies from Windows or
-WSL. The repository keeps only the project-specific Python scripts, gas table,
-and helper utilities; the SRIM-2013 installation itself stays outside Git.
+This repository drives reproducible SRIM-2013 scans of Xe/CF4, Kr/CF4, and
+Ar/CF4 gas mixtures. The canonical scan covers:
 
-## Install
+- noble-gas/CF4 mole fractions from 60/40 through 95/5 in 5 percentage-point steps;
+- pressures from 0.5 through 3.0 atm in 0.5-atm steps at 293.15 K;
+- the constituent recoil species (noble element, C, and F);
+- 100 logarithmic recoil energies from 0.1 through 500 keV;
+- 1,000 full-cascade TRIM histories per gas/ion/energy point;
+- three independent 10,000-ion convergence repeats at selected corner points.
 
-1. Install SRIM-2013 on Windows.
+The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
+jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
-   Recommended path:
+## Scientific scope
 
-   ```text
-   C:\SRIM-2013
-   ```
+SRIM supplies stopping powers, ion ranges and straggling, collision transport,
+and depth-dependent energy-partition profiles. This project reports two
+different electronic-energy fractions:
 
-2. Clone this repository anywhere convenient.
+```text
+qf_trim_ionization = integral(IONIZ from primary ion + recoils) / initial energy
+srmodule_electronic_fraction_proxy = integral[Se/(Se+Sn) dE] / initial energy
+```
 
-3. Create your local SRIM path config:
+The TRIM value is the canonical SRIM ionization fraction. Neither quantity is
+a detector calibration for charge, light, or scintillation.
 
-   ```bash
-   cp srim-root.example.txt srim-root.txt
-   ```
+SRIM requires density as input. Mixture densities here are calculated with the
+ideal-gas law using natural atomic masses read from SRIM `ATOMDATA`. SRIM's
+manual states that its gas stopping model always assumes STP. Changing pressure
+therefore changes density and range scaling, but SRIM cannot predict genuine
+non-STP pressure dependence of stopping or quenching.
 
-   Edit `srim-root.txt` so the first non-comment line points to your SRIM
-   installation:
+SRIM does not calculate electron drift velocity or diffusion, attachment,
+W-values, Fano factors, recombination, avalanche gain, or detector response.
+Vacancy, displacement, and phonon-named outputs are retained for provenance but
+are marked as SRIM internals rather than physical gas material-damage results.
 
-   ```text
-   C:\SRIM-2013
-   ```
+See the official [SRIM site](https://www.srim.org/) and
+[TRIM input manual](https://www.srim.org/SRIM/SRIM%2008.pdf).
 
-   WSL users may also use:
+## Requirements
 
-   ```text
-   /mnt/c/SRIM-2013
-   ```
+- SRIM-2013 installed on Windows/WSL, or Wine plus Xvfb on native Linux.
+- Python 3.11 or newer.
+- Matplotlib is optional and is used only for report plots.
 
-4. Install optional plotting support:
+The SRIM location is selected in this order: `--srim-root`, the first active
+line of `srim-root.txt`, then the directory containing the scripts. A WSL path
+or a Windows path may be used.
 
-   ```bash
-   python -m pip install matplotlib
-   ```
+Do not run a legacy script or a manual SRIM calculation against a worker runtime
+while `srim_scan.py` is using it. The source SRIM installation is never edited
+by the canonical pipeline.
 
-5. Check that both workflows can see SRIM and the gas table:
+## Ubuntu with fiorotto8/pysrim
 
-   ```bash
-   python srim_gas_sweep.py --dry-run --no-plots
-   python trim_qf_sweep.py --dry-run --no-plots
-   ```
+The native-Linux configuration uses the
+[`fiorotto8/pysrim`](https://github.com/fiorotto8/pysrim) fork through Wine and
+an isolated Xvfb display. It is pinned to commit
+`9b8e1b7e91fe65bf17e9366e1fd9b9406ad125d2`. The adapter supplies the explicit
+safe YAML loader required by current PyYAML, runs each PySRIM job in a separate
+Python process, and retains the main pipeline's timeouts and private SRIM
+worker directories.
 
-If SRIM asks for administrator permission, hangs behind a UAC dialog, or cannot
-write output files, run the included Windows helper:
+Use this sibling layout under `~/Documents/SRIM`:
+
+```text
+~/Documents/SRIM/
+├── pysrim/          existing fiorotto8/pysrim checkout
+├── SRIM_scripts/    this repository
+├── srim-2013/       created from pysrim's pinned SRIM archive
+└── .wine-srim/      generated 32-bit Wine prefix
+```
+
+On the Ubuntu machine, enter this repository and run the one-time bootstrap:
+
+```bash
+cd ~/Documents/SRIM/SRIM_scripts
+./scripts/bootstrap_ubuntu.sh --install-system-deps
+```
+
+The script verifies both the PySRIM commit and bundled SRIM archive hash,
+installs the Ubuntu/Python dependencies, creates `.venv`, extracts SRIM beside
+the two repositories, initializes the Wine prefix, and registers the Visual
+Basic/OCX components. It refuses to overwrite a non-empty incomplete SRIM
+directory or to alter a PySRIM checkout at a different commit.
+
+Run the real executable canary once:
+
+```bash
+./scripts/run_ubuntu_preflight.sh
+```
+
+Then invoke the same resumable session command on at most five days. The TOML
+configuration supplies four workers, an eight-hour hard budget, and a
+75-minute drain margin; command-line options can still override the worker
+count.
+
+```bash
+./scripts/run_ubuntu_session.sh
+./.venv/bin/python srim_scan.py status --run-dir runs/noble_cf4_40h_ubuntu
+```
+
+After all stages report complete:
+
+```bash
+./.venv/bin/python srim_scan.py validate --run-dir runs/noble_cf4_40h_ubuntu
+./.venv/bin/python srim_scan.py report --run-dir runs/noble_cf4_40h_ubuntu
+```
+
+The bootstrap and full SRModule/TRIM canary were exercised in a clean Ubuntu
+24.04 container with Python 3.12, Wine 9, and no display. A separate four-worker
+test completed eight concurrent SRModule jobs with no failures and recorded
+the pinned PySRIM commit in `provenance/execution.json`.
+
+## Five-session, 40-hour campaign
+
+The measured full-cascade runtime makes the original 43.2-million-history grid
+impractical on this machine. `configs/noble_cf4_40h.toml` is the recommended
+time-boxed campaign. It retains all 144 gas conditions and all 43,200 final
+gas/ion/energy rows, while distinguishing direct from derived results:
+
+- 576 direct full-cascade TRIM anchors: eight energies, 50 ions, at 1 atm;
+- pressure ranges and depth coordinates scaled with ideal-gas density;
+- QF and range values interpolated onto the 100-point energy grid;
+- 324 direct convergence jobs at both pressure endpoints, three repeats and
+  25 ions per repeat; points above 2% RSE are explicitly warned;
+- four isolated workers and a 75-minute drain margin per eight-hour session.
+
+Run preflight once:
+
+```bash
+python3 srim_scan.py preflight --config configs/noble_cf4_40h.toml
+python3 srim_scan.py plan --config configs/noble_cf4_40h.toml
+```
+
+Then run this same command on at most five separate days/sessions. Each
+invocation stops launching jobs after 6 hours 45 minutes and allows active jobs
+up to one hour to drain, leaving shutdown/archiving margin:
+
+```bash
+python3 srim_scan.py run \
+  --config configs/noble_cf4_40h.toml \
+  --run-dir runs/noble_cf4_40h \
+  --stage all --workers 4 --resume --wall-hours 8 --stop-margin-minutes 75
+```
+
+After each session:
+
+```bash
+python3 srim_scan.py status --run-dir runs/noble_cf4_40h
+```
+
+After completion:
+
+```bash
+python3 srim_scan.py validate --run-dir runs/noble_cf4_40h
+python3 srim_scan.py report --run-dir runs/noble_cf4_40h
+```
+
+The direct Monte Carlo values remain in `trim_anchor_results.csv`; the expanded
+table is `trim_results.csv`. Every expanded row is labelled `direct`,
+`pressure_scaled`, `energy_interpolated`, or both, and identifies its source job
+and profile. These derived rows must not be represented as independent TRIM
+Monte Carlo calculations.
+
+Commissioning with the local environment exposing four physical cores ran four concurrent 500 keV,
+50-ion jobs in 8.6, 12.3, 22.6, and 23.7 minutes, all on their first attempt.
+A deliberately conservative species-scaled estimate is about 11–16 total wall
+hours for the direct anchor plus convergence workload. This is an estimate from
+four high-energy combinations, not a runtime guarantee; the five-session limit
+provides substantial contingency. A hard deadline inside the runner returns an
+unfinished job to `pending` before an eight-hour session expires.
+
+## Strict 43.2-million-history scan
+
+The following original configuration is retained for reproducibility, but its
+measured runtime is incompatible with the five-session local-machine limit.
+
+Run the installation and executable canaries first. Canaries use a temporary,
+private copy of SRIM and remove it after a successful check.
+
+```bash
+python3 srim_scan.py preflight --config configs/noble_cf4_standard.toml
+python3 srim_scan.py plan --config configs/noble_cf4_standard.toml
+```
+
+Run each resumable stage:
+
+```bash
+python3 srim_scan.py run \
+  --config configs/noble_cf4_standard.toml \
+  --run-dir runs/noble_cf4_standard \
+  --stage srmodule --resume
+
+python3 srim_scan.py run \
+  --config configs/noble_cf4_standard.toml \
+  --run-dir runs/noble_cf4_standard \
+  --stage trim --workers 1 --resume
+
+python3 srim_scan.py run \
+  --config configs/noble_cf4_standard.toml \
+  --run-dir runs/noble_cf4_standard \
+  --stage convergence --workers 1 --resume
+
+python3 srim_scan.py validate --run-dir runs/noble_cf4_standard
+python3 srim_scan.py report --run-dir runs/noble_cf4_standard
+```
+
+Use `status` at any time:
+
+```bash
+python3 srim_scan.py status --run-dir runs/noble_cf4_standard
+```
+
+Interrupted jobs are returned to the pending queue on the next `--resume`.
+Existing completed jobs and raw results are not overwritten. For a short
+commissioning run, append `--limit N` to a run stage. More than one worker is
+supported by isolated SRIM runtime copies; start with one worker and increase
+only after the preflight and a limited run pass on the machine.
+
+The equivalent one-command execution is available, but separate stages are
+recommended because TRIM target widths depend on completed SRModule results:
+
+```bash
+python3 srim_scan.py run \
+  --config configs/noble_cf4_standard.toml \
+  --run-dir runs/noble_cf4_standard \
+  --stage all --workers 1 --resume
+```
+
+## Output layout
+
+Each run directory contains:
+
+```text
+gas_conditions.csv             ideal-gas inputs, SRIM masses, composition provenance
+srmodule_results.csv           stopping, range, straggling, electronic proxy
+trim_results.csv               direct or provenance-labelled expanded TRIM table
+trim_anchor_results.csv        direct anchors for a derived/time-boxed campaign
+convergence_results.csv        independent high-statistics repeats
+jobs.sqlite                    resumable job state and errors
+raw/{stage}/*.tar.gz           inputs, raw SRIM files, hashes, manifest
+profiles/{stage}/*.json.gz     normalized depth-dependent profiles
+validation.{json,csv}          completeness and consistency checks
+plots/*.png                    compact family-level summaries
+report.html                    validation and interpretation report
+provenance/                    frozen configuration and SRIM hashes/versions
+runtime/worker-*               private SRIM worker installations
+```
+
+Raw TRIM bundles retain `TDATA`, `RANGE`, `LATERAL`, `IONIZ`, `E2RECOIL`,
+`PHONON`, `VACANCY`, `NOVAC`, and any generated backscatter, transmission, or
+3-D endpoint files. Full collision histories and EXYZ trajectories are not
+enabled for the 43,200-job baseline scan.
+
+## Validation gates
+
+`validate` fails if jobs or artifacts are missing, metadata or numerical bounds
+are invalid, target windows remain clipped, pressure-invariant SRIM quantities
+change unexpectedly, raw hashes do not match, 3-D convergence endpoints are
+absent, or the selected convergence repeats exceed 2% relative standard error.
+The two convergence pressures are also compared using their combined repeat
+uncertainty. Differences between the deterministic SRModule range and the TRIM
+Monte Carlo range are reported diagnostically rather than silently merged.
+
+Run the unit tests with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+## Legacy entry points
+
+`srim_gas_sweep.py` and `trim_qf_sweep.py` remain available for older gas CSV
+workflows. They are not the canonical interface for the noble-gas/CF4 scan.
+The WSL executable launch bug has also been corrected in both legacy backends.
+
+If an older installation asks for elevation or cannot write files, run from
+Windows PowerShell:
 
 ```powershell
 .\fix_srim_no_admin.ps1 -Root C:\SRIM-2013
 ```
-
-## Run the Full Analysis
-
-Run SRModule first. This creates the deterministic stopping/range table used as
-a reference for the TRIM comparison plots:
-
-```bash
-python srim_gas_sweep.py \
-  --out results/srmodule_all_gases_0p1_500keV_100pts.csv \
-  --plots-dir plots/srmodule_all_gases_0p1_500keV_100pts \
-  --workdir work/srmodule_all_gases_0p1_500keV_100pts \
-  --keep-work
-```
-
-Then run the TRIM/IONIZ quenching-factor sweep:
-
-```bash
-python trim_qf_sweep.py \
-  --out results/trim_qf_all_gases_0p1_500keV_100pts_100ions.csv \
-  --plots-dir plots/trim_qf_all_gases_0p1_500keV_100pts_100ions \
-  --workdir work/trim_qf_all_gases_0p1_500keV_100pts_100ions \
-  --srmodule-csv results/srmodule_all_gases_0p1_500keV_100pts.csv \
-  --keep-work
-```
-
-On systems where `python` is Python 2, use `python3`.
-
-## Repository Layout
-
-```text
-srim_gas_sweep.py       SRModule stopping/range sweep
-trim_qf_sweep.py        TRIM/IONIZ quenching-factor sweep
-GasDensities.csv        gas mixtures, densities, and pressures
-fix_srim_no_admin.ps1   Windows permission and compatibility repair helper
-fix_srim_no_admin.bat   BAT wrapper for the PowerShell helper
-srim-root.example.txt   template for local SRIM path configuration
-.gitignore              keeps SRIM binaries and generated outputs out of Git
-```
-
-Local/generated files are intentionally ignored:
-
-```text
-srim-root.txt
-results/
-plots/
-work/
-logs/
-SRIM executables and data folders
-```
-
-## How the Code Works
-
-`srim_gas_sweep.py` is the fast deterministic path. For each gas row and recoil
-ion, it:
-
-1. Reads `GasDensities.csv`.
-2. Parses formulas such as `CF4` and mixture labels such as
-   `HeCF4(60% He 40% CF4)`.
-3. Reads SRIM element and compound metadata from `Data/ATOMDATA` and
-   `Data/Compound.dat`.
-4. Writes `SR Module/SR.IN`.
-5. Runs `SR Module/SRModule.exe`.
-6. Parses the SRModule stopping/range output.
-7. Interpolates the raw SRIM table onto a log-spaced energy grid.
-8. Writes CSV rows and optional plots.
-
-Its main output is a table of electronic stopping, nuclear stopping, projected
-range, straggling, and an electronic-stopping quenching proxy:
-
-```text
-QF_electronic(E) = integrated electronic stopping energy / initial ion energy
-```
-
-`trim_qf_sweep.py` is the slower Monte Carlo path. For each gas, ion, and
-energy, it:
-
-1. Builds `TRIM.IN`, `TRIMAUTO`, and a per-job `manifest.json`.
-2. Runs `TRIM.exe`.
-3. Collects files such as `IONIZ.TXT`, `RANGE.TXT`, and `PHONON.TXT`.
-4. Integrates the `IONIZ.TXT` profile.
-5. Writes ionization quenching-factor rows and optional comparison plots.
-
-The default TRIM mode is `quick-depth-and-qf`, which performs two passes:
-
-1. A quick depth scan estimates the ionization depth for each gas/ion/energy.
-2. A production pass reruns TRIM with a target width based on that depth.
-
-The TRIM quenching factor is:
-
-```text
-QF_ioniz(E) = integrated IONIZ energy / initial ion kinetic energy
-```
-
-Both quantities are SRIM-derived energy fractions. They are not detector
-calibrations for scintillation, charge yield, or light yield.
-
-## Configuration
-
-The scripts find SRIM in this order:
-
-1. `--srim-root`
-2. `SRIM_ROOT` environment variable
-3. `srim-root.txt`
-4. the directory containing the script
-
-Relative paths for `GasDensities.csv`, `results/`, `plots/`, and `work/` are
-kept relative to this repository when possible. SRIM data files and executables
-are read from `--srim-root`.
-
-Useful shared options:
-
-```text
---gases CF4                 run only matching gas rows
---ions H,He,C,F             choose explicit recoil ions
---emin-kev 1 --emax-kev 100 --points 20
---keep-work                 preserve raw generated inputs and outputs
---no-plots                  skip Matplotlib plots
---plot-only                 regenerate plots from an existing CSV
-```
-
-Useful TRIM options:
-
-```text
---energies-kev 1,2,5,10      use exact energies instead of the log grid
---mode quick-depth-and-qf    default two-pass workflow
---mode quick-depth-scan      run only broad depth scans
---mode qf-production         run only QF production
---parse-only                 rebuild CSV from existing work folders
---n-ions 100                 production ions per job
---quick-n-ions 100           quick-scan ions per job
-```
-
-## Platform Notes
-
-Supported:
-
-```text
-Windows Python 3.10+ with SRIM installed at C:\SRIM-2013
-WSL Python 3.10+ calling the Windows install at /mnt/c/SRIM-2013
-```
-
-Pure Linux and macOS are not supported as-is because SRIM-2013 is a Windows
-application. A Wine-based workflow may be possible, but it is not implemented
-here.
-
-Do not run multiple sweeps against the same SRIM installation at the same time.
-The scripts temporarily overwrite `SR.IN`, `TRIM.IN`, and `TRIMAUTO`, then
-restore the previous files when the run ends.
