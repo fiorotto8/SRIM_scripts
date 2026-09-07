@@ -8,6 +8,19 @@
 !/GasDensities.csv
 !/srim_gas_sweep.py
 !/trim_qf_sweep.py
+!/srim_scan.py
+!/pysrim_runner.py
 !/fix_srim_no_admin.ps1
 !/fix_srim_no_admin.bat
 !/srim-root.txt
+!/configs/
+!/configs/*.toml
+!/tests/
+!/tests/*.py
+!/scripts/
+!/scripts/*.sh
+
+# Generated scan state and local Python caches remain untracked.
+runs/
+__pycache__/
+*.pyc

@@ -350,6 +350,14 @@ def write_trim_in(
     target_width_angstrom: float,
     density_g_cm3: float,
     compound_correction: float,
+    angle_deg: float = 0.0,
+    random_seed: int = 0,
+    save_3d_ranges: bool = False,
+    save_backscatter: bool = False,
+    save_transmit: bool = False,
+    displacement_energy_ev: float = 21.0,
+    lattice_binding_energy_ev: float = 0.0,
+    surface_binding_energy_ev: float = 0.0,
 ) -> None:
     target_symbols = sorted(gas.stoich, key=lambda symbol: elements[symbol].z)
     title = f"{ion.symbol} {energy_kev:g} keV in {gas.label}"
@@ -357,18 +365,21 @@ def write_trim_in(
     layer_name = sanitize_filename(gas.label).replace("_", " ")[:14].ljust(14)
     element_header = "  ".join(f"{symbol}({elements[symbol].z})" for symbol in target_symbols)
     stoich_values = " ".join(f"{gas.stoich[symbol]:.8g}" for symbol in target_symbols)
-    displacement = " ".join("21" for _ in target_symbols)
-    lattice = " ".join("0" for _ in target_symbols)
-    surface = " ".join("0" for _ in target_symbols)
+    displacement = " ".join(f"{displacement_energy_ev:.8g}" for _ in target_symbols)
+    lattice = " ".join(f"{lattice_binding_energy_ev:.8g}" for _ in target_symbols)
+    surface = " ".join(f"{surface_binding_energy_ev:.8g}" for _ in target_symbols)
 
     lines = [
         "==> SRIM-2011.00 This file controls TRIM Calculations.",
         "Ion: Z1 ,  M1,  Energy (keV), Angle,Number,Bragg Corr,AutoSave Number.",
-        f"{ion.z:6d} {ion.mass_u:10.5f} {energy_kev:12.6g} {0:7d} {n_ions:7d} {0:8d} {10000:8d}",
+        f"{ion.z:6d} {ion.mass_u:10.5f} {energy_kev:12.6g} {angle_deg:7.3g} {n_ions:7d} {0:8d} {min(n_ions, 10000):8d}",
         "Cascade Type[1=None;2=Full;3=Mono/Sputt;4-5=Ions(TRIM.dat);6-7=Recoils(TRIM.dat)], Random Number Seed, Reminders",
-        f"{cascade_type:23d} {0:35d} {0:7d}",
+        f"{cascade_type:23d} {random_seed:35d} {0:7d}",
         "Diskfiles (0=no,1=yes): Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file",
-        "                          1       0           0       0               0                               0",
+        (
+            f"                          {int(save_3d_ranges)}       {int(save_backscatter)}"
+            f"           {int(save_transmit)}       0               0                               0"
+        ),
         "Target material : Number of Elements & Layers",
         f"\"{title}\" {len(target_symbols):7d} {1:15d}",
         "PlotType (0-5); Plot Depths: Xmin, Xmax(Ang.) [=0 0 for Viewing Full Target]",
@@ -482,12 +493,10 @@ def run_trim_exe(root: Path, timeout_s: int) -> None:
     exe = root / "TRIM.exe"
     if not exe.exists():
         raise FileNotFoundError(f"Missing TRIM executable: {exe}")
-    if is_wsl():
-        cmd = ["cmd.exe", "/c", "TRIM.exe"]
-        cwd = str(root)
-    else:
-        cmd = [str(exe)]
-        cwd = str(root)
+    # Direct WSL PE launch keeps SRIM's working directory intact; invoking via
+    # cmd.exe can make relative control/output paths resolve elsewhere.
+    cmd = [str(exe.resolve())]
+    cwd = str(root)
     try:
         completed = subprocess.run(
             cmd,
@@ -802,8 +811,12 @@ def run_job(root: Path, job: TrimJob, elements: Dict[str, Element], timeout_s: i
     finally:
         if original_trim_in:
             trim_in.write_bytes(original_trim_in)
+        else:
+            trim_in.unlink(missing_ok=True)
         if original_trim_auto:
             trim_auto.write_bytes(original_trim_auto)
+        else:
+            trim_auto.unlink(missing_ok=True)
 
     ioniz_path = next((path for path in [job.job_dir / "IONIZ.TXT", job.job_dir / "IONIZ.txt"] if path.exists()), None)
     if ioniz_path is None:

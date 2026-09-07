@@ -696,21 +696,16 @@ def prepare_srmodule_output_path(module_dir: Path, output_name: str) -> Tuple[st
 
 
 def run_srmodule(module_dir: Path, timeout_s: int = 60, expected_output: Path | None = None) -> None:
-    if is_wsl():
-        proc = subprocess.Popen(
-            ["cmd.exe", "/c", "SRModule.exe"],
-            cwd=str(module_dir),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    else:
-        exe = module_dir / "SRModule.exe"
-        proc = subprocess.Popen(
-            [str(exe)],
-            cwd=str(module_dir),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+    # WSL launches Windows PE files directly from /mnt/<drive>/... paths and
+    # preserves cwd.  cmd.exe does not reliably preserve the Linux Popen cwd,
+    # which breaks SRModule's relative control and data-file lookups.
+    exe = module_dir / "SRModule.exe"
+    proc = subprocess.Popen(
+        [str(exe.resolve())],
+        cwd=str(module_dir),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
 
     deadline = time.monotonic() + timeout_s
     last_size = -1
