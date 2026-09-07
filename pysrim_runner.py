@@ -29,6 +29,7 @@ def import_pysrim() -> Dict[str, Any]:
     yaml.load = compatible_load
     import srim
     from srim import Element, Ion, Layer, SR, TRIM, Target
+    from srim.output import SRIMOutputParseError
 
     return {
         "module": srim,
@@ -38,6 +39,7 @@ def import_pysrim() -> Dict[str, Any]:
         "SR": SR,
         "TRIM": TRIM,
         "Target": Target,
+        "SRIMOutputParseError": SRIMOutputParseError,
     }
 
 
@@ -120,7 +122,29 @@ def execute_spec(spec: Mapping[str, Any], write_only: bool = False) -> None:
             finally:
                 os.chdir(previous)
         else:
-            trim.run(str(runtime))
+            try:
+                trim.run(str(runtime))
+            except api["SRIMOutputParseError"]:
+                # PySRIM's legacy parser rejects some otherwise valid SRIM-2013
+                # headers (notably one-ion RANGE output). The parent pipeline
+                # has stricter, tested parsers and independently requires the
+                # complete standard output set before accepting the job.
+                required = (
+                    "TDATA.txt",
+                    "RANGE.txt",
+                    "LATERAL.txt",
+                    "IONIZ.txt",
+                    "E2RECOIL.txt",
+                    "PHONON.txt",
+                    "VACANCY.txt",
+                    "NOVAC.txt",
+                )
+                if not all(
+                    (runtime / name).is_file()
+                    or (runtime / "SRIM Outputs" / name).is_file()
+                    for name in required
+                ):
+                    raise
     elif mode == "srmodule":
         sr = api["SR"](
             layer,

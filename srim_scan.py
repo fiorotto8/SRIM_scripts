@@ -18,6 +18,7 @@ import io
 import json
 import math
 import os
+import platform
 import re
 import signal
 import shutil
@@ -126,6 +127,7 @@ class ScanConfig:
     convergence_pressures: Tuple[float, ...]
     convergence_energies: Tuple[float, ...]
     convergence_ions: int
+    convergence_timeout_s: int
     convergence_repeats: int
     convergence_rse: float
     qf_pressure_warning: float
@@ -136,6 +138,7 @@ class ScanConfig:
     campaign_sessions: int
     campaign_session_hours: float
     campaign_stop_margin_minutes: float
+    campaign_max_cumulative_hours: float
     execution_backend: str
     srim_root_hint: str
     pysrim_root_hint: str
@@ -301,6 +304,7 @@ def load_config(path: Path) -> ScanConfig:
         convergence_pressures=tuple(float(item) for item in convergence["pressures_atm"]),
         convergence_energies=tuple(float(item) for item in convergence["energies_kev"]),
         convergence_ions=int(convergence["ions_per_job"]),
+        convergence_timeout_s=int(convergence.get("timeout_s", trim["timeout_s"])),
         convergence_repeats=int(convergence["repeats"]),
         convergence_rse=float(convergence["maximum_relative_standard_error"]),
         qf_pressure_warning=float(validation["qf_absolute_pressure_warning"]),
@@ -311,6 +315,7 @@ def load_config(path: Path) -> ScanConfig:
         campaign_sessions=int(campaign.get("sessions", 0)),
         campaign_session_hours=float(campaign.get("session_hours", 0.0)),
         campaign_stop_margin_minutes=float(campaign.get("stop_margin_minutes", 0.0)),
+        campaign_max_cumulative_hours=float(campaign.get("max_cumulative_hours", 0.0)),
         execution_backend=str(execution.get("backend", "auto")),
         srim_root_hint=str(execution.get("srim_root", "")),
         pysrim_root_hint=str(execution.get("pysrim_root", "")),
@@ -329,7 +334,13 @@ def validate_config(cfg: ScanConfig) -> None:
         raise ValueError("Expected noble percentages 60, 65, ..., 95.")
     if cfg.pressures_atm != (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
         raise ValueError("Expected pressures 0.5, 1.0, ..., 3.0 atm.")
-    if cfg.temperature_k <= 0 or cfg.trim_ions <= 0 or cfg.convergence_repeats < 2:
+    if (
+        cfg.temperature_k <= 0
+        or cfg.trim_ions <= 0
+        or cfg.trim_timeout_s <= 0
+        or cfg.convergence_timeout_s <= 0
+        or cfg.convergence_repeats < 2
+    ):
         raise ValueError("Temperature, ion count, and convergence repeats are invalid.")
     if cfg.trim_cascade_type != 2:
         raise ValueError("The agreed scan requires TRIM full cascades (cascade type 2).")
@@ -342,10 +353,19 @@ def validate_config(cfg: ScanConfig) -> None:
         raise ValueError("Every trim.pressures_atm value must belong to scan.pressures_atm.")
     if cfg.derive_full_grid and len(cfg.trim_pressures) != 1:
         raise ValueError("Pressure-derived scans require exactly one direct TRIM pressure.")
-    if cfg.campaign_sessions < 0 or cfg.campaign_session_hours < 0:
+    if (
+        cfg.campaign_sessions < 0
+        or cfg.campaign_session_hours < 0
+        or cfg.campaign_max_cumulative_hours < 0
+    ):
         raise ValueError("Campaign session count and duration cannot be negative.")
     if cfg.campaign_stop_margin_minutes < 0:
         raise ValueError("Campaign stop margin cannot be negative.")
+    if (
+        cfg.campaign_max_cumulative_hours
+        and cfg.campaign_stop_margin_minutes >= cfg.campaign_max_cumulative_hours * 60
+    ):
+        raise ValueError("Campaign stop margin must be shorter than the cumulative budget.")
     if cfg.convergence_rse_severity not in {"warning", "failure"}:
         raise ValueError("validation.convergence_rse_severity must be warning or failure.")
     if cfg.execution_backend not in {"auto", "native", "pysrim"}:
@@ -528,8 +548,107 @@ def open_database(run_dir: Path) -> sqlite3.Connection:
     connection.execute(
         "CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
     )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS campaign_sessions (
+            session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            started_at TEXT NOT NULL,
+            started_epoch REAL NOT NULL,
+            finished_at TEXT,
+            finished_epoch REAL,
+            elapsed_seconds REAL
+        )
+        """
+    )
     connection.commit()
     return connection
+
+
+def campaign_usage(
+    connection: sqlite3.Connection,
+    maximum_hours: float,
+    now_epoch: float | None = None,
+) -> Dict[str, float | int]:
+    """Return persisted campaign use, conservatively charging open sessions."""
+    now = time.time() if now_epoch is None else now_epoch
+    elapsed = 0.0
+    open_sessions = 0
+    for started, finished, duration in connection.execute(
+        "SELECT started_epoch,finished_epoch,elapsed_seconds FROM campaign_sessions"
+    ):
+        if duration is not None:
+            elapsed += max(0.0, float(duration))
+        elif finished is not None:
+            elapsed += max(0.0, float(finished) - float(started))
+        else:
+            open_sessions += 1
+            elapsed += max(0.0, now - float(started))
+    maximum_seconds = max(0.0, maximum_hours * 3600.0)
+    remaining = max(0.0, maximum_seconds - elapsed) if maximum_seconds else math.inf
+    return {
+        "elapsed_seconds": elapsed,
+        "remaining_seconds": remaining,
+        "maximum_seconds": maximum_seconds,
+        "open_sessions": open_sessions,
+    }
+
+
+def begin_campaign_session(
+    connection: sqlite3.Connection,
+    maximum_hours: float,
+    now_epoch: float | None = None,
+) -> Tuple[int | None, Dict[str, float | int]]:
+    """Close abandoned sessions and begin one budget-accounted invocation."""
+    now = time.time() if now_epoch is None else now_epoch
+    stamp = datetime.fromtimestamp(now, timezone.utc).isoformat(timespec="seconds")
+    abandoned = connection.execute(
+        "SELECT session_id,started_epoch FROM campaign_sessions WHERE finished_epoch IS NULL"
+    ).fetchall()
+    for session_id, started in abandoned:
+        elapsed = max(0.0, now - float(started))
+        connection.execute(
+            """
+            UPDATE campaign_sessions
+            SET finished_at=?,finished_epoch=?,elapsed_seconds=?
+            WHERE session_id=?
+            """,
+            (stamp, now, elapsed, session_id),
+        )
+    connection.commit()
+    usage = campaign_usage(connection, maximum_hours, now)
+    if float(usage["remaining_seconds"]) <= 0.0:
+        return None, usage
+    cursor = connection.execute(
+        "INSERT INTO campaign_sessions(started_at,started_epoch) VALUES(?,?)",
+        (stamp, now),
+    )
+    connection.commit()
+    return int(cursor.lastrowid), usage
+
+
+def finish_campaign_session(
+    connection: sqlite3.Connection,
+    session_id: int | None,
+    now_epoch: float | None = None,
+) -> None:
+    if session_id is None:
+        return
+    now = time.time() if now_epoch is None else now_epoch
+    row = connection.execute(
+        "SELECT started_epoch FROM campaign_sessions WHERE session_id=?", (session_id,)
+    ).fetchone()
+    if row is None:
+        return
+    stamp = datetime.fromtimestamp(now, timezone.utc).isoformat(timespec="seconds")
+    connection.execute(
+        """
+        UPDATE campaign_sessions
+        SET finished_at=?,finished_epoch=?,elapsed_seconds=?
+        WHERE session_id=?
+        """,
+        (stamp, now, max(0.0, now - float(row[0])), session_id),
+    )
+    connection.commit()
 
 
 def register_jobs(connection: sqlite3.Connection, jobs: Sequence[JobSpec]) -> None:
@@ -675,7 +794,45 @@ def prepare_runtime(source_root: Path, runtime: Path, fingerprint: Mapping[str, 
     )
 
 
-def prepare_runtimes(source_root: Path, run_dir: Path, workers: int) -> Tuple[List[Path], Dict[str, str]]:
+def prepare_worker_wine_prefix(source: Path, target: Path) -> None:
+    """Clone the initialized prefix so every worker has an isolated wineserver."""
+    marker = target / ".srim-worker-prefix.json"
+    if marker.is_file() and (target / "system.reg").is_file():
+        return
+    if target.exists() and any(target.iterdir()):
+        raise RuntimeError(f"Refusing to replace non-empty worker Wine prefix: {target}")
+    if not (source / "system.reg").is_file():
+        raise FileNotFoundError(f"Source Wine prefix is not initialized: {source}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_name(target.name + f".tmp-{os.getpid()}")
+    if temporary.exists():
+        raise RuntimeError(f"Refusing to replace incomplete worker Wine prefix: {temporary}")
+    shutil.copytree(source, temporary, symlinks=True, dirs_exist_ok=False)
+    atomic_write_json(
+        temporary / marker.name,
+        {
+            "created_at": utc_now(),
+            "source_prefix": str(source),
+            "source_system_reg_sha256": sha256_file(source / "system.reg"),
+        },
+    )
+    os.replace(temporary, target)
+
+
+def runtime_execution_context(
+    context: ExecutionContext, run_dir: Path, runtime: Path
+) -> ExecutionContext:
+    if context.backend != "pysrim":
+        return context
+    return replace(context, wine_prefix=run_dir / "wine-prefixes" / runtime.name)
+
+
+def prepare_runtimes(
+    source_root: Path,
+    run_dir: Path,
+    workers: int,
+    execution: ExecutionContext | None = None,
+) -> Tuple[List[Path], Dict[str, str]]:
     if workers < 1:
         raise ValueError("--workers must be at least 1.")
     fingerprint = source_fingerprint(source_root)
@@ -683,6 +840,11 @@ def prepare_runtimes(source_root: Path, run_dir: Path, workers: int) -> Tuple[Li
     for index in range(workers):
         runtime = run_dir / "runtime" / f"worker-{index:03d}"
         prepare_runtime(source_root, runtime, fingerprint)
+        if execution is not None and execution.backend == "pysrim":
+            assert execution.wine_prefix is not None
+            worker_context = runtime_execution_context(execution, run_dir, runtime)
+            assert worker_context.wine_prefix is not None
+            prepare_worker_wine_prefix(execution.wine_prefix, worker_context.wine_prefix)
         runtimes.append(runtime)
     provenance = run_dir / "provenance"
     provenance.mkdir(parents=True, exist_ok=True)
@@ -781,11 +943,15 @@ def make_trim_jobs(
                         "save_3d_ranges": stage == "convergence",
                     }
                     jobs.append(JobSpec(stable_id("tr" if stage == "trim" else "cv", payload), stage, payload))
-    # Longest jobs first gives useful timing evidence immediately and prevents
-    # the end of a multi-worker campaign from being dominated by one high-E job.
+    # Benchmarks show that full-cascade cost grows with histories, recoil Z and
+    # sublinearly with energy. Longest-job-first prevents a high-Z tail from
+    # dominating the end of a multi-worker campaign.
+    atomic_number = {"C": 6, "F": 9, "Ar": 18, "Kr": 36, "Xe": 54}
     jobs.sort(
         key=lambda job: (
-            float(job.payload["energy_kev"]) * int(job.payload["n_ions"]),
+            int(job.payload["n_ions"])
+            * atomic_number[str(job.payload["ion"])]
+            * math.sqrt(float(job.payload["energy_kev"])),
             job.job_id,
         ),
         reverse=True,
@@ -974,11 +1140,76 @@ def execution_provenance(context: ExecutionContext, require_runtime: bool = True
         "pysrim_commit": commit,
         "pysrim_probe": probe,
         "wine_prefix": str(context.wine_prefix),
+        "wine_prefix_strategy": "private per-worker clone with per-job wineserver teardown",
         "headless": context.headless,
         "dependencies": dependencies,
         "python_executable": sys.executable,
         "python_version": sys.version.split()[0],
         "pyyaml_compatibility_loader": True,
+    }
+
+
+def host_provenance(srim_root: Path, run_dir: Path) -> Dict[str, Any]:
+    """Collect reproducibility and capacity facts without optional dependencies."""
+    cpu_model = "unknown"
+    physical_cores: set[Tuple[str, str]] = set()
+    try:
+        blocks = Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="replace").split("\n\n")
+        for block in blocks:
+            processor = {
+                key.strip(): value.strip()
+                for line in block.splitlines()
+                if ":" in line
+                for key, value in [line.split(":", 1)]
+            }
+            cpu_model = processor.get("model name", cpu_model)
+            if "physical id" in processor and "core id" in processor:
+                physical_cores.add((processor["physical id"], processor["core id"]))
+    except OSError:
+        pass
+    memory: Dict[str, int] = {}
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="ascii").splitlines():
+            key, value = line.split(":", 1)
+            if key in {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}:
+                memory[key + "_bytes"] = int(value.split()[0]) * 1024
+    except (OSError, ValueError):
+        pass
+
+    def storage(path: Path) -> Dict[str, Any]:
+        existing = path
+        while not existing.exists() and existing != existing.parent:
+            existing = existing.parent
+        stats = os.statvfs(existing)
+        return {
+            "path": str(path),
+            "filesystem_probe": str(existing),
+            "bytes_total": stats.f_blocks * stats.f_frsize,
+            "bytes_available": stats.f_bavail * stats.f_frsize,
+        }
+
+    wine = (
+        subprocess.run(
+            ["wine", "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+        )
+        if shutil.which("wine")
+        else None
+    )
+    return {
+        "hostname": platform.node(),
+        "os": platform.platform(),
+        "kernel": platform.release(),
+        "machine": platform.machine(),
+        "cpu_model": cpu_model,
+        "logical_cpus": os.cpu_count(),
+        "physical_cores_detected": len(physical_cores) or None,
+        "memory": memory,
+        "storage": [storage(srim_root), storage(run_dir)],
+        "wine_version": wine.stdout.strip() if wine is not None else "unavailable",
     }
 
 
@@ -1002,14 +1233,39 @@ def launch_pysrim_job(
     ]
     if context.headless:
         command = ["xvfb-run", "-a", "-s", "-screen 0 1024x768x24", *command]
-    launch_command(
-        command,
-        runtime,
-        timeout_s,
-        environment=pysrim_environment(context),
-        process_group=True,
-        display_name=f"pysrim/{spec.get('mode', 'job')}",
-    )
+    environment = pysrim_environment(context)
+    try:
+        launch_command(
+            command,
+            runtime,
+            timeout_s,
+            environment=environment,
+            process_group=True,
+            display_name=f"pysrim/{spec.get('mode', 'job')}",
+        )
+    finally:
+        # A private prefix makes this safe even while other workers are active.
+        # Stopping the per-job wineserver avoids stale GUI processes poisoning
+        # the next job assigned to the same runtime after a timeout or exit.
+        try:
+            subprocess.run(
+                ["wineserver", "-k"],
+                env=environment,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=15,
+                check=False,
+            )
+            subprocess.run(
+                ["wineserver", "-w"],
+                env=environment,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=15,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
 
 
 def pysrim_element_payload(
@@ -1411,7 +1667,9 @@ def run_trim_job(
     for width_attempt in range(cfg.max_attempts):
         attempted_widths.append(width)
         clear_runtime_outputs(runtime)
-        timeout_s = cfg.trim_timeout_s
+        timeout_s = (
+            cfg.convergence_timeout_s if job.stage == "convergence" else cfg.trim_timeout_s
+        )
         deadline_limited = False
         if hard_deadline is not None:
             # Reserve one minute for output collection, atomic archives, and
@@ -1880,6 +2138,7 @@ def execute_stage(
     done_this_call = 0
     budget_exhausted = False
     infrastructure_error: Exception | None = None
+    interrupted = False
 
     def may_submit() -> bool:
         nonlocal budget_exhausted
@@ -1972,11 +2231,14 @@ def execute_stage(
                                     continue
                                 submit(index, next_job)
     except KeyboardInterrupt:
+        interrupted = True
         SHUTDOWN_REQUESTED.set()
         raise
     finally:
         for executor in executors:
             executor.shutdown(wait=True, cancel_futures=False)
+        if interrupted:
+            recover_interrupted_jobs(connection)
         SHUTDOWN_REQUESTED.clear()
     output = aggregate_stage(connection, run_dir, stage)
     failures = connection.execute(
@@ -2651,8 +2913,9 @@ def print_plan(cfg: ScanConfig) -> None:
     print(f"Gas conditions: {gas_conditions} (expected 144)")
     print(f"Gas/ion combinations: {gas_ions} (expected 432)")
     print(f"SRModule jobs: {gas_ions}; output rows: {gas_ions * cfg.energy_points}")
+    trim_label = "Direct TRIM anchor jobs" if cfg.derive_full_grid else "Direct TRIM jobs"
     print(
-        f"Direct TRIM anchor jobs: {trim_jobs}; primary-ion histories: {trim_jobs * cfg.trim_ions:,}; "
+        f"{trim_label}: {trim_jobs}; primary-ion histories: {trim_jobs * cfg.trim_ions:,}; "
         f"pressures={cfg.trim_pressures}; energies={cfg.trim_energy_points}"
     )
     if cfg.derive_full_grid:
@@ -2669,6 +2932,11 @@ def print_plan(cfg: ScanConfig) -> None:
             f"Campaign budget: at most {cfg.campaign_sessions} sessions x "
             f"{cfg.campaign_session_hours:g} h, {cfg.workers_default} workers, "
             f"{cfg.campaign_stop_margin_minutes:g} min drain margin."
+        )
+    if cfg.campaign_max_cumulative_hours:
+        print(
+            f"Persistent cumulative runtime limit: {cfg.campaign_max_cumulative_hours:g} h "
+            "across restarts."
         )
     print("Pressure caveat: SRIM assumes STP gas stopping; density changes range scaling only.")
 
@@ -2786,8 +3054,11 @@ def command_run(args: argparse.Namespace) -> int:
         args.wine_prefix,
         args.no_headless,
     )
-    execution_info = execution_provenance(execution)
     run_dir = args.run_dir.resolve()
+    worker_count = args.workers if args.workers is not None else cfg.workers_default
+    execution_info = execution_provenance(execution)
+    execution_info["selected_worker_count"] = worker_count
+    execution_info["host"] = host_provenance(srim_root, run_dir)
     elements, _ = load_elements(srim_root / "Data" / "ATOMDATA")
     conditions = generate_conditions(cfg, elements)
     wall_hours = args.wall_hours
@@ -2796,35 +3067,56 @@ def command_run(args: argparse.Namespace) -> int:
     stop_margin_minutes = args.stop_margin_minutes
     if stop_margin_minutes is None:
         stop_margin_minutes = cfg.campaign_stop_margin_minutes
-    stop_launch_at: float | None = None
-    hard_deadline: float | None = None
-    if wall_hours is not None:
-        if wall_hours <= 0:
-            raise ValueError("--wall-hours must be positive.")
-        if stop_margin_minutes < 0 or stop_margin_minutes >= wall_hours * 60:
-            raise ValueError("The stop margin must be nonnegative and shorter than the wall budget.")
-        hard_deadline = time.monotonic() + wall_hours * 3600.0
-        stop_launch_at = hard_deadline - stop_margin_minutes * 60.0
-        print(
-            f"Session budget: {wall_hours:g} h; stop launching new jobs "
-            f"{stop_margin_minutes:g} min before the deadline.",
-            flush=True,
-        )
+    if wall_hours is not None and wall_hours <= 0:
+        raise ValueError("--wall-hours must be positive.")
+    if stop_margin_minutes < 0:
+        raise ValueError("The stop margin must be nonnegative.")
     connection = open_database(run_dir)
+    campaign_session_id: int | None = None
     try:
         record_run_metadata(connection, cfg, srim_root, run_dir, conditions, execution_info)
+        if cfg.campaign_max_cumulative_hours:
+            campaign_session_id, usage = begin_campaign_session(
+                connection, cfg.campaign_max_cumulative_hours
+            )
+            remaining_hours = float(usage["remaining_seconds"]) / 3600.0
+            used_hours = float(usage["elapsed_seconds"]) / 3600.0
+            print(
+                f"Cumulative campaign budget: {used_hours:.6g} h used; "
+                f"{remaining_hours:.6g} h remain of {cfg.campaign_max_cumulative_hours:g} h.",
+                flush=True,
+            )
+            if campaign_session_id is None:
+                print("Cumulative campaign runtime is exhausted; no work was launched.")
+                return 0
+            wall_hours = min(wall_hours or remaining_hours, remaining_hours)
+        stop_launch_at: float | None = None
+        hard_deadline: float | None = None
+        if wall_hours is not None:
+            hard_deadline = time.monotonic() + wall_hours * 3600.0
+            stop_launch_at = hard_deadline - stop_margin_minutes * 60.0
+            print(
+                f"Session budget: {wall_hours:g} h; stop launching new jobs "
+                f"{stop_margin_minutes:g} min before the deadline.",
+                flush=True,
+            )
+            if stop_launch_at <= time.monotonic():
+                print("Remaining runtime is inside the drain margin; no new work was launched.")
+                return 0
         stages = ["srmodule", "trim", "convergence"] if args.stage == "all" else [args.stage]
         for stage in stages:
             if stop_launch_at is not None and time.monotonic() >= stop_launch_at:
                 print("Session launch deadline reached before the next stage; resume next session.")
                 break
-            worker_count = args.workers if args.workers is not None else cfg.workers_default
-            runtimes, _ = prepare_runtimes(srim_root, run_dir, worker_count)
+            runtimes, _ = prepare_runtimes(srim_root, run_dir, worker_count, execution)
             if stage == "srmodule":
                 jobs = make_srmodule_jobs(conditions, cfg)
 
                 def worker(job: JobSpec, runtime: Path) -> str:
-                    return run_srmodule_job(job, runtime, run_dir, cfg, elements, execution)
+                    worker_execution = runtime_execution_context(execution, run_dir, runtime)
+                    return run_srmodule_job(
+                        job, runtime, run_dir, cfg, elements, worker_execution
+                    )
 
             else:
                 predictions = load_srmodule_predictions(run_dir)
@@ -2836,8 +3128,16 @@ def command_run(args: argparse.Namespace) -> int:
                     predictions: Any = predictions,
                     hard_deadline: float | None = hard_deadline,
                 ) -> str:
+                    worker_execution = runtime_execution_context(execution, run_dir, runtime)
                     return run_trim_job(
-                        job, runtime, run_dir, cfg, elements, predictions, execution, hard_deadline
+                        job,
+                        runtime,
+                        run_dir,
+                        cfg,
+                        elements,
+                        predictions,
+                        worker_execution,
+                        hard_deadline,
                     )
 
             exhausted = execute_stage(
@@ -2867,6 +3167,7 @@ def command_run(args: argparse.Namespace) -> int:
                 break
         return 0
     finally:
+        finish_campaign_session(connection, campaign_session_id)
         connection.close()
 
 
@@ -2878,9 +3179,19 @@ def command_status(run_dir: Path) -> int:
     rows = connection.execute(
         "SELECT stage,status,COUNT(*) FROM jobs GROUP BY stage,status ORDER BY stage,status"
     ).fetchall()
-    connection.close()
     for stage, status, count in rows:
         print(f"{stage:12s} {status:10s} {count:8d}")
+    cfg_path = run_dir / "provenance" / "config.toml"
+    if cfg_path.exists():
+        cfg = load_config(cfg_path)
+        if cfg.campaign_max_cumulative_hours:
+            usage = campaign_usage(connection, cfg.campaign_max_cumulative_hours)
+            print(
+                f"campaign     runtime    {float(usage['elapsed_seconds']) / 3600.0:8.3f} h used; "
+                f"{float(usage['remaining_seconds']) / 3600.0:.3f} h remaining; "
+                f"open sessions={usage['open_sessions']}"
+            )
+    connection.close()
     return 0
 
 
@@ -2963,6 +3274,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    def handle_shutdown(_signum: int, _frame: Any) -> None:
+        SHUTDOWN_REQUESTED.set()
+        raise KeyboardInterrupt
+
+    if os.name != "nt":
+        signal.signal(signal.SIGTERM, handle_shutdown)
+        signal.signal(signal.SIGHUP, handle_shutdown)
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "preflight":

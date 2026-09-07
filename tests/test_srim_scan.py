@@ -26,6 +26,7 @@ SRIM_ROOT = Path(
 CONFIG = ROOT / "configs" / "noble_cf4_standard.toml"
 FAST_CONFIG = ROOT / "configs" / "noble_cf4_40h.toml"
 UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_40h_ubuntu.toml"
+STRICT_UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_7day_ubuntu.toml"
 
 
 class ScanGridTests(unittest.TestCase):
@@ -90,6 +91,24 @@ class ScanGridTests(unittest.TestCase):
         self.assertEqual(srim_scan.resolve_srim_root(None, config), (ROOT.parent / "srim-2013").resolve())
         self.assertEqual(len(srim_scan.make_trim_jobs(self.conditions, config, "trim")), 576)
 
+    def test_strict_ubuntu_campaign_is_fully_direct(self):
+        config = srim_scan.load_config(STRICT_UBUNTU_CONFIG)
+        conditions = srim_scan.generate_conditions(config, self.elements)
+        jobs = srim_scan.make_trim_jobs(conditions, config, "trim")
+        self.assertEqual(len(conditions), 144)
+        self.assertEqual(len(jobs), 43_200)
+        self.assertEqual(sum(int(job.payload["n_ions"]) for job in jobs), 43_200_000)
+        self.assertEqual(config.trim_pressures, config.pressures_atm)
+        self.assertEqual(config.trim_energy_points, 100)
+        self.assertEqual(config.trim_ions, 1000)
+        self.assertFalse(config.derive_full_grid)
+        self.assertEqual(config.campaign_max_cumulative_hours, 168.0)
+        self.assertEqual(config.trim_timeout_s, 172800)
+        self.assertEqual(config.convergence_timeout_s, 1209600)
+        first = jobs[0]
+        self.assertEqual(first.payload["ion"], "Xe")
+        self.assertAlmostEqual(float(first.payload["energy_kev"]), 500.0)
+
     def test_pysrim_payload_uses_installed_atomdata_masses(self):
         condition = self.conditions[0]
         payload = srim_scan.pysrim_element_payload(condition, self.config, self.elements)
@@ -141,6 +160,33 @@ class ParserTests(unittest.TestCase):
         self.assertAlmostEqual(parsed.radial_range_mm, 0.0004978)
         self.assertEqual(parsed.backscattered_ions, 2)
         self.assertEqual(parsed.transmitted_ions, 0)
+
+    def test_target_clipping_detection_covers_profile_escape_and_range_tail(self):
+        clear = srim_scan.RangeSummary(
+            projected_range_mm=0.001,
+            longitudinal_straggling_mm=0.0001,
+            lateral_range_mm=None,
+            lateral_straggling_mm=None,
+            radial_range_mm=None,
+            radial_straggling_mm=None,
+            skewness=None,
+            kurtosis=None,
+            backscattered_ions=0,
+            transmitted_ions=0,
+        )
+        self.assertFalse(srim_scan.trim_result_is_clipped(100.0, clear, 100_000.0, 0.98))
+        self.assertTrue(srim_scan.trim_result_is_clipped(98_000.0, clear, 100_000.0, 0.98))
+        self.assertTrue(
+            srim_scan.trim_result_is_clipped(
+                100.0, replace(clear, transmitted_ions=1), 100_000.0, 0.98
+            )
+        )
+        long_tail = replace(
+            clear, projected_range_mm=0.009, longitudinal_straggling_mm=0.002
+        )
+        self.assertTrue(
+            srim_scan.trim_result_is_clipped(100.0, long_tail, 100_000.0, 0.98)
+        )
 
     def test_raw_archive_manifest_and_hash(self):
         output = b"SRModule output\n"
@@ -206,6 +252,47 @@ footer
 
 
 class CheckpointTests(unittest.TestCase):
+    def test_interrupted_inflight_job_is_immediately_resumable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = Path(directory)
+            connection = srim_scan.open_database(run_dir)
+            job = srim_scan.JobSpec("interrupt-job", "trim", {"energy_kev": 1.0})
+
+            def interrupt(_job, _runtime):
+                raise KeyboardInterrupt
+
+            with self.assertRaises(KeyboardInterrupt):
+                srim_scan.execute_stage(
+                    [job],
+                    "trim",
+                    connection,
+                    run_dir,
+                    [run_dir / "worker"],
+                    interrupt,
+                    True,
+                    3,
+                    None,
+                )
+            self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
+            connection.close()
+
+    def test_cumulative_campaign_budget_survives_restarts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            connection = srim_scan.open_database(Path(directory))
+            first, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=1000.0)
+            self.assertIsNotNone(first)
+            self.assertEqual(usage["elapsed_seconds"], 0.0)
+            srim_scan.finish_campaign_session(connection, first, now_epoch=2800.0)
+            second, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=3000.0)
+            self.assertIsNotNone(second)
+            self.assertEqual(usage["elapsed_seconds"], 1800.0)
+            # Simulate an ungraceful stop. The next restart charges the entire
+            # interval conservatively before opening a fresh session.
+            third, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=8400.0)
+            self.assertIsNone(third)
+            self.assertGreaterEqual(usage["elapsed_seconds"], 7200.0)
+            connection.close()
+
     def test_launch_command_honors_interrupt_signal(self):
         srim_scan.SHUTDOWN_REQUESTED.set()
         try:

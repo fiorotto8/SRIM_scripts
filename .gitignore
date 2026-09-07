@@ -19,6 +19,7 @@
 !/tests/*.py
 !/scripts/
 !/scripts/*.sh
+!/scripts/*.py
 
 # Generated scan state and local Python caches remain untracked.
 runs/

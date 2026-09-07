@@ -116,6 +116,71 @@ The bootstrap and full SRModule/TRIM canary were exercised in a clean Ubuntu
 test completed eight concurrent SRModule jobs with no failures and recorded
 the pinned PySRIM commit in `provenance/execution.json`.
 
+## Strict seven-day Ubuntu campaign
+
+`configs/noble_cf4_7day_ubuntu.toml` is the strict direct-Monte-Carlo
+configuration. It retains all six pressures and all 100 energies, uses 1,000
+full-cascade ions at each of the 43,200 baseline points, and does not enable
+pressure scaling, interpolation, or derived rows. It also includes all 432
+SRModule jobs and 324 configured 10,000-ion convergence repeats.
+
+The detached launcher uses a PID file plus `flock`, creates timestamped logs,
+and always supplies `--resume`. Campaign sessions are persisted in SQLite. An
+abandoned session is conservatively charged through the next restart, so
+relaunching cannot reset the cumulative 168-hour allowance. No new baseline
+work starts during the final 48 hours, leaving the measured slow tail time to
+drain; the hard deadline still stops and returns an unfinished job to pending.
+Every SRIM worker also has a private SRIM runtime and Wine prefix, and its
+wineserver is shut down after every successful job, failure, timeout, or
+interrupt.
+
+Start or resume the production directory in the background:
+
+```bash
+cd ~/Documents/SRIM/SRIM_scripts && ./scripts/start_ubuntu_7day.sh
+```
+
+Operational commands:
+
+```bash
+./scripts/status_ubuntu_7day.sh
+./scripts/logs_ubuntu_7day.sh
+./scripts/stop_ubuntu_7day.sh
+./scripts/start_ubuntu_7day.sh
+./.venv/bin/python srim_scan.py validate --run-dir runs/noble_cf4_7day_ubuntu
+./.venv/bin/python srim_scan.py report --run-dir runs/noble_cf4_7day_ubuntu
+```
+
+Commissioning on `cygno03` detected an Intel Core Ultra 7 265 with 20 physical
+cores/20 logical CPUs, 62 GiB RAM (about 52 GiB available), and about 1.47 TiB
+free on the NVMe-backed filesystem. A repeatable eight-case full-cascade
+benchmark covered C, F, Ar, Kr, and Xe recoils, pressure/composition extremes,
+0.1 through 500 keV, and a slow Xe 500 keV case. Measured throughput was:
+
+```text
+workers    histories/s    bundle wall time
+1          0.04075        196.30 s
+2          0.08065         99.20 s
+4          0.10511         76.11 s
+8          0.09606         83.28 s
+```
+
+Four workers are therefore selected. The benchmark summary, host inventory,
+PySRIM commit, SRIM hashes, raw-output checks, and estimate are recorded at
+`runs/noble_cf4_7day_ubuntu/provenance/benchmark.json`. The estimate applies
+the measured high-energy-weighted throughput to 43.2 million baseline plus
+3.24 million convergence histories, then adds a 10% retry allowance, a 25%
+safety factor, and 49 hours for drain/validation/reporting: approximately
+168,794 hours (19.26 years). This is conservative because the benchmark is
+weighted toward 500 keV, but it exceeds seven days by about 1,000 times; strict
+completion inside 168 hours is not credible. In particular, one 10,000-ion
+heavy 500 keV convergence repeat can itself exceed the campaign allowance.
+
+The separately labelled feasible alternative for a short campaign remains
+`configs/noble_cf4_40h_ubuntu.toml`. Its pressure-scaled and energy-interpolated
+rows are explicitly derived results and must never be described as direct
+full-scan Monte Carlo output.
+
 ## Five-session, 40-hour campaign
 
 The measured full-cascade runtime makes the original 43.2-million-history grid
