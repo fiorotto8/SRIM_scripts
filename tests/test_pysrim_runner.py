@@ -10,6 +10,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PYSRIM_ROOT = Path(os.environ.get("PYSRIM_ROOT", ROOT.parent / "pysrim"))
+SRIM_ROOT = Path(
+    os.environ.get(
+        "SRIM_ROOT",
+        ROOT if (ROOT / "TRIM.exe").is_file() else ROOT.parent / "srim-2013",
+    )
+).resolve()
 
 
 @unittest.skipUnless((PYSRIM_ROOT / "srim" / "__init__.py").is_file(), "pysrim checkout not available")
@@ -40,7 +46,7 @@ class PySRIMRunnerTests(unittest.TestCase):
     def test_write_only_preserves_scan_physics_controls(self):
         with tempfile.TemporaryDirectory() as directory:
             runtime = Path(directory)
-            shutil.copy2(ROOT / "TRIM.exe", runtime / "TRIM.exe")
+            shutil.copy2(SRIM_ROOT / "TRIM.exe", runtime / "TRIM.exe")
             (runtime / "SR Module").mkdir()
             spec = {
                 "mode": "trim",

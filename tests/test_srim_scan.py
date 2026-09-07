@@ -2,6 +2,7 @@ import json
 import math
 import hashlib
 import io
+import os
 import tarfile
 from dataclasses import replace
 import tempfile
@@ -16,6 +17,12 @@ from trim_qf_sweep import parse_ioniz
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SRIM_ROOT = Path(
+    os.environ.get(
+        "SRIM_ROOT",
+        ROOT if (ROOT / "Data" / "ATOMDATA").is_file() else ROOT.parent / "srim-2013",
+    )
+).resolve()
 CONFIG = ROOT / "configs" / "noble_cf4_standard.toml"
 FAST_CONFIG = ROOT / "configs" / "noble_cf4_40h.toml"
 UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_40h_ubuntu.toml"
@@ -25,7 +32,7 @@ class ScanGridTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.config = srim_scan.load_config(CONFIG)
-        cls.elements, _ = load_elements(ROOT / "Data" / "ATOMDATA")
+        cls.elements, _ = load_elements(SRIM_ROOT / "Data" / "ATOMDATA")
         cls.conditions = srim_scan.generate_conditions(cls.config, cls.elements)
 
     def test_exact_workload(self):
@@ -248,7 +255,7 @@ class CheckpointTests(unittest.TestCase):
             trim_energy_points=2,
             trim_pressures=(1.0,),
         )
-        elements, _ = load_elements(ROOT / "Data" / "ATOMDATA")
+        elements, _ = load_elements(SRIM_ROOT / "Data" / "ATOMDATA")
         conditions = srim_scan.generate_conditions(config, elements)
         reference = next(item for item in conditions if item.pressure_atm == 1.0)
         direct = []
