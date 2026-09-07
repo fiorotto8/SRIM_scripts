@@ -1,0 +1,33 @@
+services:
+  srim:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: srim-scan:local
+    user: "${SRIM_DOCKER_UID:-1000}:${SRIM_DOCKER_GID:-1000}"
+    working_dir: /workspace/SRIM_scripts
+    environment:
+      HOME: /data/home-volume/home
+      PYTHONPATH: /workspace/pysrim
+      WINEPREFIX: /data/wine-volume/prefix
+      WINEDEBUG: -all
+    volumes:
+      # Both source trees are bind-mounted: edits in either checkout are used
+      # by the next container invocation without rebuilding the image.
+      - .:/workspace/SRIM_scripts
+      - ../pysrim:/workspace/pysrim:ro
+      # SRIM and Wine are isolated from any host installation or active scan.
+      - srim_install:/data/srim-volume
+      - wine_prefix:/data/wine-volume
+      - container_home:/data/home-volume
+    command:
+      - python
+      - srim_scan.py
+      - plan
+      - --config
+      - configs/noble_cf4_standard_docker.toml
+
+volumes:
+  srim_install:
+  wine_prefix:
+  container_home:

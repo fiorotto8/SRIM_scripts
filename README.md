@@ -13,6 +13,104 @@ Ar/CF4 gas mixtures. The canonical scan covers:
 The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
 jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
+## Docker quick start (recommended)
+
+The `main` branch runs the Xe/CF4, Kr/CF4, and Ar/CF4 scan in Docker and uses
+the adjacent `fiorotto8/pysrim` source tree directly. Both repositories are
+bind-mounted, so a source edit is visible to the next container invocation;
+the SRIM installation and 32-bit Wine prefix live in separate named volumes.
+
+Clone the repositories as siblings and select the pinned PySRIM revision:
+
+```bash
+mkdir SRIM-workspace
+cd SRIM-workspace
+git clone https://github.com/fiorotto8/pysrim.git
+git -C pysrim checkout 9b8e1b7e91fe65bf17e9366e1fd9b9406ad125d2
+git clone --branch main https://github.com/fiorotto8/SRIM_scripts.git
+cd SRIM_scripts
+```
+
+Docker Engine with the Compose plugin is the only host runtime dependency.
+Build the image and preserve host ownership for generated results:
+
+```bash
+export SRIM_DOCKER_UID=$(id -u)
+export SRIM_DOCKER_GID=$(id -g)
+docker compose build
+docker compose run --rm srim
+```
+
+The last command prints the exact standard workload. On the first container
+run, the entrypoint verifies the PySRIM commit and SRIM archive checksum,
+extracts SRIM into its named volume, and initializes the Wine components. It
+does not modify the PySRIM checkout.
+
+Run the real, isolated 10-ion canary before starting a campaign:
+
+```bash
+docker compose run --rm srim python srim_scan.py preflight \
+  --config configs/noble_cf4_standard_docker.toml --canary-ions 10
+```
+
+The complete direct-Monte-Carlo scan is resumable by stage:
+
+```bash
+docker compose run --rm srim python srim_scan.py run \
+  --config configs/noble_cf4_standard_docker.toml \
+  --run-dir runs/noble_cf4_standard_docker --stage srmodule --workers 4 --resume
+docker compose run --rm srim python srim_scan.py run \
+  --config configs/noble_cf4_standard_docker.toml \
+  --run-dir runs/noble_cf4_standard_docker --stage trim --workers 4 --resume
+docker compose run --rm srim python srim_scan.py run \
+  --config configs/noble_cf4_standard_docker.toml \
+  --run-dir runs/noble_cf4_standard_docker --stage convergence --workers 4 --resume
+docker compose run --rm srim python srim_scan.py validate \
+  --run-dir runs/noble_cf4_standard_docker
+docker compose run --rm srim python srim_scan.py report \
+  --run-dir runs/noble_cf4_standard_docker
+```
+
+The standard scan is scientifically strict but extremely expensive. Read the
+runtime estimate below before starting all 43.2 million baseline histories.
+Use `--limit 1` while commissioning; it limits newly selected jobs without
+changing the persisted grid.
+
+### Minimal examples
+
+The preflight command above is the smallest real SRIM example: one SRModule
+case and one 10-ion TRIM case, executed against a disposable runtime. To learn
+the legacy CSV input format without launching SRIM, run:
+
+```bash
+docker compose run --rm srim python srim_gas_sweep.py \
+  --srim-root /data/srim-volume/srim-2013 \
+  --gas-csv examples/GasDensities_minimal.csv \
+  --points 3 --dry-run --no-plots
+```
+
+`examples/GasDensities_minimal.csv` contains one CF4 condition. Copy it and
+add rows using the same three columns for a small custom teaching example.
+
+### Installing PySRIM without Docker
+
+Keep PySRIM beside this repository and install the pinned checkout in editable
+mode. Editable installation is what keeps Python synchronized with local
+PySRIM changes:
+
+```bash
+git clone https://github.com/fiorotto8/pysrim.git ../pysrim
+git -C ../pysrim checkout 9b8e1b7e91fe65bf17e9366e1fd9b9406ad125d2
+python3 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip setuptools wheel
+./.venv/bin/python -m pip install -e ../pysrim matplotlib
+```
+
+On Ubuntu, `scripts/bootstrap_ubuntu.sh --install-system-deps` performs this
+installation and also prepares SRIM, Wine, Xvfb, and the required Visual Basic
+components. In Docker, `PYTHONPATH=/workspace/pysrim` points at the read-only
+bind mount instead of copying or repackaging PySRIM.
+
 ## Scientific scope
 
 SRIM supplies stopping powers, ion ranges and straggling, collision transport,
@@ -41,7 +139,7 @@ are marked as SRIM internals rather than physical gas material-damage results.
 See the official [SRIM site](https://www.srim.org/) and
 [TRIM input manual](https://www.srim.org/SRIM/SRIM%2008.pdf).
 
-## Requirements
+## Native-host requirements
 
 - SRIM-2013 installed on Windows/WSL, or Wine plus Xvfb on native Linux.
 - Python 3.11 or newer.

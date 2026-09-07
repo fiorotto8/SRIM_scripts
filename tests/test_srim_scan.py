@@ -27,6 +27,7 @@ CONFIG = ROOT / "configs" / "noble_cf4_standard.toml"
 FAST_CONFIG = ROOT / "configs" / "noble_cf4_40h.toml"
 UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_40h_ubuntu.toml"
 STRICT_UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_7day_ubuntu.toml"
+DOCKER_CONFIG = ROOT / "configs" / "noble_cf4_standard_docker.toml"
 
 
 class ScanGridTests(unittest.TestCase):
@@ -108,6 +109,25 @@ class ScanGridTests(unittest.TestCase):
         first = jobs[0]
         self.assertEqual(first.payload["ion"], "Xe")
         self.assertAlmostEqual(float(first.payload["energy_kev"]), 500.0)
+
+    def test_docker_campaign_uses_isolated_pysrim_paths(self):
+        config = srim_scan.load_config(DOCKER_CONFIG)
+        conditions = srim_scan.generate_conditions(config, self.elements)
+        context = srim_scan.resolve_execution_context(config)
+        self.assertEqual(config.families, ("Xe", "Kr", "Ar"))
+        self.assertEqual(len(conditions), 144)
+        self.assertEqual(len(srim_scan.make_trim_jobs(conditions, config, "trim")), 43_200)
+        self.assertEqual(context.backend, "pysrim")
+        self.assertEqual(context.pysrim_root, Path("/workspace/pysrim"))
+        self.assertEqual(context.wine_prefix, Path("/data/wine-volume/prefix"))
+        self.assertEqual(
+            context.pysrim_expected_commit,
+            "9b8e1b7e91fe65bf17e9366e1fd9b9406ad125d2",
+        )
+        self.assertEqual(
+            srim_scan.resolve_srim_root(None, config),
+            Path("/data/srim-volume/srim-2013"),
+        )
 
     def test_pysrim_payload_uses_installed_atomdata_masses(self):
         condition = self.conditions[0]

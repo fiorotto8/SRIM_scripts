@@ -4,7 +4,9 @@
 *
 
 !/.gitignore
+!/.dockerignore
 !/README.md
+!/compose.yaml
 !/GasDensities.csv
 !/srim_gas_sweep.py
 !/trim_qf_sweep.py
@@ -15,6 +17,10 @@
 !/srim-root.txt
 !/configs/
 !/configs/*.toml
+!/docker/
+!/docker/*
+!/examples/
+!/examples/*.csv
 !/tests/
 !/tests/*.py
 !/scripts/
