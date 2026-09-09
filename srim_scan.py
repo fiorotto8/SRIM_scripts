@@ -1103,8 +1103,8 @@ def execution_provenance(context: ExecutionContext, require_runtime: bool = True
             f"pysrim commit mismatch: found {commit or 'unknown'}, "
             f"expected {context.pysrim_expected_commit}"
         )
-    dependencies = {name: shutil.which(name) for name in ("wine", "xvfb-run", "wineserver")}
-    needed = ["wine", "wineserver"] + (["xvfb-run"] if context.headless else [])
+    dependencies = {name: shutil.which(name) for name in ("wine", "xvfb-run", "wineserver", "xwininfo")}
+    needed = ["wine", "wineserver", "xwininfo"] + (["xvfb-run"] if context.headless else [])
     if require_runtime:
         absent = [name for name in needed if not dependencies[name]]
         if absent:
@@ -1243,6 +1243,10 @@ def launch_pysrim_job(
             process_group=True,
             display_name=f"pysrim/{spec.get('mode', 'job')}",
         )
+    except RuntimeError as exc:
+        if "TRIM_BLOCKING_DIALOG" in str(exc) or "TRIM_WATCHDOG_ERROR" in str(exc):
+            raise WorkerInfrastructureError(str(exc)) from exc
+        raise
     finally:
         # A private prefix makes this safe even while other workers are active.
         # Stopping the per-job wineserver avoids stale GUI processes poisoning
@@ -1778,6 +1782,8 @@ def run_trim_job(
         "execution_backend": execution.backend,
         "seed": job_seed,
         "attempted_target_widths_angstrom": attempted_widths,
+        "trim_cfg_sha256": sha256_file(runtime / "Data" / "TRIM.cfg")
+        if (runtime / "Data" / "TRIM.cfg").is_file() else None,
         "final_target_width_angstrom": attempted_widths[-1],
         "source_srmodule_job_id": prediction["job_id"],
         "output_sha256": output_hashes,
@@ -1790,7 +1796,10 @@ def run_trim_job(
     archive = run_dir / "raw" / job.stage / f"{job.job_id}.tar.gz"
     archive_files_atomic(
         archive,
-        {"TRIM.IN": trim_in, "TRIMAUTO": trim_auto, **{name: path for name, path in outputs.items()}},
+        {"TRIM.IN": trim_in, "TRIMAUTO": trim_auto,
+         **{name: path for name, path in outputs.items()},
+         **{name: runtime / name for name in ("Data/TRIM.cfg", ".trim-progress.json", ".trim-process.log")
+            if (runtime / name).is_file()}},
         manifest,
     )
     profiles_path = run_dir / "profiles" / job.stage / f"{job.job_id}.json.gz"
@@ -3181,6 +3190,16 @@ def command_status(run_dir: Path) -> int:
     ).fetchall()
     for stage, status, count in rows:
         print(f"{stage:12s} {status:10s} {count:8d}")
+    active_ids = {row[0] for row in connection.execute("SELECT job_id FROM jobs WHERE status='running'")}
+    for path in sorted((run_dir / "runtime").glob("worker-*/.trim-progress.json")):
+        progress = json.loads(path.read_text(encoding="utf-8"))
+        if progress.get("job_id") in active_ids:
+            age = time.time() - float(progress["updated_epoch"])
+            print(
+                f"{path.parent.name}: {progress['status']}; heartbeat {age:.0f}s ago; "
+                f"TRIM CPU {progress.get('cpu_seconds', 0):.1f}s; "
+                f"recoil capacity {progress['secondary_recoil_capacity']:,}"
+            )
     cfg_path = run_dir / "provenance" / "config.toml"
     if cfg_path.exists():
         cfg = load_config(cfg_path)

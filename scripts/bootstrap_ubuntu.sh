@@ -34,10 +34,10 @@ if [ "$install_system" -eq 1 ]; then
     fi
     $elevate dpkg --add-architecture i386
     $elevate apt-get update
-    $elevate apt-get install -y git python3 python3-venv python3-pip unzip xvfb wine wine32:i386 winetricks
+    $elevate apt-get install -y git python3 python3-venv python3-pip unzip xvfb wine wine32:i386 winetricks x11-utils
 fi
 
-for program in git python3 unzip wine wineserver xvfb-run winetricks; do
+for program in git python3 unzip wine wineserver xvfb-run winetricks xwininfo; do
     if ! command -v "$program" >/dev/null 2>&1; then
         echo "missing $program; rerun with --install-system-deps" >&2
         exit 1

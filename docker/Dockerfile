@@ -15,6 +15,7 @@ RUN dpkg --add-architecture i386 \
         wine \
         wine32:i386 \
         winetricks \
+        x11-utils \
         xvfb \
     && rm -rf /var/lib/apt/lists/*
 

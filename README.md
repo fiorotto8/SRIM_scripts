@@ -216,6 +216,30 @@ the pinned PySRIM commit in `provenance/execution.json`.
 
 ## Strict seven-day Ubuntu campaign
 
+The PySRIM adapter sets the private worker's `Data/TRIM.cfg` secondary-recoil
+allocation to 2,000,000. The bundled 200,000 limit caused heavy 500-keV Xe
+cascades to open a blocking warning on this host. This allocation change does
+not change the input gas composition, energies, binding energies, cascade mode,
+or requested histories. SRIM's [input manual, section 8-31](https://www.srim.org/SRIM/SRIM%2008.pdf)
+documents this setting; the dialog's reference to `SRIM.cfg` is misleading.
+
+TRIM runs under a display watchdog requiring `xwininfo` (`x11-utils` on
+Ubuntu, included in the Docker image). It checks every two seconds for the
+visible TRIM/error dialogs, saves a screenshot in the worker runtime, and
+rejects the job without dismissing the warning. The stage stops launching new
+work on a dialog/watchdog failure and leaves the affected job pending. Other
+active workers may finish normally. The monitor does not infer completion from
+a live process or a fresh heartbeat; `scripts/status_ubuntu_7day.sh` shows the
+heartbeat and cumulative TRIM CPU seconds so activity can be checked across
+successive samples.
+
+Each new raw archive includes `Data/TRIM.cfg`, its hash in the manifest, and
+the monitor/process logs. The September 9 recovery retained the three completed
+TRIM jobs, backed up the checkpoint and four interrupted inputs/outputs under
+`runs/noble_cf4_7day_ubuntu/provenance/recoil-limit-incident-20260909/`, and
+restarted the interrupted jobs from their original seeds. Campaign runtime
+already spent waiting at the dialogs remains charged against the 168-hour cap.
+
 `configs/noble_cf4_7day_ubuntu.toml` is the strict direct-Monte-Carlo
 configuration. It retains all six pressures and all 100 energies, uses 1,000
 full-cascade ions at each of the 43,200 baseline points, and does not enable

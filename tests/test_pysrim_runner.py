@@ -6,6 +6,54 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+import pysrim_runner
+
+
+class TrimWatchdogTests(unittest.TestCase):
+    def test_capacity_changes_only_allocation_and_preserves_crlf(self):
+        original = b'colors\r\nMaximum number of secondary recoils (default=20000)\r\n 200000 \r\nNote: memory\r\n'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'Data').mkdir()
+            cfg = root / 'Data' / 'TRIM.cfg'
+            cfg.write_bytes(original)
+            pysrim_runner.configure_recoil_capacity(root)
+            self.assertEqual(cfg.read_bytes(), original.replace(b' 200000 ', b' 2000000 '))
+            pysrim_runner.configure_recoil_capacity(root)
+            self.assertEqual(cfg.read_bytes(), original.replace(b' 200000 ', b' 2000000 '))
+            cfg.write_bytes(b'unknown config')
+            with self.assertRaises(RuntimeError):
+                pysrim_runner.configure_recoil_capacity(root)
+            self.assertEqual(cfg.read_bytes(), b'unknown config')
+
+    def test_dialog_detection_excludes_main_and_invisible_helpers(self):
+        tree = '''
+ 0xa00001 "TRIM": ("trim.exe" "trim.exe") 1x1+512+384
+ 0xa00004 "SRIM-2013.00": ("trim.exe" "trim.exe") 987x746+0+0
+ 0xa00008 "Starting TRIM...": ("trim.exe" "trim.exe") 246x46+0+0
+ 0xa00009 "TRIM": ("trim.exe" "trim.exe") 288x258+368+268
+'''
+        self.assertEqual(pysrim_runner.dialog_candidates(tree), ['0xa00009'])
+
+    def test_monitor_rejects_dialog_and_terminates_process(self):
+        from unittest.mock import Mock
+        process = Mock()
+        process.pid = 99999999
+        process.poll.return_value = None
+        trim = Mock()
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = Path(directory)
+            with patch.dict(os.environ, DISPLAY=':test'), \
+                 patch('pysrim_runner.shutil.which', return_value='/usr/bin/xwininfo'), \
+                 patch('pysrim_runner.subprocess.Popen', return_value=process), \
+                 patch('pysrim_runner.check_trim_dialogs', side_effect=[[], ['0xa00009']]), \
+                 patch('PIL.ImageGrab.grab', side_effect=RuntimeError('test display')):
+                with self.assertRaisesRegex(RuntimeError, 'TRIM_BLOCKING_DIALOG'):
+                    pysrim_runner.monitored_trim_run(trim, runtime, {'description': 'test'})
+            process.terminate.assert_called_once()
+            self.assertEqual(json.loads((runtime / '.trim-progress.json').read_text())['status'], 'blocked_dialog')
 
 
 ROOT = Path(__file__).resolve().parents[1]

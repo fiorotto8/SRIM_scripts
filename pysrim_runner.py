@@ -11,9 +11,130 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
+import shutil
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, Mapping
+
+
+# SRIM-2013 Data/TRIM.cfg controls allocation, not collision physics. The
+# bundled 200k limit overflows on heavy 500-keV gas recoils. Record the actual
+# allocation alongside every input and retain the config in the raw archive.
+MAX_SECONDARY_RECOILS = 2_000_000
+
+
+def configure_recoil_capacity(runtime: Path, capacity: int = MAX_SECONDARY_RECOILS) -> None:
+    if not 200_000 <= capacity <= 10_000_000:
+        raise ValueError("Secondary recoil capacity must be between 200,000 and 10,000,000")
+    path = runtime / "Data" / "TRIM.cfg"
+    original = path.read_bytes()
+    pattern = rb"(Maximum number of secondary recoils[^\r\n]*\r?\n)[ \t]*[0-9]+[ \t]*"
+    updated, count = re.subn(pattern, lambda m: m[1] + f" {capacity} ".encode(), original)
+    if count != 1:
+        raise RuntimeError(f"Cannot identify secondary recoil capacity in {path}")
+    temporary = path.with_suffix(".cfg.tmp")
+    temporary.write_bytes(updated)
+    os.replace(temporary, path)
+
+
+def dialog_candidates(tree: str) -> list[str]:
+    """Recognize TRIM's error MessageBox, excluding its invisible 1x1 helper."""
+    return [
+        match[1]
+        for match in re.finditer(
+            r'(0x[0-9a-f]+) "(?:TRIM|[^"\n]*[Ee]rror[^"\n]*)"[^\n]*?\s(\d+)x(\d+)[+-]',
+            tree,
+        )
+        if int(match[2]) > 20 and int(match[3]) > 20
+    ]
+
+
+def check_trim_dialogs() -> list[str]:
+    try:
+        return _check_trim_dialogs()
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(f"TRIM_WATCHDOG_ERROR: cannot inspect the worker display: {exc}") from exc
+
+
+def _check_trim_dialogs() -> list[str]:
+    tree = subprocess.run(
+        ["xwininfo", "-root", "-tree"], capture_output=True, text=True, timeout=5, check=True
+    ).stdout
+    dialogs = []
+    for window in dialog_candidates(tree):
+        details = subprocess.run(
+            ["xwininfo", "-id", window], capture_output=True, text=True, timeout=5
+        )
+        if "Map State: IsViewable" in details.stdout:
+            dialogs.append(window)
+    return dialogs
+
+
+def write_progress(runtime: Path, values: Mapping[str, Any]) -> None:
+    path = runtime / ".trim-progress.json"
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(dict(values), indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, path)
+
+
+def monitored_trim_run(trim: Any, runtime: Path, spec: Mapping[str, Any]) -> None:
+    if not os.environ.get("DISPLAY") or not shutil.which("xwininfo"):
+        raise RuntimeError("TRIM_WATCHDOG_ERROR: requires DISPLAY and xwininfo (Ubuntu package x11-utils)")
+    # Verify the display is accessible before launching an expensive job.
+    check_trim_dialogs()
+    previous = Path.cwd()
+    try:
+        os.chdir(runtime)
+        trim._write_input_files()
+    finally:
+        os.chdir(previous)
+    with (runtime / ".trim-process.log").open("wb") as log:
+        process = subprocess.Popen(["wine", "./TRIM.exe"], cwd=runtime, stdout=log, stderr=log)
+        state = {
+            "job_id": spec["description"], "pid": process.pid,
+            "started_epoch": time.time(), "secondary_recoil_capacity": MAX_SECONDARY_RECOILS,
+        }
+        try:
+            while True:
+                code = process.poll()
+                dialogs = check_trim_dialogs()
+                state.update(updated_epoch=time.time(), status="running", dialogs=dialogs)
+                try:
+                    fields = Path(f"/proc/{process.pid}/stat").read_text().rsplit(")", 1)[1].split()
+                    state["cpu_seconds"] = (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK")
+                except (FileNotFoundError, IndexError, ValueError):
+                    pass
+                if dialogs:
+                    state["status"] = "blocked_dialog"
+                    try:
+                        from PIL import ImageGrab
+                        ImageGrab.grab(xdisplay=os.environ["DISPLAY"]).save(runtime / ".trim-dialog.png")
+                    except Exception as exc:
+                        state["screenshot_error"] = str(exc)
+                    write_progress(runtime, state)
+                    raise RuntimeError(
+                        f"TRIM_BLOCKING_DIALOG: windows={dialogs}; see {runtime / '.trim-dialog.png'}. "
+                        "Job rejected; no dialog was dismissed or truncated result accepted."
+                    )
+                if code is not None:
+                    state["status"] = "complete" if code == 0 else "failed"
+                    write_progress(runtime, state)
+                    if code:
+                        raise RuntimeError(f"TRIM exited with code {code}; see {runtime / '.trim-process.log'}")
+                    return
+                write_progress(runtime, state)
+                time.sleep(2)
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
 
 
 def import_pysrim() -> Dict[str, Any]:
@@ -122,29 +243,10 @@ def execute_spec(spec: Mapping[str, Any], write_only: bool = False) -> None:
             finally:
                 os.chdir(previous)
         else:
-            try:
-                trim.run(str(runtime))
-            except api["SRIMOutputParseError"]:
-                # PySRIM's legacy parser rejects some otherwise valid SRIM-2013
-                # headers (notably one-ion RANGE output). The parent pipeline
-                # has stricter, tested parsers and independently requires the
-                # complete standard output set before accepting the job.
-                required = (
-                    "TDATA.txt",
-                    "RANGE.txt",
-                    "LATERAL.txt",
-                    "IONIZ.txt",
-                    "E2RECOIL.txt",
-                    "PHONON.txt",
-                    "VACANCY.txt",
-                    "NOVAC.txt",
-                )
-                if not all(
-                    (runtime / name).is_file()
-                    or (runtime / "SRIM Outputs" / name).is_file()
-                    for name in required
-                ):
-                    raise
+            configure_recoil_capacity(runtime)
+            # Keep PySRIM's input generation, but supervise the executable.
+            # srim_scan independently parses and validates all required outputs.
+            monitored_trim_run(trim, runtime, spec)
     elif mode == "srmodule":
         sr = api["SR"](
             layer,
