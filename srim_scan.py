@@ -348,6 +348,11 @@ def validate_config(cfg: ScanConfig) -> None:
         raise ValueError("Pressures must be a nonempty unique subset of 0.5, 1.0, ..., 3.0 atm.")
     if cfg.raw.get("trim", {}).get("job_order", "longest-first") not in {"longest-first", "coverage-first"}:
         raise ValueError("trim.job_order must be longest-first or coverage-first.")
+    batches = cfg.raw.get("trim", {}).get("batches_per_point", 1)
+    if type(batches) is not int or batches < 1:
+        raise ValueError("trim.batches_per_point must be a positive integer.")
+    if batches > 1 and cfg.derive_full_grid:
+        raise ValueError("Batched scans must simulate pressures directly, without derived-grid interpolation.")
     if (
         cfg.temperature_k <= 0
         or cfg.trim_ions <= 0
@@ -929,7 +934,7 @@ def make_trim_jobs(
             for condition in conditions
             if any(abs(condition.pressure_atm - value) < 1.0e-12 for value in cfg.trim_pressures)
         ]
-        repeats = 1
+        repeats = cfg.raw.get("trim", {}).get("batches_per_point", 1)
         ions_per_job = cfg.trim_ions
     elif stage == "convergence":
         if not cfg.raw.get("convergence", {}).get("enabled", True):
@@ -2393,7 +2398,7 @@ def validate_run(run_dir: Path, cfg: ScanConfig) -> Tuple[List[Dict[str, Any]], 
         * len(cfg.noble_percent)
         * len(cfg.trim_pressures)
         * 3
-        * cfg.trim_energy_points,
+        * cfg.trim_energy_points * cfg.raw.get("trim", {}).get("batches_per_point", 1),
         "convergence": len(cfg.families)
         * len(cfg.convergence_percent)
         * len(cfg.convergence_pressures)
@@ -2686,9 +2691,9 @@ def validate_run(run_dir: Path, cfg: ScanConfig) -> Tuple[List[Dict[str, Any]], 
                 range_warnings,
             )
         )
-    trim_groups: Dict[Tuple[str, str, str, str], List[Dict[str, str]]] = {}
+    trim_groups: Dict[Tuple[str, ...], List[Dict[str, str]]] = {}
     for row in trim_rows:
-        key = (row["family"], row["noble_percent"], row["ion"], row["energy_kev"])
+        key = (row["family"], row["noble_percent"], row["ion"], row["energy_kev"], row.get("repeat", "0"))
         trim_groups.setdefault(key, []).append(row)
     pressure_warn = 0
     pressure_fail = 0
@@ -2940,7 +2945,9 @@ def print_plan(cfg: ScanConfig) -> None:
     gas_conditions = len(cfg.families) * len(cfg.noble_percent) * len(cfg.pressures_atm)
     gas_ions = gas_conditions * 3
     trim_combinations = len(cfg.families) * len(cfg.noble_percent) * len(cfg.trim_pressures) * 3
-    trim_jobs = trim_combinations * cfg.trim_energy_points
+    trim_points = trim_combinations * cfg.trim_energy_points
+    batches = cfg.raw.get("trim", {}).get("batches_per_point", 1)
+    trim_jobs = trim_points * batches
     convergence_points = (
         len(cfg.families)
         * len(cfg.convergence_percent)
@@ -2954,6 +2961,8 @@ def print_plan(cfg: ScanConfig) -> None:
     print(f"Configuration: {cfg.path}")
     print(f"Gas conditions: {gas_conditions}")
     print(f"Gas/ion combinations: {gas_ions}")
+    if batches > 1:
+        print(f"TRIM physical points: {trim_points}; independent batches per point: {batches}; histories per point: {batches * cfg.trim_ions}")
     print(f"SRModule jobs: {gas_ions}; output rows: {gas_ions * cfg.energy_points}")
     trim_label = "Direct TRIM anchor jobs" if cfg.derive_full_grid else "Direct TRIM jobs"
     print(

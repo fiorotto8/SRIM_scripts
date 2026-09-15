@@ -13,6 +13,75 @@ Ar/CF4 gas mixtures. The canonical scan covers:
 The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
 jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
+## Detached staged Ar/Kr/Xe production scan on Ubuntu
+
+```bash
+bash scripts/staged_scan.sh start
+bash scripts/staged_scan.sh status
+bash scripts/staged_scan.sh logs        # Ctrl-C stops viewing, not the scan
+bash scripts/staged_scan.sh stop        # safely stop/checkpoint
+bash scripts/staged_scan.sh resume      # same frozen configs; keep completed batches
+```
+
+The detached `srim-staged-scan` user service automatically runs:
+
+1. Krypton timing: 24 points, five ions each, at 60/95%, 1 atm and 1/10/100/1000 keV.
+2. All production SRModule tables, then 12 representative 50-ion noble-recoil
+   batches spanning Ar/Kr/Xe and the heavy high-energy cases.
+3. A commissioning gate checks required results, numeric bounds, seeds, raw
+   archive hashes, profiles, memory and measured timing. It permits production
+   only if the conservative forecast is at most 60 hours and the estimated
+   slowest batch is at most four hours. Failures stop the sequence for review.
+4. Full direct production: three gases, 60/70/80/90/95% noble fraction, six
+   pressures (0.5–3 atm), C/F/noble recoils, and 1/10/100/1000 keV.
+   **1,080 points × two independently seeded 50-ion batches = 108,000 histories.**
+   The 12 commissioning batches are reused without recomputation.
+
+The five-ion Ar/Xe timing reference is the existing
+`runs/noble_cf4_timing_pilot`; it must be complete. Other previous runs are
+neither modified nor mixed into production. This is an SRIM-only analysis;
+no cross-code physical comparison or detector-response combination is made.
+
+Open **`runs/noble_cf4_staged/report/index.html`**. Live products include
+combined `points.csv`, individual `batches.csv`, ROOT `points`/`batches` TTrees,
+an updated summary PDF, PNG/SVG plots, and a final 30-page cross-gas PDF atlas
+covering every mixture/pressure combination. Original detailed profiles and
+inputs remain in `production/profiles` and `production/raw`.
+The ROOT writer is pinned to `uproot==5.7.6` (install in `.venv` if upgrading an
+older checkout). ROOT export is read back and checked against table values.
+
+Two batches provide only a rough between-batch SEM (one variance degree of
+freedom), not a convergence guarantee or model uncertainty. A single batch
+has missing SEM, not zero uncertainty; plots omit its error bar. Precision
+flags identify >5% relative batch SEM. Longitudinal spread combines reported
+batch variances with between-batch mean offsets. Gas pressure enters through
+the SRIM density model, not a measured pressure-dependent ionization response.
+
+Limits are 15 allowed CPUs, 15 workers, 24 GiB soft/32 GiB hard cgroup memory,
+and no scan swap. A user-service lifetime limit of 96 hours prevents an
+unbounded unattended run; individual production invocations have a 72-hour
+budget with six hours reserved for draining. This is a one-shot staged run,
+not an automatic increase to 1,000 histories or a denser energy grid.
+
+Logout persistence must be enabled: `loginctl enable-linger "$USER"`.
+The launcher checks it before starting. The service survives closing SSH or
+VS Code, but is **not automatically restarted after a reboot**: use `resume`.
+Completed batches survive stop/restart; interrupted batches are rerun.
+
+Monitoring files in `runs/noble_cf4_staged`:
+
+- `status.json`: phase, latest heartbeat and resource sample (updated about every five seconds).
+- `gate.json`: measured forecast, limits, validation findings, and release decision.
+- `resource_samples.csv`: whole-cgroup CPU/RAM, host available RAM and swap.
+- `logs/campaign.log`: all stages, errors and checkpoint progress.
+- `krypton_validation.json`, `final_validation.json`: operational/artifact checks.
+
+An inactive service with stale `RUNNING` state is not success; the status
+command explicitly flags it. Inspect `journalctl --user -u srim-staged-scan`
+for launcher/resource-limit failures. To ask Codex for a follow-up, say:
+“Check the SRIM staged scan in `runs/noble_cf4_staged`: status, gate, errors,
+timings, memory, and result completeness. Do not change it without asking.”
+
 ## Small 1 keV–1 MeV timing pilot on Ubuntu
 
 ```bash

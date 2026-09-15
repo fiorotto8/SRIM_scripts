@@ -80,7 +80,7 @@ fi
 
 python3 -m venv "$scan_root/.venv"
 "$scan_root/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
-"$scan_root/.venv/bin/python" -m pip install -e "$pysrim_root" matplotlib
+"$scan_root/.venv/bin/python" -m pip install -e "$pysrim_root" matplotlib 'uproot==5.7.6'
 
 if [ ! -f "$wine_prefix/system.reg" ]; then
     mkdir -p "$(dirname -- "$wine_prefix")"
