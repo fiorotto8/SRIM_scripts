@@ -331,8 +331,11 @@ def validate_config(cfg: ScanConfig) -> None:
     profile = cfg.raw.get("scan", {}).get("profile", "standard")
     if profile not in {"standard", "preliminary"}:
         raise ValueError("scan.profile must be standard or preliminary.")
-    if cfg.families != ("Xe", "Kr", "Ar"):
+    if profile == "standard" and cfg.families != ("Xe", "Kr", "Ar"):
         raise ValueError("Expected scan families Xe, Kr, Ar in that order.")
+    if (not cfg.families or len(set(cfg.families)) != len(cfg.families)
+            or any(value not in {"Xe", "Kr", "Ar"} for value in cfg.families)):
+        raise ValueError("Scan families must be a nonempty unique subset of Xe, Kr, Ar.")
     if profile == "standard" and cfg.noble_percent != tuple(range(60, 100, 5)):
         raise ValueError("Expected noble percentages 60, 65, ..., 95.")
     if profile == "standard" and cfg.pressures_atm != (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
@@ -1255,7 +1258,9 @@ def launch_pysrim_job(
         str(spec_path),
     ]
     if context.headless:
-        command = ["xvfb-run", "-a", "-s", "-screen 0 1024x768x24", *command]
+        atomic_write_text(runtime / ".xvfb.log", f"job={spec.get('description', '')}\n")
+        command = ["xvfb-run", "-a", "-e", str(runtime / ".xvfb.log"),
+                   "-s", "-screen 0 1024x768x24", *command]
     environment = pysrim_environment(context)
     try:
         launch_command(
@@ -1821,7 +1826,7 @@ def run_trim_job(
         archive,
         {"TRIM.IN": trim_in, "TRIMAUTO": trim_auto,
          **{name: path for name, path in outputs.items()},
-         **{name: runtime / name for name in ("Data/TRIM.cfg", ".trim-progress.json", ".trim-process.log")
+         **{name: runtime / name for name in ("Data/TRIM.cfg", ".trim-progress.json", ".trim-process.log", ".xvfb.log")
             if (runtime / name).is_file()}},
         manifest,
     )
@@ -3083,6 +3088,8 @@ def run_preflight(
 
 
 def command_run(args: argparse.Namespace) -> int:
+    if getattr(args, "job_id", None) and args.stage == "all":
+        raise ValueError("--job-id requires a single --stage.")
     cfg = load_config(args.config)
     srim_root = resolve_srim_root(args.srim_root, cfg)
     execution = resolve_execution_context(
@@ -3178,6 +3185,12 @@ def command_run(args: argparse.Namespace) -> int:
                         hard_deadline,
                     )
 
+            if getattr(args, "job_id", None):
+                requested = set(args.job_id)
+                jobs = [job for job in jobs if job.job_id in requested]
+                missing = requested - {job.job_id for job in jobs}
+                if missing:
+                    raise ValueError(f"Requested job IDs are not in the configured stage: {sorted(missing)}")
             exhausted = execute_stage(
                 jobs,
                 stage,
@@ -3299,6 +3312,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--workers", type=int)
     run.add_argument("--resume", action="store_true")
     run.add_argument("--limit", type=int, help="Run at most this many pending jobs; intended for commissioning.")
+    run.add_argument("--job-id", action="append", help="Select an exact job for recovery; repeatable, single stage only.")
     run.add_argument(
         "--wall-hours",
         type=float,

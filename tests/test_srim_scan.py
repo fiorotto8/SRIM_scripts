@@ -60,6 +60,24 @@ class ScanGridTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             srim_scan.validate_config(replace(self.config, noble_percent=(60, 80, 95)))
 
+    def test_timing_pilot_exact_small_grid(self):
+        config = srim_scan.load_config(ROOT / "configs/noble_cf4_timing_pilot.toml")
+        conditions = srim_scan.generate_conditions(config, self.elements)
+        self.assertEqual(config.families, ("Ar", "Xe"))
+        self.assertEqual(len(conditions), 4)
+        self.assertEqual(len(srim_scan.make_srmodule_jobs(conditions, config)), 12)
+        jobs = srim_scan.make_trim_jobs(conditions, config)
+        self.assertEqual(len(jobs), 48)
+        self.assertEqual({round(job.payload["energy_kev"], 6) for job in jobs}, {1, 10, 100, 1000})
+        self.assertEqual(sum(job.payload["n_ions"] for job in jobs), 240)
+        self.assertLessEqual(config.workers_default, 15)
+        self.assertEqual(srim_scan.make_trim_jobs(conditions, config, "convergence"), [])
+        for families in ((), ("Ar", "Ar"), ("He",)):
+            with self.subTest(families=families), self.assertRaises(ValueError):
+                srim_scan.validate_config(replace(config, families=families))
+        with self.assertRaises(ValueError):
+            srim_scan.validate_config(replace(self.config, families=("Ar", "Xe")))
+
     def test_preliminary_rejects_invalid_grid(self):
         config = srim_scan.load_config(ROOT / "configs/noble_cf4_preliminary.toml")
         for changes in ({"noble_percent": ()}, {"noble_percent": (60, 60)},

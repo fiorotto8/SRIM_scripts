@@ -13,6 +13,53 @@ Ar/CF4 gas mixtures. The canonical scan covers:
 The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
 jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
+## Small 1 keV–1 MeV timing pilot on Ubuntu
+
+```bash
+bash scripts/start_timing_pilot.sh
+```
+
+Open `runs/noble_cf4_timing_pilot/report.html` for live results, per-point
+timings and RAM measurements. The grid deliberately has just **48 TRIM
+points**: Ar and Xe, 60/95% noble gas, 1 atm, C/F/noble recoils, and
+**1, 10, 100, 1,000 keV**. Five ions per point (240 total) are for timing
+commissioning only, not a precision quenching study. Kr and extra pressures
+are deferred until costs have been measured. SRModule also uses four energies.
+
+The launcher uses a user systemd service, capped at **15 allowed CPUs and
+15 workers**, with a 24 GiB soft RAM limit, 32 GiB hard limit, and zero swap
+allocation for the scan. It requires at least 16 GiB available RAM at startup.
+All descendants, including Wine and Xvfb, inherit the CPU affinity and belong
+to the resource-limited cgroup. Resource samples are saved every five seconds;
+the HTML refreshes every 30 seconds. The launcher checks that the previous
+preliminary run has no unresolved display-watchdog rejection.
+
+```bash
+systemctl --user status srim-timing-pilot
+systemctl --user stop srim-timing-pilot   # checkpoint-preserving stop
+# Resume with the same start command. Diagnose launcher errors with:
+journalctl --user -u srim-timing-pilot --no-pager -n 50
+```
+
+Use `timing_results.csv` and `resource_samples.csv` to size the next scan.
+Per-point time includes Wine startup, target enlargement when needed, parsing
+and archiving; multiplying five-ion times is only a rough estimate for a
+larger run. Independent repeats and multiple batch sizes are needed before
+claiming stable throughput or uncertainty. The dedicated report is specific
+to this 48-point configuration. Never edit a run's frozen TOML to scale it;
+create a new configuration and run directory.
+
+Display monitoring retries transient inspection failures three times,
+preserves stderr, and still stops on persistent display loss or blocking
+dialogs. Xvfb diagnostics are saved as `.xvfb.log` in each private runtime
+and successful TRIM archives. Recover an exact rejected point with
+`srim_scan.py run --config ... --run-dir ... --stage trim --resume --job-id ID`.
+Do not run two schedulers against the same checkpoint.
+
+Clearing existing system swap needs administrator access and sufficient
+available RAM: `sudo swapoff /swap.img && sudo swapon /swap.img` on cygno03.
+The scan's no-swap limit does not disable swap for unrelated applications.
+
 ## Fast preliminary results on the Ubuntu host
 
 With the existing native Ubuntu setup (`.venv`, sibling `pysrim`, `srim-2013`

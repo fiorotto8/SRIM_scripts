@@ -53,10 +53,20 @@ def dialog_candidates(tree: str) -> list[str]:
 
 
 def check_trim_dialogs() -> list[str]:
-    try:
-        return _check_trim_dialogs()
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise RuntimeError(f"TRIM_WATCHDOG_ERROR: cannot inspect the worker display: {exc}") from exc
+    # XQueryTree walks a changing window tree: a window can disappear between
+    # enumeration and inspection. Retry boundedly, never treat a failed probe
+    # as an empty/safe display. Persistent display loss still fails closed.
+    for attempt in range(3):
+        try:
+            return _check_trim_dialogs()
+        except (OSError, subprocess.SubprocessError) as exc:
+            detail = str(getattr(exc, "stderr", "") or "")[-2000:]
+            message = f"display={os.environ.get('DISPLAY', '')}; {exc}; stderr={detail!r}"
+            print(f"TRIM watchdog probe {attempt + 1}/3 failed: {message}", file=sys.stderr, flush=True)
+            if attempt == 2:
+                raise RuntimeError(f"TRIM_WATCHDOG_ERROR: cannot inspect the worker display: {message}") from exc
+            time.sleep(0.25 * (attempt + 1))
+    raise AssertionError("unreachable")
 
 
 def _check_trim_dialogs() -> list[str]:
@@ -68,6 +78,9 @@ def _check_trim_dialogs() -> list[str]:
         details = subprocess.run(
             ["xwininfo", "-id", window], capture_output=True, text=True, timeout=5
         )
+        if details.returncode:
+            raise subprocess.CalledProcessError(details.returncode, details.args,
+                                                output=details.stdout, stderr=details.stderr)
         if "Map State: IsViewable" in details.stdout:
             dialogs.append(window)
     return dialogs
@@ -100,12 +113,25 @@ def monitored_trim_run(trim: Any, runtime: Path, spec: Mapping[str, Any]) -> Non
         try:
             while True:
                 code = process.poll()
+                if code is not None:
+                    state.update(updated_epoch=time.time(), status="complete" if code == 0 else "failed")
+                    write_progress(runtime, state)
+                    if code:
+                        raise RuntimeError(f"TRIM exited with code {code}; see {runtime / '.trim-process.log'}")
+                    return
                 dialogs = check_trim_dialogs()
                 state.update(updated_epoch=time.time(), status="running", dialogs=dialogs)
                 try:
                     fields = Path(f"/proc/{process.pid}/stat").read_text().rsplit(")", 1)[1].split()
                     state["cpu_seconds"] = (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK")
                 except (FileNotFoundError, IndexError, ValueError):
+                    pass
+                try:
+                    memory = dict(line.split(":", 1) for line in Path(f"/proc/{process.pid}/status").read_text().splitlines())
+                    state["rss_bytes"] = int(memory["VmRSS"].split()[0]) * 1024
+                    state["peak_rss_bytes_observed"] = max(state.get("peak_rss_bytes_observed", 0),
+                                                          int(memory["VmHWM"].split()[0]) * 1024)
+                except (FileNotFoundError, KeyError, ValueError):
                     pass
                 if dialogs:
                     state["status"] = "blocked_dialog"
@@ -119,14 +145,13 @@ def monitored_trim_run(trim: Any, runtime: Path, spec: Mapping[str, Any]) -> Non
                         f"TRIM_BLOCKING_DIALOG: windows={dialogs}; see {runtime / '.trim-dialog.png'}. "
                         "Job rejected; no dialog was dismissed or truncated result accepted."
                     )
-                if code is not None:
-                    state["status"] = "complete" if code == 0 else "failed"
-                    write_progress(runtime, state)
-                    if code:
-                        raise RuntimeError(f"TRIM exited with code {code}; see {runtime / '.trim-process.log'}")
-                    return
                 write_progress(runtime, state)
                 time.sleep(2)
+        except RuntimeError as exc:
+            if "TRIM_WATCHDOG_ERROR" in str(exc):
+                state.update(updated_epoch=time.time(), status="watchdog_error", error=str(exc))
+                write_progress(runtime, state)
+            raise
         finally:
             if process.poll() is None:
                 process.terminate()

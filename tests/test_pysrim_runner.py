@@ -12,6 +12,34 @@ import pysrim_runner
 
 
 class TrimWatchdogTests(unittest.TestCase):
+    def test_transient_window_race_is_retried(self):
+        error = subprocess.CalledProcessError(1, ["xwininfo"], stderr="BadWindow (invalid Window parameter)")
+        with patch('pysrim_runner._check_trim_dialogs', side_effect=[error, []]) as probe, \
+             patch('pysrim_runner.time.sleep'):
+            self.assertEqual(pysrim_runner.check_trim_dialogs(), [])
+            self.assertEqual(probe.call_count, 2)
+
+    def test_persistent_display_failure_fails_closed_with_diagnostics(self):
+        error = subprocess.CalledProcessError(1, ["xwininfo"], stderr="unable to open display")
+        with patch('pysrim_runner._check_trim_dialogs', side_effect=error) as probe, \
+             patch('pysrim_runner.time.sleep'):
+            with self.assertRaisesRegex(RuntimeError, 'TRIM_WATCHDOG_ERROR.*unable to open display'):
+                pysrim_runner.check_trim_dialogs()
+            self.assertEqual(probe.call_count, 3)
+
+    def test_normal_exit_does_not_probe_disappearing_windows(self):
+        from unittest.mock import Mock
+        process = Mock(pid=99999999)
+        process.poll.return_value = 0
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.dict(os.environ, DISPLAY=':test'), \
+             patch('pysrim_runner.shutil.which', return_value='/usr/bin/xwininfo'), \
+             patch('pysrim_runner.subprocess.Popen', return_value=process), \
+             patch('pysrim_runner.check_trim_dialogs', return_value=[]) as probe:
+            pysrim_runner.monitored_trim_run(Mock(), Path(directory), {'description': 'exit-test'})
+            self.assertEqual(probe.call_count, 1)  # pre-launch only
+            process.terminate.assert_not_called()
+
     def test_capacity_changes_only_allocation_and_preserves_crlf(self):
         original = b'colors\r\nMaximum number of secondary recoils (default=20000)\r\n 200000 \r\nNote: memory\r\n'
         with tempfile.TemporaryDirectory() as directory:
