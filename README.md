@@ -13,6 +13,52 @@ Ar/CF4 gas mixtures. The canonical scan covers:
 The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
 jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
+## Fast preliminary results on the Ubuntu host
+
+With the existing native Ubuntu setup (`.venv`, sibling `pysrim`, `srim-2013`
+and `.wine-srim`), run:
+
+```bash
+bash scripts/start_preliminary.sh
+```
+
+Open `runs/noble_cf4_preliminary/report.html` in a browser. It updates once a
+minute and links downloadable CSVs and plots. It also shows existing results
+from `runs/noble_cf4_7day_ubuntu`, when present, without modifying that run.
+
+The coarse scan has 270 **direct** full-cascade TRIM points: Ar/Kr/Xe,
+60/80/95% noble gas, 1/3 atm, all three constituent recoil species, and five
+log-spaced energies (0.1, 0.841, 7.071, 59.460, 500 keV). It uses 20 isolated
+workers and only **20 ions per point**: low-statistics exploratory results,
+not converged precision estimates. Deterministic SRModule curves retain 100
+energies. Low-energy points are scheduled first and gas families interleaved
+to deliver broad coverage early. No pressure interpolation or convergence
+campaign is performed. There is a 24-hour session limit with a two-hour drain
+margin; rerun the same command to resume if necessary.
+
+```bash
+# Use fewer workers on smaller hosts:
+bash scripts/start_preliminary.sh --workers 8
+# Status, or an independent one-time report refresh:
+.venv/bin/python srim_scan.py status --run-dir runs/noble_cf4_preliminary
+.venv/bin/python scripts/preliminary_report.py
+# Stop safely (keep all completed results):
+bash scripts/stop_ubuntu_7day.sh runs/noble_cf4_preliminary
+```
+
+Do not change the frozen configuration of an existing run. For different
+history counts or grids, copy the preliminary TOML and use a new run directory
+with `srim_scan.py run --config ... --run-dir ... --stage all --resume`.
+The report distinguishes SRModule's electronic-stopping proxy from full TRIM
+primary-plus-secondary ionization fraction; neither is a calibrated detector
+response. Its dedicated quick-look layout targets the supplied 270-point,
+20-ion configuration, not arbitrary custom grids.
+
+If VS Code indexes this workspace, exclude Wine `dosdevices` links and
+generated `runs` from searches and file watching; `dosdevices/z:` points to
+the whole filesystem. Disable symlink-following and npm autodetection when
+unneeded. File indexing should not consume the scan's CPU allocation.
+
 ## Docker quick start (recommended)
 
 The `main` branch runs the Xe/CF4, Kr/CF4, and Ar/CF4 scan in Docker and uses

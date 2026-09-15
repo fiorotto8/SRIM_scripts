@@ -43,6 +43,34 @@ class ScanGridTests(unittest.TestCase):
         self.assertEqual(len(srim_scan.make_trim_jobs(self.conditions, self.config, "trim")), 43_200)
         self.assertEqual(len(srim_scan.make_trim_jobs(self.conditions, self.config, "convergence")), 324)
 
+    def test_preliminary_workload_and_coverage_order(self):
+        config = srim_scan.load_config(ROOT / "configs/noble_cf4_preliminary.toml")
+        conditions = srim_scan.generate_conditions(config, self.elements)
+        self.assertEqual(len(conditions), 18)
+        self.assertEqual(len(srim_scan.make_srmodule_jobs(conditions, config)), 54)
+        jobs = srim_scan.make_trim_jobs(conditions, config)
+        self.assertEqual(len(jobs), 270)
+        self.assertEqual(len({job.job_id for job in jobs}), 270)
+        self.assertEqual({job.payload["n_ions"] for job in jobs}, {20})
+        self.assertEqual({job.payload["condition"]["family"] for job in jobs[:3]}, {"Ar", "Kr", "Xe"})
+        self.assertTrue(all(abs(job.payload["energy_kev"] - 0.1) < 1e-10 for job in jobs[:54]))
+        self.assertEqual(srim_scan.make_trim_jobs(conditions, config, "convergence"), [])
+
+    def test_standard_grid_remains_strict(self):
+        with self.assertRaises(ValueError):
+            srim_scan.validate_config(replace(self.config, noble_percent=(60, 80, 95)))
+
+    def test_preliminary_rejects_invalid_grid(self):
+        config = srim_scan.load_config(ROOT / "configs/noble_cf4_preliminary.toml")
+        for changes in ({"noble_percent": ()}, {"noble_percent": (60, 60)},
+                        {"pressures_atm": (0.0,)}, {"pressures_atm": (1.0, 1.0)}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                srim_scan.validate_config(replace(config, **changes))
+
+    def test_disabled_convergence_ignores_populated_grid(self):
+        raw = {**self.config.raw, "convergence": {**self.config.raw["convergence"], "enabled": False}}
+        self.assertEqual(srim_scan.make_trim_jobs(self.conditions, replace(self.config, raw=raw), "convergence"), [])
+
     def test_mixture_stoichiometry(self):
         condition = next(
             item

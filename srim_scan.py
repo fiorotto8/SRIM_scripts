@@ -328,12 +328,23 @@ def load_config(path: Path) -> ScanConfig:
 
 
 def validate_config(cfg: ScanConfig) -> None:
+    profile = cfg.raw.get("scan", {}).get("profile", "standard")
+    if profile not in {"standard", "preliminary"}:
+        raise ValueError("scan.profile must be standard or preliminary.")
     if cfg.families != ("Xe", "Kr", "Ar"):
         raise ValueError("Expected scan families Xe, Kr, Ar in that order.")
-    if cfg.noble_percent != tuple(range(60, 100, 5)):
+    if profile == "standard" and cfg.noble_percent != tuple(range(60, 100, 5)):
         raise ValueError("Expected noble percentages 60, 65, ..., 95.")
-    if cfg.pressures_atm != (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
+    if profile == "standard" and cfg.pressures_atm != (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
         raise ValueError("Expected pressures 0.5, 1.0, ..., 3.0 atm.")
+    if (not cfg.noble_percent or len(set(cfg.noble_percent)) != len(cfg.noble_percent)
+            or any(value not in range(60, 100, 5) for value in cfg.noble_percent)):
+        raise ValueError("Noble percentages must be a nonempty unique subset of 60, 65, ..., 95.")
+    if (not cfg.pressures_atm or len(set(cfg.pressures_atm)) != len(cfg.pressures_atm)
+            or any(value not in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0) for value in cfg.pressures_atm)):
+        raise ValueError("Pressures must be a nonempty unique subset of 0.5, 1.0, ..., 3.0 atm.")
+    if cfg.raw.get("trim", {}).get("job_order", "longest-first") not in {"longest-first", "coverage-first"}:
+        raise ValueError("trim.job_order must be longest-first or coverage-first.")
     if (
         cfg.temperature_k <= 0
         or cfg.trim_ions <= 0
@@ -918,6 +929,8 @@ def make_trim_jobs(
         repeats = 1
         ions_per_job = cfg.trim_ions
     elif stage == "convergence":
+        if not cfg.raw.get("convergence", {}).get("enabled", True):
+            return []
         energies = list(cfg.convergence_energies)
         selected = [
             condition
@@ -947,6 +960,16 @@ def make_trim_jobs(
     # sublinearly with energy. Longest-job-first prevents a high-Z tail from
     # dominating the end of a multi-worker campaign.
     atomic_number = {"C": 6, "F": 9, "Ar": 18, "Kr": 36, "Xe": 54}
+    if cfg.raw.get("trim", {}).get("job_order") == "coverage-first":
+        jobs.sort(key=lambda job: (
+            float(job.payload["energy_kev"]),
+            job.payload["condition"]["noble_percent"],
+            job.payload["condition"]["pressure_atm"],
+            {"C": 0, "F": 1}.get(str(job.payload["ion"]), 2),
+            job.payload["condition"]["family"],
+            job.job_id,
+        ))
+        return jobs
     jobs.sort(
         key=lambda job: (
             int(job.payload["n_ions"])
@@ -2373,6 +2396,8 @@ def validate_run(run_dir: Path, cfg: ScanConfig) -> Tuple[List[Dict[str, Any]], 
         * len(cfg.convergence_energies)
         * cfg.convergence_repeats,
     }
+    if not cfg.raw.get("convergence", {}).get("enabled", True):
+        expected["convergence"] = 0
     for stage, expected_jobs in expected.items():
         counts = dict(
             connection.execute(
@@ -2426,8 +2451,9 @@ def validate_run(run_dir: Path, cfg: ScanConfig) -> Tuple[List[Dict[str, Any]], 
         )
     )
     gas_rows = read_csv_rows(run_dir / "gas_conditions.csv")
-    if len(gas_rows) == 144 and len({row["condition_id"] for row in gas_rows}) == 144:
-        entries.append(validation_entry("pass", "gas_grid", "144 unique gas conditions"))
+    expected_conditions = len(cfg.families) * len(cfg.noble_percent) * len(cfg.pressures_atm)
+    if len(gas_rows) == expected_conditions and len({row["condition_id"] for row in gas_rows}) == expected_conditions:
+        entries.append(validation_entry("pass", "gas_grid", f"{expected_conditions} unique gas conditions"))
     else:
         entries.append(validation_entry("failure", "gas_grid", f"found {len(gas_rows)} gas-condition rows"))
     density_groups: Dict[Tuple[str, str], List[Dict[str, str]]] = {}
@@ -2917,10 +2943,12 @@ def print_plan(cfg: ScanConfig) -> None:
         * 3
         * len(cfg.convergence_energies)
     )
+    if not cfg.raw.get("convergence", {}).get("enabled", True):
+        convergence_points = 0
     convergence_jobs = convergence_points * cfg.convergence_repeats
     print(f"Configuration: {cfg.path}")
-    print(f"Gas conditions: {gas_conditions} (expected 144)")
-    print(f"Gas/ion combinations: {gas_ions} (expected 432)")
+    print(f"Gas conditions: {gas_conditions}")
+    print(f"Gas/ion combinations: {gas_ions}")
     print(f"SRModule jobs: {gas_ions}; output rows: {gas_ions * cfg.energy_points}")
     trim_label = "Direct TRIM anchor jobs" if cfg.derive_full_grid else "Direct TRIM jobs"
     print(
@@ -2962,8 +2990,9 @@ def run_preflight(
     controls_before = source_control_fingerprint(srim_root)
     elements, _ = load_elements(srim_root / "Data" / "ATOMDATA")
     conditions = generate_conditions(cfg, elements)
-    if len(conditions) != 144:
-        raise RuntimeError(f"Grid generation produced {len(conditions)} conditions, expected 144.")
+    expected_conditions = len(cfg.families) * len(cfg.noble_percent) * len(cfg.pressures_atm)
+    if len(conditions) != expected_conditions:
+        raise RuntimeError(f"Grid generation produced {len(conditions)} conditions, expected {expected_conditions}.")
     print(f"SRIM root: {srim_root}")
     print(f"Execution backend: {execution.backend}")
     if execution.backend == "pysrim":
