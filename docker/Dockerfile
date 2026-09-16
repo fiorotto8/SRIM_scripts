@@ -21,7 +21,7 @@ RUN dpkg --add-architecture i386 \
 
 RUN python3 -m venv /opt/srim-venv \
     && /opt/srim-venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && /opt/srim-venv/bin/python -m pip install --no-cache-dir matplotlib numpy pyyaml 'uproot==5.7.6'
+    && /opt/srim-venv/bin/python -m pip install --no-cache-dir matplotlib numpy pyyaml 'uproot==5.7.6' 'scipy==1.18.1'
 
 COPY docker/entrypoint.sh /usr/local/bin/srim-entrypoint
 

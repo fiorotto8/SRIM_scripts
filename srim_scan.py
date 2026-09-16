@@ -327,6 +327,18 @@ def load_config(path: Path) -> ScanConfig:
     return cfg
 
 
+def energy_grid(cfg: ScanConfig, trim: bool = False) -> List[float]:
+    section = cfg.raw.get("trim" if trim else "scan", {})
+    count = cfg.trim_energy_points if trim else cfg.energy_points
+    if "energies_kev" not in section:
+        return logspace(cfg.energy_min_kev, cfg.energy_max_kev, count)
+    values = [float(value) for value in section["energies_kev"]]
+    if (len(values) != count or len(set(values)) != count or values != sorted(values)
+            or any(not math.isfinite(value) or value < cfg.energy_min_kev or value > cfg.energy_max_kev for value in values)):
+        raise ValueError("Explicit energies must be sorted, unique, finite, match energy_points and lie inside the configured range.")
+    return values
+
+
 def validate_config(cfg: ScanConfig) -> None:
     profile = cfg.raw.get("scan", {}).get("profile", "standard")
     if profile not in {"standard", "preliminary"}:
@@ -351,6 +363,9 @@ def validate_config(cfg: ScanConfig) -> None:
     batches = cfg.raw.get("trim", {}).get("batches_per_point", 1)
     if type(batches) is not int or batches < 1:
         raise ValueError("trim.batches_per_point must be a positive integer.")
+    batch_start = cfg.raw.get("trim", {}).get("batch_start", 0)
+    if type(batch_start) is not int or batch_start < 0:
+        raise ValueError("trim.batch_start must be a nonnegative integer.")
     if batches > 1 and cfg.derive_full_grid:
         raise ValueError("Batched scans must simulate pressures directly, without derived-grid interpolation.")
     if (
@@ -365,6 +380,10 @@ def validate_config(cfg: ScanConfig) -> None:
         raise ValueError("The agreed scan requires TRIM full cascades (cascade type 2).")
     logspace(cfg.energy_min_kev, cfg.energy_max_kev, cfg.energy_points)
     logspace(cfg.energy_min_kev, cfg.energy_max_kev, cfg.trim_energy_points)
+    energy_grid(cfg)
+    energy_grid(cfg, trim=True)
+    if cfg.derive_full_grid and ("energies_kev" in cfg.raw.get("scan", {}) or "energies_kev" in cfg.raw.get("trim", {})):
+        raise ValueError("Explicit energy grids require direct simulation, not derived-grid interpolation.")
     if not cfg.trim_pressures or any(
         not any(abs(value - pressure) < 1.0e-12 for pressure in cfg.pressures_atm)
         for value in cfg.trim_pressures
@@ -917,6 +936,8 @@ def make_srmodule_jobs(conditions: Sequence[GasCondition], cfg: ScanConfig) -> L
                 "energy_points": cfg.energy_points,
                 "compound_correction": cfg.compound_correction,
             }
+            if "energies_kev" in cfg.raw.get("scan", {}):
+                payload["energies_kev"] = energy_grid(cfg)
             jobs.append(JobSpec(stable_id("sr", payload), "srmodule", payload))
     return jobs
 
@@ -928,7 +949,7 @@ def make_trim_jobs(
 ) -> List[JobSpec]:
     jobs: List[JobSpec] = []
     if stage == "trim":
-        energies = logspace(cfg.energy_min_kev, cfg.energy_max_kev, cfg.trim_energy_points)
+        energies = energy_grid(cfg, trim=True)
         selected = [
             condition
             for condition in conditions
@@ -953,7 +974,8 @@ def make_trim_jobs(
     for condition in selected:
         for ion in ion_symbols(condition):
             for energy in energies:
-                for repeat in range(repeats):
+                batch_start = cfg.raw.get("trim", {}).get("batch_start", 0) if stage == "trim" else 0
+                for repeat in range(batch_start, batch_start + repeats):
                     payload = {
                         "condition": condition_payload(condition),
                         "ion": ion,
@@ -1391,7 +1413,7 @@ def run_srmodule_job(
     raw_rows = parse_stopping_output(output_path)
     integration_energies, integrated_electronic = cumulative_electronic_integral(raw_rows)
     result_rows: List[Dict[str, Any]] = []
-    for energy in logspace(cfg.energy_min_kev, cfg.energy_max_kev, cfg.energy_points):
+    for energy in energy_grid(cfg):
         row = interpolate_stopping(raw_rows, energy)
         total = row.s_elec + row.s_nuc
         electronic_fraction = row.s_elec / total if total > 0 else math.nan

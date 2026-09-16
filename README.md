@@ -13,6 +13,84 @@ Ar/CF4 gas mixtures. The canonical scan covers:
 The scan contains 144 gas conditions, 432 gas/ion combinations, 432 SRModule
 jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
+## Current goal: timing, statistical precision and pressure consistency
+
+The goal is a reproducible **SRIM-only** map of recoil range and ionization
+fraction in Ar/Kr/Xe–CF4 over 1 keV–1 MeV, with measured compute costs and
+honest statistical limitations. Detector-calibrated quenching and SRIM model
+systematics are not established by adding Monte Carlo histories.
+
+The completed first production run remains read-only at
+`runs/noble_cf4_staged/production`. Its follow-up is launched/monitored with:
+
+```bash
+bash scripts/precision_scan.sh start
+bash scripts/precision_scan.sh status
+bash scripts/precision_scan.sh logs
+bash scripts/precision_scan.sh stop
+bash scripts/precision_scan.sh resume
+```
+
+Open **`runs/noble_cf4_precision/report/index.html`**. The detached user service
+survives logout with lingering enabled. Resume manually after a reboot.
+Limits remain 15 CPUs/workers, 24 GiB soft/32 GiB hard memory, zero scan swap.
+Existing system swap from other applications is not cleared or disabled.
+
+This bounded follow-up performs:
+
+1. Six 100-ion noble-recoil jobs (Ar/Kr/Xe, 80/20, 1 atm, 100/1000 keV)
+   to compare measured batch-size timing against the completed 50-ion jobs.
+   These different-sized batches are diagnostic only and are not mixed into
+   equal-batch precision estimates. Data and resource checks gate further work.
+2. Two additional 50-ion batches at all 1,080 existing points, bringing them
+   to four independent batches (200 histories).
+3. Four 50-ion batches at 810 new points at **3, 30, 300 keV**. The resulting
+   seven-energy grid has 1,890 physical points, each with at least four batches.
+4. Exactly one adaptive selection, frozen before collecting new data. Whole
+   six-pressure groups are eligible if any point exceeds **5% range SEM or
+   2% ionization-fraction SEM**, or its pressure test is flagged/indeterminate.
+   Selected groups receive four more batches, up to **400 ions per point**.
+   Cheapest complete groups are admitted first if the remaining budget is tight;
+   deferred groups are explicitly listed, not silently marked complete.
+
+The hard campaign budget is **72 cumulative supervised hours across resumes**,
+with a six-hour reserve in phase admission estimates. A 73-hour service limit
+is a backstop. Admission uses measured costs plus a 50% planning margin.
+No automatic increase beyond 400 histories, seven energies, or this budget is
+allowed. **Never run these superset configs with `--stage all` directly**:
+the supervisor selects the intended batches and prevents duplicate baseline
+histories. The original repeats 0/1 are reused read-only; new repeat indices
+start at 2. All input hashes and the adaptive job list are frozen.
+
+Statistics are reported separately from operational completion:
+
+- Standard errors are computed from independent equal-size batch means;
+  Student-t intervals are descriptive. Final adaptive intervals do not have
+  guaranteed simultaneous 95% coverage. The goals are estimated SEM thresholds,
+  not a guaranteed accuracy of the physics model.
+- Pressure screening uses **only the fixed first four batches** at each
+  pressure, Welch ANOVA for ionization fraction and pressure×projected range,
+  and Benjamini–Yekutieli multiple-test adjustment. Batch normality and
+  independence are assumptions; non-rejection does not prove equivalence.
+- Independent confirmation uses **only the next four batches** of selected
+  pressure groups. Constant/undefined variances are labelled indeterminate.
+  Persistent differences warrant checking model/input/rounding assumptions,
+  not automatically declaring new pressure-dependent physics.
+- Final status is `TARGETS_MET` only if estimated precision targets are met,
+  no independent pressure flags remain, and no groups were budget-deferred.
+  Otherwise it is `REVIEW_REQUIRED`; raw successes never hide unresolved science.
+
+Useful files: `status.json`, `budget.json`, `science_status.json`,
+`timing_check.json`, `initial_plan.json`, `adaptive_plan.json`,
+`completion.json`, `resource_samples.csv`, and `logs/campaign.log`.
+Reports include points/batches CSV, ROOT, PDFs, and separate fixed-cohort and
+independent-confirmation pressure-test CSVs. The analysis dependency is pinned
+to `scipy==1.18.1` (install in `.venv` when upgrading an older checkout).
+
+To resume this work with Codex, say: **“Check `runs/noble_cf4_precision` against
+the SRIM timing/precision goal: operational status, budget, independent pressure
+checks, unresolved SEM targets, timings, memory and recommended next steps.”**
+
 ## Detached staged Ar/Kr/Xe production scan on Ubuntu
 
 ```bash
