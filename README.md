@@ -15,6 +15,49 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current follow-up: finish low-energy precision
+
+The seven-energy campaign completed on 18 September 2026: 1,826/1,890 points
+met both estimated SEM targets. The remaining 64 points (47 at 1 keV, 15 at
+3 keV, two at 10 keV) receive a **fixed twelve new 50-ion batches each**,
+bringing each from 400 to 1,000 ions. All previous results stay read-only.
+
+```bash
+bash scripts/low_energy_topup.sh prepare  # freeze/check selection and forecast
+bash scripts/low_energy_topup.sh start
+bash scripts/low_energy_topup.sh status
+bash scripts/low_energy_topup.sh logs     # Ctrl-C exits the viewer only
+bash scripts/low_energy_topup.sh stop
+bash scripts/low_energy_topup.sh resume  # also use after a reboot
+```
+
+Open `runs/noble_cf4_low_energy_topup/report/index.html`. This detached service
+survives logout; it does not automatically resume after reboot. Limits are
+15 CPU cores/workers, 24 GiB soft/32 GiB hard RAM, no scan swap, and **two
+cumulative supervised hours across resumes**, with a two-hour service backstop.
+Other applications' swap is untouched. Start only one SRIM campaign at a time.
+
+The frozen plan contains source hashes, exact job IDs and a measured runtime
+forecast. New repeat indices 10–21 cannot overlap existing batches; seeds are
+also checked for reuse at each physical point. Only selected stopping tables
+and 768 TRIM batches run. **Do not run the top-up superset config directly.**
+
+The report provides the combined 1,890-point table, remaining precision flags,
+and a separate `independent_new_points.csv` using only the new 600 ions at each
+selected point. This independent cohort has fewer ions than the pooled estimate
+and can miss the SEM targets even when the 1,000-ion estimate meets them.
+Pooled intervals after selection remain descriptive, not guaranteed confidence
+coverage. No new pressure tests or automatic further selection are performed;
+the previous fixed-cohort pressure assessment is retained. Final status is
+`TARGETS_MET` only if the full combined grid meets the estimated SEM targets;
+otherwise `REVIEW_REQUIRED`. Missing/invalid outputs stop with `NEEDS_ATTENTION`.
+Neither status certifies detector quenching or physical model accuracy.
+
+When calling back: “Check the low-energy top-up, independent-batch precision,
+remaining flags, actual timing, and whether the mixture grid needs refinement.”
+
+### Completed seven-energy precision campaign
+
 The goal is a reproducible **SRIM-only** map of recoil range and ionization
 fraction in Ar/Kr/Xe–CF4 over 1 keV–1 MeV, with measured compute costs and
 honest statistical limitations. Detector-calibrated quenching and SRIM model
