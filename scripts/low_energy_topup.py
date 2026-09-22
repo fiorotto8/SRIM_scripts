@@ -161,6 +161,17 @@ its lower sample size can leave a larger SEM. No repeated stopping on favorable 
 
 
 class TopupCampaign(Campaign):
+    @property
+    def budget_limit(self):
+        return BUDGET
+
+    @property
+    def config_path(self):
+        return CONFIG
+
+    def publish_report(self):
+        return publish(self.run, self.state)
+
     def __init__(self, run):
         super().__init__(run)
         path = run / "budget.json"
@@ -172,13 +183,13 @@ class TopupCampaign(Campaign):
         now = time.monotonic()
         self.used += now - self.tick
         self.tick = now
-        if self.used >= BUDGET and not self.stopping:
+        if self.used >= self.budget_limit and not self.stopping:
             self.budget_stopped = True
             self.stop(signal.SIGTERM, None)
         sample = resource_sample()
         self.state.update(updated_at=datetime.now().astimezone().isoformat(timespec="seconds"),
                           cumulative_hours=round(self.used / 3600, 4), resources=sample)
-        write_json(self.run / "budget.json", dict(used_seconds=self.used, limit_seconds=BUDGET))
+        write_json(self.run / "budget.json", dict(used_seconds=self.used, limit_seconds=self.budget_limit))
         write_json(self.run / "status.json", self.state)
         import csv
         with (self.run / "resource_samples.csv").open("a", newline="") as handle:
@@ -187,7 +198,7 @@ class TopupCampaign(Campaign):
                 writer.writeheader()
             writer.writerow(sample)
         if force or now - self.last_report > 120:
-            publish(self.run, self.state)
+            self.publish_report()
             self.last_report = time.monotonic()
 
     def selected_phase(self, name, jobs, stage):
@@ -195,7 +206,7 @@ class TopupCampaign(Campaign):
             return
         todo = pending(self.run / "refinement", jobs)
         if todo:
-            self.phase(name, CONFIG, self.run / "refinement", stage, todo)
+            self.phase(name, self.config_path, self.run / "refinement", stage, todo)
         if pending(self.run / "refinement", jobs):
             raise RuntimeError(f"{name}: required jobs incomplete")
 

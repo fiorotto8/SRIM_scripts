@@ -7,7 +7,7 @@ case "${1:-status}" in
     if [ "$(loginctl show-user "$(id -un)" -p Linger --value)" != yes ]; then
       echo "Enable logout persistence first: loginctl enable-linger $(id -un)" >&2; exit 1
     fi
-    for unit in srim-staged-scan srim-timing-pilot srim-display-recovery srim-precision-scan srim-low-energy-topup; do
+    for unit in srim-staged-scan srim-timing-pilot srim-display-recovery srim-precision-scan srim-low-energy-topup srim-mixture-scan; do
       if systemctl --user is-active --quiet "$unit"; then
         echo "Another SRIM campaign is active: $unit" >&2; exit 1
       fi

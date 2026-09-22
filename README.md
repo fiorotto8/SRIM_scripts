@@ -15,6 +15,56 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current run: mixture refinement at 1 atm
+
+The low-energy top-up finished with all 1,890 combined points meeting the
+estimated SEM targets. The next fixed scan adds **65/75/85% noble gas** (CF4
+remainder) for Ar/Kr/Xe, C/F/noble recoils, at **1 atm** and **1/3/10/30/100 keV**:
+135 new points, eight independent 50-ion batches each (400 ions/point).
+
+Twelve control points run first with **400 fresh ions each**, using repeat
+indices 30–37, independent of all previous campaigns. The four fixed curves are:
+
+- Kr, C recoils, 30 keV: 70/80/90% noble gas;
+- Xe, Xe recoils, 30 keV: 80/90/95%;
+- Kr, Kr recoils, 100 keV: 80/90/95%;
+- Ar, Ar recoils, 100 keV: 60/70/80%.
+
+In total: **1,176 new batches / 58,800 ions**, giving 2,025 combined physical
+points. No 300/1,000 keV or additional-pressure simulations are automatically
+released. The superset config must **not** be run directly.
+
+```bash
+bash scripts/mixture_scan.sh prepare  # freeze/check scope and forecast
+bash scripts/mixture_scan.sh start
+bash scripts/mixture_scan.sh status
+bash scripts/mixture_scan.sh logs     # Ctrl-C exits the viewer, not the run
+bash scripts/mixture_scan.sh stop
+bash scripts/mixture_scan.sh resume  # also use after reboot
+```
+
+The detached service survives logout with lingering enabled. Open
+`runs/noble_cf4_mixture_refinement/report/index.html`. Limits: 15 cores/workers,
+24 GiB soft/32 GiB hard memory, no scan swap, **six cumulative hours across
+resumes**, plus a six-hour service backstop. Other applications' swap is untouched.
+Do not launch another SRIM campaign concurrently. All prior result folders stay
+read-only. Control artifact checks, RAM availability, observed timing and a
+remaining-budget check gate release of the new mixtures; failed precision alone
+does not trigger extra histories or silently certify success.
+
+The report separates `new_mixture_points.csv`, `independent_controls.csv`, and
+`control_curvature.csv` from the pooled `points.csv`. Curvature is the middle
+concentration minus linear interpolation of its two neighbors, with propagated
+SEM. These contrasts are descriptive, not multiplicity-corrected significance;
+fresh data, not the selected old or pooled data, are the independent check.
+Final PDF/PNG plots cover all five new energies and all three recoil types.
+`TARGETS_MET` refers only to estimated SEM targets in the combined grid and the
+independent controls; otherwise the completed run reports `REVIEW_REQUIRED`.
+Neither status establishes physical model accuracy or detector quenching.
+
+Callback: “Check the mixture scan: independent control curvature, precision,
+new concentration trends, timing, and whether to extend to 300 keV/1 MeV.”
+
 ### Current follow-up: finish low-energy precision
 
 The seven-energy campaign completed on 18 September 2026: 1,826/1,890 points
