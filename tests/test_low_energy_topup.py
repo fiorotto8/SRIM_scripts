@@ -48,8 +48,9 @@ class TopupTests(unittest.TestCase):
             topup.select_jobs(self.rows, [j for j in self.jobs if j.job_id != missing])
 
     def test_job_ids_do_not_overlap_previous_config(self):
-        _, prior = configured_jobs(topup.ROOT / 'configs/noble_cf4_precision.toml')
+        prior_sr, prior = configured_jobs(topup.ROOT / 'configs/noble_cf4_precision.toml')
         self.assertFalse({j.job_id for j in prior} & {j.job_id for j in self.jobs})
+        self.assertEqual({j.job_id for j in prior_sr}, {j.job_id for j in self.sr})
 
     def test_empty_selection_never_runs_whole_grid(self):
         with tempfile.TemporaryDirectory() as directory:

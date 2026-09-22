@@ -41,6 +41,10 @@ The frozen plan contains source hashes, exact job IDs and a measured runtime
 forecast. New repeat indices 10–21 cannot overlap existing batches; seeds are
 also checked for reuse at each physical point. Only selected stopping tables
 and 768 TRIM batches run. **Do not run the top-up superset config directly.**
+Stopping tables retain the previously successful 1–1,000 keV interval; only
+the TRIM recoil grid is restricted to 1/3/10 keV. A startup attempt with a
+10 keV stopping-table upper bound stalled and was stopped before TRIM began;
+its logs are preserved in `runs/noble_cf4_low_energy_topup_stopping10kev_attempt`.
 
 The report provides the combined 1,890-point table, remaining precision flags,
 and a separate `independent_new_points.csv` using only the new 600 ions at each

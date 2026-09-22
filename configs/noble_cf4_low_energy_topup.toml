@@ -7,9 +7,12 @@ noble_percent = [60, 70, 80, 90, 95]
 pressures_atm = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 temperature_k = 293.15
 energy_min_kev = 1.0
-energy_max_kev = 10.0
-energy_points = 3
-energies_kev = [1.0, 3.0, 10.0]
+# Retain the known-working stopping-table range. SRModule was observed spinning
+# after partial output when this upper bound was reduced to exactly 10 keV.
+# The TRIM grid below remains limited to 1, 3 and 10 keV.
+energy_max_kev = 1000.0
+energy_points = 7
+energies_kev = [1.0, 3.0, 10.0, 30.0, 100.0, 300.0, 1000.0]
 ions = "constituents"
 
 [physics]
