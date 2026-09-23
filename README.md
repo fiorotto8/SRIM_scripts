@@ -15,6 +15,34 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current diagnostic gate: Kr same-seed reproducibility
+
+The mixture scan completed but did not reproduce an apparent Kr/C/30 keV
+concentration bend. Before more statistics or energy expansion, six isolated
+same-seed replays repeat one original and one fresh-control job at each of
+70/80/90% Kr, 1 atm. These runs use the original configurations and job IDs in
+separate `runs/kr_repro_check/{old,new}` directories. They are **never pooled**
+into independent-history counts or SEM estimates.
+
+```bash
+bash scripts/repro_check.sh start
+bash scripts/repro_check.sh status
+bash scripts/repro_check.sh logs
+bash scripts/repro_check.sh stop
+bash scripts/repro_check.sh resume
+```
+
+Open `runs/kr_repro_check/index.html`. Limits: 15 CPU cores, 32 GiB hard RAM,
+zero scan swap, one cumulative hour and a one-hour service backstop. Previous
+datasets stay unchanged. Input files, RANGE/IONIZ/TDATA outputs and numerical
+summaries are compared explicitly. A separate check records whether TDATA
+confirms the requested zero lattice/surface binding energies for all elements;
+an archived sample unexpectedly reports nonzero values for F and Kr. This is
+an unresolved input/output-consistency question, not yet an established cause.
+The nine-point top-up and larger independent Kr sample remain on hold until
+these diagnostic results have been reviewed. No fresh production is released
+automatically by this diagnostic launcher.
+
 ### Current run: mixture refinement at 1 atm
 
 The low-energy top-up finished with all 1,890 combined points meeting the
