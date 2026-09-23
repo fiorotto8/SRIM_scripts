@@ -38,6 +38,23 @@ No production files or PySRIM installation are edited by the probes, and their
 outputs never enter the scan's independent statistics. `resume` reuses recorded
 case results; it does not retry a recorded failure automatically.
 
+The completed format probe found identical outputs for all zero-input spacings;
+all positive per-element markers were read correctly, even with single spaces.
+The second suite checks exact-zero handling: integer/scientific zero, tiny
+positive bindings of 1e-6/1e-9 eV, and one zero-valued element among positive
+markers. These remain diagnostic values, not an approved production workaround.
+
+```bash
+bash scripts/binding_probe.sh start zero-handling
+bash scripts/binding_probe.sh status zero-handling
+bash scripts/binding_probe.sh logs zero-handling
+```
+
+Its separate report is `runs/binding_zero_probe/index.html`. Neither suite
+edits production settings or the completed scans. TDATA's printed precision
+may limit exact equality checks for very small requested values; retain the
+raw inputs and compare the calculated outputs as well.
+
 ### Current diagnostic gate: Kr same-seed reproducibility
 
 The mixture scan completed but did not reproduce an apparent Kr/C/30 keV

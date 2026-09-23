@@ -30,6 +30,8 @@ CASES = [('baseline', 'original', False)] + [
     (f'{kind}_{style}', style, kind == 'markers')
     for kind in ('zero', 'markers') for style in ('padded', 'double_space', 'comma')
 ] + [('markers_single_space', 'single_space', True)]
+FORMAT_CASES = list(CASES)
+OVERRIDES = {}
 HEADERS = ('Individual target atom displacement energies (eV)',
            'Individual target atom lattice binding energies (eV)',
            'Individual target atom surface binding energies (eV)')
@@ -41,16 +43,46 @@ def expected_values(markers):
             for i,symbol in enumerate(('C','F','Kr'))}
 
 
-def input_variant(original, style, markers):
+def configure_suite(suite):
+    global RUN, CASES, OVERRIDES
+    OVERRIDES = {}
+    if suite == 'format':
+        RUN = ROOT / 'runs/binding_format_probe'
+        CASES = list(FORMAT_CASES)
+        return
+    if suite != 'zero-handling':
+        raise ValueError('Unknown probe suite')
+    RUN = ROOT / 'runs/binding_zero_probe'
+    CASES = [('baseline','original',False), ('integer_zero','integer',False),
+             ('scientific_zero','scientific',False), ('epsilon_1e6','scientific',False),
+             ('epsilon_1e9','scientific',False)]
+    for name, epsilon in (('epsilon_1e6',1e-6),('epsilon_1e9',1e-9)):
+        values = expected_values(False)
+        for value in values.values():
+            value.update(lattice=epsilon,surface=epsilon)
+        OVERRIDES[name] = values
+    for symbol in ('C','F','Kr'):
+        name = f'marker_{symbol}_zero'
+        values = expected_values(True)
+        values[symbol].update(lattice=0.,surface=0.)
+        OVERRIDES[name] = values
+        CASES.append((name,'single_space',True))
+
+
+def input_variant(original, style, markers, values=None):
     if style == 'original':
         return original
     lines = original.decode('ascii').splitlines()
-    values = expected_values(markers)
+    values = values if values is not None else expected_values(markers)
     for header, field in zip(HEADERS, ('displacement','lattice','surface')):
         index = lines.index(header) + 1
         numbers = [values[s][field] for s in ('C','F','Kr')]
         if style == 'padded':
             line = ''.join(f'{v:8.1f}' for v in numbers)
+        elif style == 'integer':
+            line = ' ' + ' '.join(str(int(v)) for v in numbers)
+        elif style == 'scientific':
+            line = ' ' + ' '.join(f'{v:.9e}' for v in numbers)
         else:
             separator = {'single_space':' ', 'double_space':'  ', 'comma':','}[style]
             line = ' ' + separator.join(str(v) for v in numbers)
@@ -60,10 +92,10 @@ def input_variant(original, style, markers):
 
 def prepare(run):
     original = archive_data(SOURCE,'TRIM.IN')
-    inputs = {name: input_variant(original,style,markers) for name,style,markers in CASES}
+    inputs = {name: input_variant(original,style,markers,OVERRIDES.get(name)) for name,style,markers in CASES}
     plan = dict(source_archive=str(SOURCE), source_sha256=scan.sha256_file(SOURCE),
                 config_sha256=scan.sha256_file(CONFIG),
-                cases=[dict(name=name,style=style,expected=expected_values(markers),input_sha256=hashlib.sha256(inputs[name]).hexdigest())
+                cases=[dict(name=name,style=style,expected=OVERRIDES.get(name,expected_values(markers)),input_sha256=hashlib.sha256(inputs[name]).hexdigest())
                        for name,style,markers in CASES],
                 ions_per_case=50, seed=268673998, physical_point='Kr80/CF4-20, C recoil, 30 keV, 1 atm',
                 note='Format/marker diagnostics only. Not independent production histories.')
@@ -174,7 +206,9 @@ def main():
     parser.add_argument('command',choices=('prepare','run','worker','status'))
     parser.add_argument('--runtime',type=Path)
     parser.add_argument('--name')
+    parser.add_argument('--suite',choices=('format','zero-handling'),default='format')
     args=parser.parse_args()
+    configure_suite(args.suite)
     if args.command=='worker':
         pysrim_runner.configure_recoil_capacity(args.runtime)
         pysrim_runner.monitored_trim_run(ArchivedInput(),args.runtime,dict(description=args.name))
@@ -189,7 +223,7 @@ def main():
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         if args.command=='prepare':
             plan,_=prepare(RUN)
-            print(json.dumps(plan,indent=2))
+            print(json.dumps(dict(run=str(RUN),cases=[c['name'] for c in plan['cases']],ions_per_case=plan['ions_per_case']),indent=2))
             return 0
         return execute()
 
