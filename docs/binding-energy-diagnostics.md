@@ -82,5 +82,36 @@ physics, and this matched-seed canary's projected range did not change.
 - Only after this gate, resume the nine-point precision cleanup and the
   larger independent Kr control study under the chosen consistent model.
 
-The diagnostic work uses at most eight cores, 32 GiB RAM and no scan swap.
-No additional production simulations were released.
+The completed format/zero-handling probes used at most eight cores, 32 GiB RAM
+and no scan swap. No additional production simulations were released.
+
+## Cross-gas validation pilot
+
+`scripts/binding_validation.sh` prepares/runs a separate fixed 36-point grid:
+Ar/Kr/Xe, 80% noble, 1 atm, C/F/noble recoils, 1/10/100/1000 keV. Each point
+has two five-ion simulations with identical job IDs/seeds and requested geometry,
+one with 1e-6 eV bindings and one with 1e-9 eV bindings. The two model directories
+under `runs/binding_validation` are separate identities; never concatenate them
+as independent batches. Configurations are `configs/binding_validation_*.toml`.
+
+Predeclared numerical gate: every target-energy report must agree with its
+request, all artifacts/numeric checks must pass without clipping, paired
+geometry/seeds must agree, and RANGE/IONIZ must be byte-identical for all 36
+pairs. This intentionally conservative gate sends any difference to review;
+it does not estimate ensemble model shifts or validate physical gas assumptions.
+Full production remains gated even on success. After review, a corrected-model
+precision campaign needs a distinct identity and cannot top up old-model data.
+
+The pilot uses at most 15 cores/workers, 24/32 GiB soft/hard RAM, no scan swap,
+two cumulative hours and a two-hour service backstop. Frozen plan/code/config
+hashes, source installation fingerprints, raw files, timings and resource samples
+are retained. Monitor with `bash scripts/binding_validation.sh status` or `logs`;
+use `stop` and `resume` for checkpointed interruption.
+
+The shared scan runner now checks displacement/lattice/surface energies against
+TDATA before accepting a job, retaining its raw archive on failure and halting
+new submissions. Relative tolerance 1e-5 permits small print rounding without an
+absolute floor that could hide tiny values rounded to zero. Missing, duplicate,
+malformed or nonfinite reports fail. Offline validation checks actual archived
+TDATA too, including legacy archives; old literal-zero jobs are not grandfathered
+into a false model validation. Previous saved reports/data remain unchanged.

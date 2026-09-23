@@ -15,6 +15,46 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current gate: cross-gas near-zero binding validation
+
+The candidate workaround is being tested separately from production:
+Ar/Kr/Xe at 80% noble / 20% CF4 and 1 atm; C/F/noble recoils at
+1, 10, 100 and 1000 keV. Each of 36 points compares 1e-6 with 1e-9 eV
+lattice/surface bindings using the same seed and five ions per model.
+These 72 jobs are **paired numerical diagnostics, not independent precision batches**.
+They do not modify or enter the existing 2025-point dataset.
+
+```bash
+bash scripts/binding_validation.sh start   # detached; do not repeat while active
+bash scripts/binding_validation.sh status
+bash scripts/binding_validation.sh logs
+bash scripts/binding_validation.sh stop
+bash scripts/binding_validation.sh resume
+```
+
+Report: `runs/binding_validation/index.html`; paired CSV: `comparisons.csv` in
+that directory. Each candidate has its own `epsilon_1e6` or `epsilon_1e9`
+subdirectory with raw archives, checkpoint database and provenance. The job
+IDs/seeds intentionally match across these two isolated directories; always
+retain the model-directory identity when analyzing these data.
+
+Limits: 15 cores/workers, 24/32 GiB soft/hard RAM, zero scan swap and two
+cumulative hours. The gate requires reported target energies to match requests,
+valid unclipped artifacts, matching paired seeds/geometry, and byte-identical
+RANGE/IONIZ outputs for every pair. Differences require investigation. Even a
+passing gate does **not** automatically release production or certify gas-model
+accuracy, statistical precision, or detector quenching.
+
+New TRIM/convergence jobs now fail closed on a requested-versus-TDATA
+displacement/lattice/surface-energy mismatch. The raw archive retains the failed
+check and evidence; no successful result is published, and new submissions stop.
+The check uses relative tolerance 1e-5 with no absolute floor, so tiny positive
+bindings cannot pass as zero. Revalidation also reads TDATA in legacy archives:
+old zero-binding configs/results may now fail this check. They are preserved,
+not retroactively corrected; do not resume their production or pool models.
+The historical exact-zero diagnostic suites bypass the production job runner
+intentionally and remain separate diagnostics.
+
 ### Binding-energy input-reading canaries
 
 **Result:** the probes confirm element-dependent exact-zero fallback for
