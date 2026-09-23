@@ -15,6 +15,29 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Binding-energy input-reading canaries
+
+All six Kr same-seed replays reproduced byte-for-byte, but all six TDATA files
+report F/Kr lattice/surface energies of 2/4 eV despite zero-valued inputs.
+Production remains on hold while `scripts/binding_probe.sh` tests eight isolated
+50-ion cases: an archived-input baseline; zero-valued rows formatted with padded
+columns, double spaces or commas; and distinct per-element diagnostic markers
+with those formats plus the current single-space format. Marker energies are
+diagnostic, not proposed gas physics. Seed, geometry and other inputs stay fixed.
+
+```bash
+bash scripts/binding_probe.sh start
+bash scripts/binding_probe.sh status
+bash scripts/binding_probe.sh logs
+```
+
+Results: `runs/binding_format_probe/index.html` and `results.json`, with raw
+inputs/outputs retained in private runtime folders. Eight workers/cores, 32 GiB
+hard RAM, no scan swap, 30-minute service limit and 10-minute per-case timeout.
+No production files or PySRIM installation are edited by the probes, and their
+outputs never enter the scan's independent statistics. `resume` reuses recorded
+case results; it does not retry a recorded failure automatically.
+
 ### Current diagnostic gate: Kr same-seed reproducibility
 
 The mixture scan completed but did not reproduce an apparent Kr/C/30 keV
