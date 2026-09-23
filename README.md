@@ -17,6 +17,14 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ### Binding-energy input-reading canaries
 
+**Result:** the probes confirm element-dependent exact-zero fallback for
+F/Kr in the tested SRIM input. Whitespace changes do not fix it. Explicit
+1e-6/1e-9 eV bindings are read correctly and give identical RANGE/IONIZ outputs
+in the matched-seed canary, with an ionization fraction about 0.574% above the
+literal-zero baseline. This is one diagnostic case, not a scan-wide correction.
+See [the evidence and next validation gate](docs/binding-energy-diagnostics.md).
+Production settings remain unchanged and further production is on hold.
+
 All six Kr same-seed replays reproduced byte-for-byte, but all six TDATA files
 report F/Kr lattice/surface energies of 2/4 eV despite zero-valued inputs.
 Production remains on hold while `scripts/binding_probe.sh` tests eight isolated
