@@ -15,6 +15,49 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current follow-up: replay-gated binding confirmation
+
+The 72-job binding pilot finished in 15.4 minutes, with all target energies
+confirmed, no retries/clipping, 19.0 GiB peak RAM and no scan swap. Its strict
+byte-equality gate passed 31/36 pairs. Projected-range summaries matched for all
+pairs, but five had secondary-ionization differences (largest integrated change:
+0.0556% relative, Xe recoil at 1 MeV); three also had secondary-recoil distribution
+differences. The five-ion tests are diagnostics, not precision measurements.
+The previous gate/result files remain unchanged.
+
+`binding_confirmation.sh` first replays those five points at each epsilon with
+unchanged seeds/settings. Only if all ten replay input/output sets are identical
+does it release five independent 50-ion batches per point per epsilon (50 new
+jobs, 2500 histories). The five points are Ar/C/1000 keV, Kr/F/1 keV,
+Kr/Kr/1000 keV, Xe/F/1000 keV and Xe/Xe/1000 keV, all 80% noble and 1 atm.
+
+```bash
+bash scripts/binding_confirmation.sh start
+bash scripts/binding_confirmation.sh status
+bash scripts/binding_confirmation.sh logs
+bash scripts/binding_confirmation.sh stop
+bash scripts/binding_confirmation.sh resume
+```
+
+Separate report: `runs/binding_confirmation/index.html`; raw data/checkpoints
+are under `{replay,fresh}/{epsilon_1e6,epsilon_1e9}`. Replays and previous pilot
+histories never enter the independent-batch statistics. Fresh repeats 60–64
+use distinct seeds, matched across epsilon models. No models are pooled.
+
+The predeclared statistical gate uses mean within-pair relative differences:
+range margin ±0.5%, integrated ionization-fraction margin ±0.2%. Two-sided
+Student-t intervals use Bonferroni adjustment over all ten point/observable
+comparisons, for nominal simultaneous 95% coverage under the independent,
+approximately normal batch-difference assumption. Every interval must fit
+strictly inside its margin. Five batch pairs are a small sample; an inconclusive
+gate triggers review, not automatic extra sampling. This does not certify
+depth profiles, untested mixtures, gas-model accuracy or detector quenching.
+
+Resource caps: 15 cores/workers, RAM soft/hard 24/32 GiB, zero scan swap,
+four cumulative hours including restarts; the small-pilot-based planning
+estimate is about 3.8 hours, not a completion guarantee. Checkpoints survive
+interruption. No full production is launched even if both gates pass.
+
 ### Current gate: cross-gas near-zero binding validation
 
 The candidate workaround is being tested separately from production:
