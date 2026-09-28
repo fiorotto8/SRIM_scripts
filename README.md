@@ -15,6 +15,55 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current scan: corrected-model 108-point mixture map
+
+The binding confirmation passed all ten fixed-setting replays and all ten
+predeclared statistical comparisons. Its 50 fresh batches finished with no
+retries/clipping in a total study time of 2 h 45 min; peak RAM was 24 GiB and
+scan swap zero. This supports numerical use of the explicit 1e-9 eV model at
+the tested points, not detector calibration or universal physical-model accuracy.
+
+The new model identity is `noble-cf4-nearzero-1e9-v1`: 21 eV displacement and
+1e-9 eV lattice/surface energies. `scripts/corrected_scan.sh` supervises:
+
+- Ar/Kr/Xe, 60/80/95% noble, 1 atm and 293.15 K;
+- C/F/noble recoils at 1/10/100/1000 keV: 108 direct points;
+- 103 new points with four independent 50-ion batches each;
+- read-only reuse of five accepted `binding_confirmation/fresh/epsilon_1e9`
+  points with five independent 50-ion batches each.
+
+There are 412 new batches (20,600 histories), 25 reused batches (1,250 histories),
+and 21,850 total histories. New repeats 70–73 have checked distinct seeds.
+No literal-zero, epsilon_1e6, replay or five-ion pilot results enter this map.
+Per-batch source directories/raw archives and model identity are retained.
+
+First, 72 batches cover the 60/95% and 1/1000 keV endpoints (36 points × 100
+ions). Only after target-energy, numeric, archive, clipping, source-integrity
+and resource checks pass are the remaining 340 batches released. This endpoint
+gate is not a precision gate. The final report flags estimated range SEM >5%
+or ionization-fraction SEM >2%; there are no automatic precision top-ups.
+
+```bash
+bash scripts/corrected_scan.sh start
+bash scripts/corrected_scan.sh status
+bash scripts/corrected_scan.sh logs
+bash scripts/corrected_scan.sh stop
+bash scripts/corrected_scan.sh resume
+```
+
+Report: `runs/noble_cf4_corrected_coarse/report/index.html`, with point/batch CSVs
+and precision flags updated during the scan. PDF/PNG/ROOT snapshots are generated
+after the endpoint phase and at completion. New checkpoints/raw archives are
+under `runs/noble_cf4_corrected_coarse/scan`; accepted source results are not moved
+or modified. Frozen hashes protect configurations, code and reused artifacts.
+
+Limits: 15 cores/workers, RAM soft/hard 24/32 GiB, no scan swap, eight cumulative
+hours including restarts. The timing model predicts about 6.1 hours including
+50% scheduling margin and 30 minutes overhead, using historical timings only
+(not historical physics results) with measured corrected-model adjustments.
+This is not a completion guarantee. The run ends for review without releasing
+additional energies, mixtures, pressures or top-ups automatically.
+
 ### Current follow-up: replay-gated binding confirmation
 
 The 72-job binding pilot finished in 15.4 minutes, with all target energies
