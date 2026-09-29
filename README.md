@@ -15,6 +15,56 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current follow-up: corrected precision, intermediate energies and pressure
+
+The corrected 108-point map completed on 28 September in 3 h 44 min. Its 412
+new batches had no retries, clipping or target-energy mismatches; peak RAM was
+13.47 GiB, scan swap zero. All artifacts and reused points were rechecked.
+83/108 points met the estimated 5% range / 2% ionization-fraction SEM targets.
+The 25 flagged points comprise 18 at 1 keV, six at 10 keV and one at 100 keV.
+
+The fixed next run is `scripts/corrected_refinement.sh`, using the same
+`noble-cf4-nearzero-1e9-v1` model and keeping previous data read-only:
+
+- 25 flagged points: twelve new 50-ion batches each, taking 200 → 800 ions;
+- 81 new points at 3/30/300 keV, 60/80/95% noble and 1 atm, all three gas
+  families and C/F/noble recoils, four 50-ion batches per point;
+- 54 new pressure points at 0.5/3 atm, 80% noble, 1/10/100 keV, all three
+  families and recoil species, four 50-ion batches per point.
+
+This adds 840 batches / 42,000 histories and produces a combined 243-point,
+63,850-history corrected-model dataset. Repeats 80–91 for the top-up and
+80–83 for the new grids have checked distinct seeds. The six-hour cumulative
+cap covers all three stages; the conservative planning estimate is 5.1 hours.
+Limits remain 15 cores/workers, 24/32 GiB soft/hard RAM and zero scan swap.
+Each stage is audited before the next is released. No adaptive extra batches
+are launched, even if statistical targets are missed.
+
+```bash
+bash scripts/corrected_refinement.sh start
+bash scripts/corrected_refinement.sh status
+bash scripts/corrected_refinement.sh logs
+bash scripts/corrected_refinement.sh stop
+bash scripts/corrected_refinement.sh resume
+```
+
+Report: `runs/noble_cf4_corrected_refinement/report/index.html`. Live CSVs
+include the combined grid, provenance/timing, precision flags and the independent
+new 600-ion cohorts. Final PDF/PNG/ROOT exports cover the extended energy map
+and available mixture/pressure points. Raw outputs and checkpoints are under
+`{topup,energy,pressure}` within that run directory.
+
+Pressure diagnostics use only the fixed first four batches at each of 0.5/1/3
+atm, excluding precision top-ups. They compare pressure×range and ionization
+fraction with Welch ANOVA and BY adjustment over a fixed family of 54 tests.
+Unestimable tests remain indeterminate; no significance flags are issued before
+the full family is available. Small batch counts limit sensitivity, and
+non-rejection is not proof of pressure equivalence. Pooled post-selection SEMs
+are descriptive; detector calibration and model uncertainty are not included.
+
+No 1 MeV pressure extension, new mixture concentrations, legacy binding model
+or interpolated result rows are included. Those remain later decisions.
+
 ### Current scan: corrected-model 108-point mixture map
 
 The binding confirmation passed all ten fixed-setting replays and all ten
