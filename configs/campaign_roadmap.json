@@ -112,7 +112,8 @@
     {
       "id": "C2c",
       "title": "Cross-family and energy-endpoint interior validation",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-09-30T17:53:54+02:00",
       "depends_on": ["C2b"],
       "run": "runs/noble_cf4_bulk_corners",
       "launcher": "scripts/bulk_corner_validation.sh",
@@ -280,6 +281,11 @@
       "date": "2026-09-30",
       "stage": "C2c",
       "decision": "Reviewed completed C2b: 28/28 raw cases pass in 20.375 minutes, source unchanged. Interior/deeper results are stable at the selected Kr/F100keV cases; absolute versus origin-subtracted range interpretation confirmed. Insert cross-family low/high-energy validation before P2a. New fixed 37-case diagnostic has 18 fresh seeds paired across depths plus one exact replay, 2.52-hour planning estimate, six-hour cumulative cap, three-hour per-job limit. This is not production model adoption or permission to mix surface and interior data. The 143-hour production forecast remains a conditional old-model estimate; an interior baseline rebuild, if accepted after review, is additional and must be reforecast from new measured costs."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C2c",
+      "decision": "Launched detached at 17:53 Europe/Rome, implementation commit 1986da6, after 168 tests passed and shell syntax/compilation checks passed. Service active; verified 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap and six-hour runtime/cumulative cap. Exact replay and all low-energy depth pairs gate the high-energy phase. Stop after this fixed diagnostic and await user continue; no full production or automatic next-stage launch."
     }
   ]
 }
