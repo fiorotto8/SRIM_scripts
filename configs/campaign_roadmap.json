@@ -143,7 +143,8 @@
     {
       "id": "C2d",
       "title": "Display-safe continuation of the fixed bulk-corner validation",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-09-30T18:21:48+02:00",
       "depends_on": ["C1b"],
       "run": "runs/noble_cf4_bulk_corners_retry",
       "launcher": "scripts/bulk_corner_retry.sh",
@@ -322,6 +323,11 @@
       "date": "2026-09-30",
       "stage": "C1b",
       "decision": "On NEEDS_ATTENTION, traced failure to xvfb-run's ten-attempt concurrent display allocation loop, which invokes its child even after attempts are exhausted. All 19 scientific canaries pass raw re-audit, including exact replay and nine low-energy depth pairs. Atomic -displayfd replacement passed 60 synchronized startup/isolation/cleanup checks. Insert C2d to retain those 19 results and retry only the original eighteen high-energy cases. Preserve failed run and carry spent time into the original six-hour cap; no new histories, seeds, physics criteria or production permission added."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C2d",
+      "decision": "Launched detached at 18:21 Europe/Rome, implementation commit 87cb56e, after all 177 tests passed. Retained 19 audited canaries; verified 15 simultaneously ready, uniquely allocated authenticated displays. Resource limits unchanged: 15-core maximum, 24/32 GiB RAM and zero scan swap. Previous 313.07 seconds retained in the original six-hour cumulative budget. Eighteen high-energy cases only; await user continue at completion or failure, with no automatic production release."
     }
   ]
 }
