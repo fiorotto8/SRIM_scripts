@@ -15,6 +15,51 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current step: fixed precision closeout and independent pressure confirmation
+
+The corrected refinement finished on 29 September in 2 h 48 min, with all 840
+new batches validated, no retries/clipping/parameter mismatches, peak RAM
+22.16 GiB and zero scan swap. All 25 independent 600-ion top-up cohorts met
+the estimated 5% range / 2% ionization-fraction SEM targets. In the expanded
+243-point grid, 208 points met both targets and 35 new 200-ion points remained
+flagged. Those are 6/15/6/6/1/1 points at 1/3/10/30/100/300 keV respectively.
+
+All 54 multiplicity-adjusted pressure screening tests were unflagged. This is
+not equivalence: four-batch estimates showed up to 20.2% mean spread in
+pressure×range and 7.2% in ionization fraction. Six groups crossed descriptive
+selection thresholds of 10% range or 5% ionization spread: Ar/Ar/1 keV,
+Kr/F/1 keV, Kr/F/100 keV, Kr/Kr/1 keV, Xe/F/10 keV and Xe/Xe/1 keV.
+These thresholds select independent checks; they are not significance tests.
+
+`scripts/corrected_closeout.sh` adds exactly 600 fresh ions at 47 existing
+points: all 35 precision flags plus 12 additional controls to cover all three
+pressures (0.5/1/3 atm, 80% noble) in those six groups. There is no grid expansion.
+The 564 new 50-ion batches use repeats 100–111 with distinct seeds. Only these
+new cohorts enter the independent pressure confirmation (Welch ANOVA and BY
+adjustment across twelve fixed group/observable tests). Precision and pressure
+results are reported regardless of whether they pass; no additional batches
+are released automatically and non-rejection never certifies equivalence.
+
+```bash
+bash scripts/corrected_closeout.sh start
+bash scripts/corrected_closeout.sh status
+bash scripts/corrected_closeout.sh logs
+bash scripts/corrected_closeout.sh stop
+bash scripts/corrected_closeout.sh resume
+```
+
+Report: `runs/noble_cf4_corrected_closeout/report/index.html`, with combined
+point results, independent new-cohort estimates, pressure confirmation,
+precision flags, batch provenance and final PDF/PNG/ROOT exports. Previous
+results remain read-only. Final planned history total: 92,050 over the same
+243 points. The original 35 precision flags each go from 200 to 800 ions;
+some controls already had more histories, retained explicitly in the plan.
+
+Planning estimate: 1 h 45 min including margin; cap: three cumulative hours.
+Limits remain 15 cores/workers, 24/32 GiB soft/hard RAM and zero scan swap.
+The next step is review and an analysis summary of this bounded dataset,
+not an automatic expansion to untested mixtures or 1 MeV pressures.
+
 ### Current follow-up: corrected precision, intermediate energies and pressure
 
 The corrected 108-point map completed on 28 September in 3 h 44 min. Its 412
