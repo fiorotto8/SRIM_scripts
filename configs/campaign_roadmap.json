@@ -97,7 +97,8 @@
     {
       "id": "C2b",
       "title": "Completion-aware interior-start geometry retry",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-09-30T16:33:34+02:00",
       "depends_on": ["C1a"],
       "run": "runs/kr_bulk_geometry_retry",
       "launcher": "scripts/bulk_geometry_retry.sh",
@@ -253,6 +254,11 @@
       "date": "2026-09-30",
       "stage": "C1a",
       "decision": "On continue, audited C2a's safe canary failure: mode 2 passed; mode 5 reached a normal completion dialog not recognized by the legacy error-only watchdog. Preserved failed run and observe-only screenshot; implemented a separate opt-in exact-title acknowledgement helper without editing frozen code. One-ion completion canary passed all final-output/count/binding/endpoint checks in 19 seconds. Inserted C2b with unchanged 28-case physics selection, 0.5-1.5 hour estimate and three-hour cap. P2a remains held until geometry review; 143-hour production forecast remains conditional."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C2b",
+      "decision": "Launched detached at 16:33 Europe/Rome, implementation commit 81731d7, after all 160 tests passed. Service limits verified: 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap and three-hour cumulative/runtime cap. Both startup canaries observed running with no reported error dialogs; remaining variants require both to pass. Stop after this diagnostic and await user continue; no production release or automatic next stage."
     }
   ]
 }
