@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import json
+import time
 import tempfile
 import unittest
 from unittest.mock import Mock
@@ -38,6 +40,20 @@ class DisplayTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             result=subprocess.run([sys.executable,x.__file__,'--runtime',td,'--',sys.executable,'-c','raise SystemExit(7)'],capture_output=True,timeout=20)
             self.assertEqual(result.returncode,7,result.stderr.decode())
+
+    def test_interrupt_cleans_up_owned_server(self):
+        with tempfile.TemporaryDirectory() as td:
+            child=subprocess.Popen([sys.executable,x.__file__,'--runtime',td,'--',sys.executable,'-c','import time;time.sleep(60)'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            try:
+                metadata=Path(td)/'.display-startup.json';deadline=time.monotonic()+10
+                while not metadata.exists() and time.monotonic()<deadline:time.sleep(.02)
+                self.assertTrue(metadata.exists())
+                pid=json.loads(metadata.read_text())['server_pid']
+                child.terminate();child.communicate(timeout=15)
+                self.assertEqual(child.returncode,130)
+                self.assertFalse(Path(f'/proc/{pid}').exists())
+            finally:
+                if child.poll() is None:child.kill();child.communicate(timeout=10)
 
 
 if __name__=='__main__':unittest.main()

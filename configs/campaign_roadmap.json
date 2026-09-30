@@ -2,12 +2,12 @@
   "schema_version": 1,
   "updated_on": "2026-09-30",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C2c",
+  "current_stage_id": "C2d",
   "production_release": "hold_pending_cross_family_energy_validation_and_model_review",
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a/C2b/C2c diagnostic launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a-C2d diagnostic launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -112,7 +112,9 @@
     {
       "id": "C2c",
       "title": "Cross-family and energy-endpoint interior validation",
-      "status": "running",
+      "status": "stopped_after_display_startup_failure",
+      "actual_compute_hours": 0.08696353,
+      "review": "All 18 low-energy cases and exact Kr/F100keV replay passed; nine low-energy depth pairs meet frozen margins. High-energy startup failed when concurrent xvfb-run -a processes exhausted ten allocation retries. One worker was rejected by the display watchdog before launching TRIM; 14 other high-energy attempts were stopped, three not launched. No high-energy result accepted. This is infrastructure failure, not a failed physics/precision gate. Peak 12.562 GiB, zero scan swap. Preserve all artifacts and retain only the 19 audited completed cases.",
       "started_at": "2026-09-30T17:53:54+02:00",
       "depends_on": ["C2b"],
       "run": "runs/noble_cf4_bulk_corners",
@@ -125,9 +127,38 @@
       "exit_gate": "Audit all executed inputs, primary species/energy, bindings, counts, normal completion, complete endpoints and zero primary escape/profile-edge ionization. Exact replay must match IONIZ/RANGE/RANGE_3D/TDATA bytes. Paired-depth changes <=0.2% ionization and <=0.5% mean endpoint-minus-origin displacement, predeclared numerical screening limits rather than statistical equivalence. Stop on failure; no automatic extra seeds/depths. Review timing, coordinate precision and model identity; if interior geometry is adopted, insert C3 representative/baseline validation and reforecast without silently reusing surface data. Production remains held until that decision."
     },
     {
+      "id": "C1b",
+      "title": "Atomic private-display allocation and concurrency test",
+      "status": "completed_and_reviewed",
+      "depends_on": ["C2c"],
+      "run": "runs/display_allocation_test",
+      "expected_active_work_hours": [0.5, 1.5],
+      "expected_compute_hours": [0.001, 0.02],
+      "cap_hours": 0.083334,
+      "actual_compute_hours": 0.00022873,
+      "scope": "Replace the retry-limited xvfb-run allocation path with server-owned Xvfb -displayfd selection. Require private authentication, TCP disabled, authenticated readiness and owned-process cleanup. Four synchronized 15-server waves, no Wine or transport histories.",
+      "review": "60/60 display checks passed in 0.823 seconds: 15 simultaneous unique displays per wave, authenticated access works, unauthenticated access rejected, all servers reaped. Peak 0.409 GiB and zero swap. Existing frozen runners remain untouched; the fix is an opt-in launch adapter.",
+      "exit_gate": "All four waves pass allocation, readiness, authentication and cleanup checks; regression tests cover startup rejection, child exit propagation and interruption cleanup. No weakened SRIM error or physics gates."
+    },
+    {
+      "id": "C2d",
+      "title": "Display-safe continuation of the fixed bulk-corner validation",
+      "status": "prepared",
+      "depends_on": ["C1b"],
+      "run": "runs/noble_cf4_bulk_corners_retry",
+      "launcher": "scripts/bulk_corner_retry.sh",
+      "expected_compute_hours": [2, 3],
+      "planning_compute_hours": 2.365,
+      "cap_hours": 6,
+      "cap_includes_prior_c2c_hours": 0.08696353,
+      "per_job_cap_hours": 3,
+      "scope": "Retain the 19 raw-audited C2c canaries by provenance reference and execute only the 18 unfinished 1-MeV cases with identical inputs, seeds, geometry and margins. New isolated run directory and atomic private displays. The original six-hour cumulative budget carries forward; do not reset the 313 seconds already used.",
+      "exit_gate": "All original 37 cases accounted for once, including 19 explicitly retained results and 18 newly completed high-energy cases. All original C2c physics and depth gates still pass; display-startup metadata and raw hashes audited. Review model/timing before any production release; no automatic next stage or baseline rebuild."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["C2c"],
+      "depends_on": ["C2d"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -286,6 +317,11 @@
       "date": "2026-09-30",
       "stage": "C2c",
       "decision": "Launched detached at 17:53 Europe/Rome, implementation commit 1986da6, after 168 tests passed and shell syntax/compilation checks passed. Service active; verified 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap and six-hour runtime/cumulative cap. Exact replay and all low-energy depth pairs gate the high-energy phase. Stop after this fixed diagnostic and await user continue; no full production or automatic next-stage launch."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C1b",
+      "decision": "On NEEDS_ATTENTION, traced failure to xvfb-run's ten-attempt concurrent display allocation loop, which invokes its child even after attempts are exhausted. All 19 scientific canaries pass raw re-audit, including exact replay and nine low-energy depth pairs. Atomic -displayfd replacement passed 60 synchronized startup/isolation/cleanup checks. Insert C2d to retain those 19 results and retry only the original eighteen high-energy cases. Preserve failed run and carry spent time into the original six-hour cap; no new histories, seeds, physics criteria or production permission added."
     }
   ]
 }
