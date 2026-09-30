@@ -1,7 +1,8 @@
 # SRIM Noble-Gas/CF4 Automation
 
 This repository drives reproducible SRIM-2013 scans of Xe/CF4, Kr/CF4, and
-Ar/CF4 gas mixtures. The canonical scan covers:
+Ar/CF4 gas mixtures. The original full-scan configuration (not the completed
+staged campaign described below) covers:
 
 - noble-gas/CF4 mole fractions from 60/40 through 95/5 in 5 percentage-point steps;
 - pressures from 0.5 through 3.0 atm in 0.5-atm steps at 293.15 K;
@@ -15,7 +16,43 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
-### Current step: fixed precision closeout and independent pressure confirmation
+### Reviewed result: precision complete; pressure diagnostic required
+
+The fixed closeout finished on 30 September in **1 h 3 min**: all 564 new
+batches completed, peak RAM 11.62 GiB, zero scan swap. The combined corrected
+dataset contains **243 points / 92,050 histories**. All points meet estimated
+range SEM ≤5% and ionization-fraction SEM ≤2%; all 47 independent new 600-ion
+cohorts also pass. Maximum pooled relative SEMs are 4.990% and 1.981%.
+
+Coverage is 60/80/95% noble at 1 atm and 1/3/10/30/100/300/1000 keV for all
+Ar/Kr/Xe families and C/F/noble recoils (189 points), plus 0.5/3 atm at 80%
+noble and 1/10/100 keV (54 points). This is not the full original scan above.
+
+One of twelve independent pressure tests is flagged: F recoils at 100 keV
+in 80% Kr / 20% CF4, ionization fraction, BY-adjusted p=0.03355. Independent
+means at 0.5/1/3 atm are 0.54220/0.52510/0.53119. This is not yet an established
+physical effect. A raw-output audit also finds that TDATA prints an atomic
+density ten times too small at 3 atm, despite correctly scaled mass-density
+inputs. A formatting defect is possible; calculation impact is unresolved.
+Surface backscattering is present and must not be silently discarded or
+interpreted as fully contained bulk-gas recoil energy loss.
+
+Offline review (does not launch simulations or change frozen results):
+
+```bash
+.venv/bin/python scripts/review_corrected_closeout.py
+xdg-open runs/noble_cf4_corrected_closeout/review/index.html
+```
+
+The review links the existing PDF, plots, point/batch data and ROOT file, and
+adds the raw-input/IONIZ audit and 63 descriptive 95%/60% mixture comparisons.
+The next gate is a bounded fixed-input replay and matched-seed pressure/geometry
+diagnostic, not broad production or repeated sampling until a p-value passes.
+No further run is launched by the review. SRIM ionization fraction remains a
+model observable, **not detector-calibrated quenching**; statistical precision
+does not certify model accuracy or pressure equivalence.
+
+### Completed step: fixed precision closeout and independent pressure confirmation
 
 The corrected refinement finished on 29 September in 2 h 48 min, with all 840
 new batches validated, no retries/clipping/parameter mismatches, peak RAM
