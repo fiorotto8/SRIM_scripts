@@ -2,12 +2,12 @@
   "schema_version": 1,
   "updated_on": "2026-09-30",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C2b",
-  "production_release": "hold_pending_interior_geometry_review",
+  "current_stage_id": "C2c",
+  "production_release": "hold_pending_cross_family_energy_validation_and_model_review",
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0, C2a and completion-aware C2b launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a/C2b/C2c diagnostic launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -97,7 +97,9 @@
     {
       "id": "C2b",
       "title": "Completion-aware interior-start geometry retry",
-      "status": "running",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 0.3396,
+      "review": "28/28 cases re-audited from hashes and raw outputs, all 27 mode-5 completion acknowledgements present; exact mode-2 control passed. All 18 interior cases have 50 stopped endpoints and no primary escape or edge-bin ionization. Depth doubling changes ionization by at most 0.0060831% and origin-subtracted range by 0.0035506%. RANGE.TXT reports the absolute endpoint coordinate, not displacement from the interior start. Near-surface cases have 15 backscattered primaries across 450 histories. Three reused seeds and one Kr/F energy do not validate other species/energies or certify pressure equivalence. Source unchanged; peak 12.475 GiB, zero scan swap. Cross-family validation required before model adoption.",
       "started_at": "2026-09-30T16:33:34+02:00",
       "depends_on": ["C1a"],
       "run": "runs/kr_bulk_geometry_retry",
@@ -108,9 +110,23 @@
       "exit_gate": "All 28 cases complete with original input/binding/count/endpoint/containment checks; mode-2 observable replay passes and all 27 mode-5 cases have archived completion evidence. Review surface/interior and depth effects before model adoption or any production release. Insert C3 and reforecast baseline reuse if needed."
     },
     {
+      "id": "C2c",
+      "title": "Cross-family and energy-endpoint interior validation",
+      "status": "prepared",
+      "depends_on": ["C2b"],
+      "run": "runs/noble_cf4_bulk_corners",
+      "launcher": "scripts/bulk_corner_validation.sh",
+      "expected_compute_hours": [2, 3],
+      "planning_compute_hours": 2.5195,
+      "cap_hours": 6,
+      "per_job_cap_hours": 3,
+      "scope": "37 fixed 50-ion diagnostic cases, 1850 histories: one exact Kr/F100keV interior replay plus Ar/Kr/Xe, C/F/noble, 1keV and 1MeV, 80% noble, 1 atm at two central-start depths. Eighteen fresh point seeds shared across depth pairs, not 36 independent samples. Replay and all nine low-energy pairs must pass before eighteen high-energy cases. No production histories added.",
+      "exit_gate": "Audit all executed inputs, primary species/energy, bindings, counts, normal completion, complete endpoints and zero primary escape/profile-edge ionization. Exact replay must match IONIZ/RANGE/RANGE_3D/TDATA bytes. Paired-depth changes <=0.2% ionization and <=0.5% mean endpoint-minus-origin displacement, predeclared numerical screening limits rather than statistical equivalence. Stop on failure; no automatic extra seeds/depths. Review timing, coordinate precision and model identity; if interior geometry is adopted, insert C3 representative/baseline validation and reforecast without silently reusing surface data. Production remains held until that decision."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["C2b"],
+      "depends_on": ["C2c"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -259,6 +275,11 @@
       "date": "2026-09-30",
       "stage": "C2b",
       "decision": "Launched detached at 16:33 Europe/Rome, implementation commit 81731d7, after all 160 tests passed. Service limits verified: 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap and three-hour cumulative/runtime cap. Both startup canaries observed running with no reported error dialogs; remaining variants require both to pass. Stop after this diagnostic and await user continue; no production release or automatic next stage."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C2c",
+      "decision": "Reviewed completed C2b: 28/28 raw cases pass in 20.375 minutes, source unchanged. Interior/deeper results are stable at the selected Kr/F100keV cases; absolute versus origin-subtracted range interpretation confirmed. Insert cross-family low/high-energy validation before P2a. New fixed 37-case diagnostic has 18 fresh seeds paired across depths plus one exact replay, 2.52-hour planning estimate, six-hour cumulative cap, three-hour per-job limit. This is not production model adoption or permission to mix surface and interior data. The 143-hour production forecast remains a conditional old-model estimate; an interior baseline rebuild, if accepted after review, is additional and must be reforecast from new measured costs."
     }
   ]
 }

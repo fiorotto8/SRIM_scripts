@@ -41,7 +41,8 @@ claim of detector-calibrated quenching.
 | R1 | Interpret pressure/header discrepancy and define the accepted observable/geometry | 0.5–2 h active review | No simulation |
 | C2a | Original geometry attempt stopped at the mode-5 completion dialog; remaining 26 cases held | 30 min actual, preserved | 3 h |
 | C1a | Observe-only reproduction and exact-completion-dialog fix canary | Both probes completed in 31 s total | 4 min each |
-| C2b (current) | Completion-aware retry of the same 28 diagnostic geometry cases | 0.5–1.5 h compute | 3 h |
+| C2b | Completion-aware retry: 28/28 cases completed and audited | 20.4 min actual | 3 h |
+| C2c (current) | Cross-family 1keV/1MeV interior validation: 37 cases including one exact replay | About 2.5 h planning | 6 h |
 | P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.5 h planning | 6 h |
 | P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.5 h planning | 8 h |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 15 h planning | 24 h |
@@ -99,7 +100,50 @@ planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: completion-aware interior-start geometry retry (C2b)
+### Current step: cross-family energy-endpoint interior validation (C2c)
+
+C2b completed and all **28 raw cases passed re-audit** in 20.4 minutes, with
+12.475 GiB peak RAM and zero scan swap. All 18 interior cases contained all
+50 primary ions; doubling the surrounding target depth changed ionization by
+at most 0.0060831% and mean displacement by 0.0035506%. The raw `RANGE.TXT`
+summary includes the starting coordinate: interior range must be calculated
+from **endpoint X minus initial X**, not taken directly from that summary.
+The [C2b review](runs/kr_bulk_geometry_retry/review/index.html) includes the
+raw-data audit and descriptive depth/surface/pressure comparisons. Three reused
+seeds at one Kr/F energy do not establish general validity or pressure equivalence.
+
+C2c extends this candidate geometry to **Ar/Kr/Xe, C/F/noble recoils, 1keV and
+1MeV**, at 80% noble and 1 atm. Two interior depths at each of 18 points use
+the same fresh seed, making paired numerical checks—not two independent batches.
+An exact Kr/F100keV replay brings the total to 37 cases × 50 ions. The replay
+and all nine low-energy pairs must pass before the eighteen high-energy cases.
+All histories remain diagnostic, separate from production.
+
+Gates require correct executed species/energy/bindings, 50 endpoints, no primary
+escape, no profile-edge ionization, complete outputs and normal completion.
+Paired-depth changes must be ≤0.2% for ionization and ≤0.5% for mean displacement;
+these are fixed numerical screening limits, not precision/equivalence claims.
+No automatic extra depth/seed trials are allowed on failure.
+
+Allow **about 2.5 hours** from measured reference costs, with a six-hour cumulative
+cap and three-hour per-job timeout. At most 15 cores, 24/32 GiB RAM and zero scan
+swap. After completion, review the model and new timing before any production
+release. If interior geometry is adopted, preserve the surface dataset separately
+and plan a compatible baseline rebuild; the earlier 143-hour forecast is still
+conditional, not a forecast for a validated new geometry.
+
+```bash
+bash scripts/bulk_corner_validation.sh status
+bash scripts/bulk_corner_validation.sh logs
+bash scripts/bulk_corner_validation.sh stop
+bash scripts/bulk_corner_validation.sh resume
+```
+
+Report: `runs/noble_cf4_bulk_corners/index.html`. On `REVIEW_REQUIRED` or
+`NEEDS_ATTENTION`, call back with `continue`; no next stage is launched automatically.
+Reproduce the preceding review with `.venv/bin/python scripts/review_bulk_geometry.py`.
+
+### Completed step: completion-aware interior-start geometry retry (C2b)
 
 The original C2a attempt stopped safely after its mode-2 control passed and its
 mode-5 canary timed out. The other 26 cases were never released. An observe-only
