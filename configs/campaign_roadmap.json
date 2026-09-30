@@ -2,12 +2,12 @@
   "schema_version": 1,
   "updated_on": "2026-09-30",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C2a",
+  "current_stage_id": "C2b",
   "production_release": "hold_pending_interior_geometry_review",
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0, C2a and completion-aware C2b launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -68,7 +68,9 @@
     {
       "id": "C2a",
       "title": "Documented TRIM.DAT interior-start feasibility",
-      "status": "running",
+      "status": "failed_at_canary_gate_preserved",
+      "actual_compute_hours": 0.5020,
+      "review": "Mode-2 control completed with exact observable replay; mode-5 near-surface case timed out at 1800 seconds. One complete, one failed, 26 never released. No partial data accepted. Peak 8.492 GiB, zero scan swap. Observe-only one-ion reproduction identified the normal End of TRIM.DAT calculation dialog blocking final save/exit; this is a lifecycle failure, not yet a physics/geometry result.",
       "started_at": "2026-09-30T15:28:24+02:00",
       "depends_on": ["R1"],
       "run": "runs/kr_bulk_geometry_probe",
@@ -79,9 +81,35 @@
       "exit_gate": "Audit 50 events, executed bindings, raw input hashes and endpoint counts. Mode-2 observables must reproduce the source; interior cases require no primary escape and no ionization-profile signal at the boundaries. Review origin-subtracted ranges, ionization and depth sensitivity; do not adopt a new geometry or release production automatically. If geometry changes materially, insert C3 and reforecast baseline reuse."
     },
     {
+      "id": "C1a",
+      "title": "Mode-5 completion-dialog reproduction and software canary",
+      "status": "completed_and_reviewed",
+      "depends_on": ["C2a"],
+      "run": "runs/mode5_completion_canary",
+      "expected_active_work_hours": [0.5, 1.5],
+      "expected_compute_hours": [0.01, 0.1],
+      "cap_hours": 0.1334,
+      "actual_compute_hours": 0.00851,
+      "scope": "Two separately preserved one-ion probes, each capped at four minutes: observe the completion dialog without action, then acknowledge only its exact title once in an isolated worker. Never dismiss errors or change frozen historical runners.",
+      "review": "Observe-only capture took 11.617 seconds; acknowledgement canary passed in 19.021 seconds. Normal process exit, every required final output, exactly one completed ion, executed bindings, input identity and endpoint/escape accounting passed. Source unchanged; canary peak 1.019 GiB, zero scan swap. The software fix is opt-in mode 5, not a physics change or production precision result.",
+      "exit_gate": "One exact normal completion acknowledgement, normal exit and complete audited output. Preserve screenshots/window trees and raw file hashes. An error, unknown dialog, missing output or count mismatch stops release."
+    },
+    {
+      "id": "C2b",
+      "title": "Completion-aware interior-start geometry retry",
+      "status": "prepared",
+      "depends_on": ["C1a"],
+      "run": "runs/kr_bulk_geometry_retry",
+      "launcher": "scripts/bulk_geometry_retry.sh",
+      "expected_compute_hours": [0.5, 1.5],
+      "cap_hours": 3,
+      "scope": "Same frozen 28 cases and 1400 diagnostic histories as C2a, in a new run directory; never pooled with production. Repeat the two startup canaries before the remaining 26 cases. Use the tested exact-title, one-acknowledgement mode-5 completion path and retain all original scientific gates.",
+      "exit_gate": "All 28 cases complete with original input/binding/count/endpoint/containment checks; mode-2 observable replay passes and all 27 mode-5 cases have archived completion evidence. Review surface/interior and depth effects before model adoption or any production release. Insert C3 and reforecast baseline reuse if needed."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["C2a"],
+      "depends_on": ["C2b"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -220,6 +248,11 @@
       "date": "2026-09-30",
       "stage": "C2a",
       "decision": "Launched detached at 15:28 Europe/Rome with three-hour cumulative cap, 15-core maximum, 24/32 GiB RAM and zero scan swap. Both startup canaries observed running without error dialogs. Await completion and user continue; high-energy production remains held. Implementation commit 7060c28; 152 tests passed."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C1a",
+      "decision": "On continue, audited C2a's safe canary failure: mode 2 passed; mode 5 reached a normal completion dialog not recognized by the legacy error-only watchdog. Preserved failed run and observe-only screenshot; implemented a separate opt-in exact-title acknowledgement helper without editing frozen code. One-ion completion canary passed all final-output/count/binding/endpoint checks in 19 seconds. Inserted C2b with unchanged 28-case physics selection, 0.5-1.5 hour estimate and three-hour cap. P2a remains held until geometry review; 143-hour production forecast remains conditional."
     }
   ]
 }

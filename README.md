@@ -39,7 +39,9 @@ claim of detector-calibrated quenching.
 | --- | --- | --- | --- |
 | D0 | Current 36-case pressure/depth diagnostic | 0.5–1 h compute | 2 h |
 | R1 | Interpret pressure/header discrepancy and define the accepted observable/geometry | 0.5–2 h active review | No simulation |
-| C2a (inserted after R1) | Mode-5 interior-start feasibility and endpoint-coordinate checks; 28 diagnostic cases | 0.5–1.5 h compute | 3 h |
+| C2a | Original geometry attempt stopped at the mode-5 completion dialog; remaining 26 cases held | 30 min actual, preserved | 3 h |
+| C1a | Observe-only reproduction and exact-completion-dialog fix canary | Both probes completed in 31 s total | 4 min each |
+| C2b (current) | Completion-aware retry of the same 28 diagnostic geometry cases | 0.5–1.5 h compute | 3 h |
 | P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.5 h planning | 6 h |
 | P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.5 h planning | 8 h |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 15 h planning | 24 h |
@@ -97,7 +99,22 @@ planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: interior-start geometry feasibility (C2a)
+### Current step: completion-aware interior-start geometry retry (C2b)
+
+The original C2a attempt stopped safely after its mode-2 control passed and its
+mode-5 canary timed out. The other 26 cases were never released. An observe-only
+one-ion probe captured SRIM's **End of TRIM.DAT calculation** dialog, which blocks
+final output saving until acknowledged. A separate one-ion software canary then
+passed in 19 seconds: exact dialog acknowledgement, normal exit, complete outputs,
+correct binding parameters, one-ion count and endpoint accounting.
+
+C2b repeats the original fixed geometry design in a new directory. Its isolated
+mode-5 worker acknowledges that exact visible completion title **once** and saves
+the screenshot/window tree. Error dialogs still reject the job; complete final
+files and all scientific checks remain mandatory. Historical runners, failed
+artifacts and production data are unchanged. Diagnostic records are in
+`runs/mode5_lifecycle_probe` and `runs/mode5_completion_canary`; the failed original
+attempt is preserved in `runs/kr_bulk_geometry_probe` and must not be resumed.
 
 The 36-case pressure/depth diagnostic completed in 24 minutes; all raw artifacts
 and three exact replays passed. Width-only changes left range/ionization unchanged;
@@ -110,7 +127,7 @@ Three reused seeds are diagnostic evidence, not independent confirmation statist
 The installed SRIM input manual (pages 8-14/8-15), its example TRIM1.DAT and
 PySRIM's calculation-mode documentation support mode 5 with specified starting
 positions. The [official input manual](https://www.srim.org/SRIM/SRIM%2008.pdf)
-describes this interface. C2a tests it before any 1-MeV expansion:
+describes this interface. C2b tests it before any 1-MeV expansion:
 
 - One mode-2 surface control with primary endpoint output, and one mode-5
   near-surface canary; both must pass before further variants.
@@ -127,16 +144,16 @@ automatically; changing geometry requires a compatibility decision and new timin
 forecast. The previous six-day baseline estimate remains conditional.
 
 ```bash
-bash scripts/bulk_geometry_probe.sh status
-bash scripts/bulk_geometry_probe.sh logs
-bash scripts/bulk_geometry_probe.sh stop
-bash scripts/bulk_geometry_probe.sh resume
+bash scripts/bulk_geometry_retry.sh status
+bash scripts/bulk_geometry_retry.sh logs
+bash scripts/bulk_geometry_retry.sh stop
+bash scripts/bulk_geometry_retry.sh resume
 ```
 
-Report: `runs/kr_bulk_geometry_probe/index.html`. Reproduce the read-only D0 audit
+Report: `runs/kr_bulk_geometry_retry/index.html`. Reproduce the read-only D0 audit
 with `bash scripts/bulk_geometry_probe.sh review`; it writes
 `runs/kr_pressure_diagnostic/review/summary.json`. On the next `continue`, review
-C2a before deciding whether to extend validation, adopt a compatible model, or
+C2b before deciding whether to extend validation, adopt a compatible model, or
 release the high-energy canaries. Existing production data remain unchanged.
 
 ### Completed step: bounded Kr pressure/geometry diagnostic
