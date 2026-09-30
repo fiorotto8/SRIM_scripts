@@ -16,6 +16,86 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Execution roadmap: review and launch one stage per `continue`
+
+The durable plan is [`configs/campaign_roadmap.json`](configs/campaign_roadmap.json).
+It records scope, dependencies, release criteria, conditional interventions,
+resource limits and the procedure to follow on every user `continue`.
+This is **not an unattended queue or calendar automation**. If the current stage
+is still running, report progress without starting another. After it finishes,
+audit the evidence, update `review_history` and estimates, insert any necessary
+bounded cross-check, then implement/test/freeze and launch only the next stage.
+Later-stage launchers are planned, not pre-authorized to bypass their gates.
+
+Working final target: **3,024 direct points** = Ar/Kr/Xe × eight noble fractions
+(60–95% in 5% steps) × six pressures (0.5–3 atm in 0.5-atm steps) × seven energies
+(1/3/10/30/100/300/1000 keV) × C/F/noble recoil. Begin with four independent
+50-ion batches per point and add fixed independent cohorts where justified.
+The existing 243 points are reused **only if the accepted model/geometry stays
+compatible**. This goal is SRIM range and ionization-fraction mapping, not a
+claim of detector-calibrated quenching.
+
+| Stage | Work and review gate | Expected time | Run cap |
+| --- | --- | --- | --- |
+| D0 | Current 36-case pressure/depth diagnostic | 0.5–1 h compute | 2 h |
+| R1 | Interpret pressure/header discrepancy and define the accepted observable/geometry | 0.5–2 h active review | No simulation |
+| P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.5 h planning | 6 h |
+| P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.5 h planning | 8 h |
+| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 15 h planning | 24 h |
+| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11 h planning | 24 h |
+| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 13–18 h per wave; 110 h total planning | 24 h per wave |
+| Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
+| A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
+
+G5 wave order and planning hours: 60% (13.3), 65% (14.0), 70% (14.6),
+75% (15.3), 85% (16.7), 90% (17.5), 95% (18.3). Recompute before each wave.
+The baseline adds **2,781 points / 11,124 batches / 556,200 histories**. P2a/P2b
+count the same eighteen points once, not twice. Final baseline history total,
+including retained top-ups, would be 648,250 before Q6.
+
+Current timing forecast: about **143 compute hours (six days)** for P2–G5 with
+margin, conditional on unchanged physics/geometry and baseline reuse. Overall
+allow roughly **6–11 compute days** including Q6/reporting, not a guarantee.
+User callback delays, reviews, implementation and conditional interventions are
+additional. Allow 15–45 minutes of active review per completed stage/wave and
+0.5–2 hours to prepare each new stage type; these are work allowances, not
+reserved calendar slots. No promise is made for an unsupported geometry or a
+different solver. At 1 MeV, heavy-recoil batch times dominate and are measured
+explicitly in P2 before extrapolating pressure costs.
+
+Conditional steps are inserted **before dependent production**, with a new
+frozen scope and estimate; no active campaign's hashed files are edited:
+
+| Trigger | Intervention | Provisional added time |
+| --- | --- | --- |
+| Replay, input, density, parser or clipping defect | Preserve failing artifacts, isolate cause, justified fix + regression tests + fixed canaries | 1–4 h active work + 0.5–4 h compute |
+| Surface geometry does not answer the intended recoil question | Verify supported input modes, test a separate geometry if feasible; otherwise ask for scientific direction | 2–8 h active work + 1–6 h compute for feasibility/validation only |
+| Accepted physical model/geometry changes | New model ID, representative revalidation and compatible baseline rebuild; never pool old/new models | Initial 12–24 h compute allowance; reforecast required |
+| New mixture bend or pressure effect | Fixed independent holdout with preregistered endpoints, sample size and margins | 1–12 h compute for a small selected study |
+| RAM, timeout, stall or poor scaling | Preserve checkpoints, diagnose, reduce workers/split waves and benchmark again | 0.5–2 h active work + 0.5–3 h test compute; failed-batch reruns extra |
+
+Precision SEM targets remain ≤5% for range and ≤2% for ionization fraction.
+Independent confirmation is separate from adaptive pooled statistics; do not
+sample repeatedly until significance disappears or an interval passes.
+Non-significance does not certify equivalence. The final release must explicitly
+report any unresolved statistical limitations and must not have unresolved
+critical numerical/model defects. Extra physics, detector calibration or a
+different solver require an explicit scope decision.
+
+Regenerate the read-only schedule report and timing snapshot:
+
+```bash
+.venv/bin/python scripts/campaign_schedule.py
+xdg-open runs/campaign_schedule/index.html
+```
+
+This command launches no simulations. Its forecast uses measured corrected-model
+batch times, 15-worker longest-first scheduling, mixture interpolation and
+conservative pressure factors, then adds 50% and 30 minutes per wave. These are
+planning estimates, not statistical confidence bounds. The JSON report records
+the exact timing-source hash and assumptions; replace pressure extrapolations
+with measured P2 evidence at the next planning revision.
+
 ### Current step: bounded Kr pressure/geometry diagnostic
 
 `scripts/pressure_diagnostic.sh` runs 36 fixed 50-ion cases at Kr80/CF4-20,
