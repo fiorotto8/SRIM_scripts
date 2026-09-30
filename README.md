@@ -16,6 +16,40 @@ jobs, 43,200 baseline TRIM jobs, and 324 convergence jobs.
 
 ## Current goal: timing, statistical precision and pressure consistency
 
+### Current step: bounded Kr pressure/geometry diagnostic
+
+`scripts/pressure_diagnostic.sh` runs 36 fixed 50-ion cases at Kr80/CF4-20,
+F recoil, 100 keV. First, three archived 0.5/1/3-atm cases must reproduce
+RANGE/IONIZ/TDATA byte-for-byte. Only then are variants released:
+
+- Three archived 1-atm seeds at 0.5/1/2.2/2.3/3 atm, with exactly scaled
+  mass density and inverse-pressure target/view depth (15 cases).
+- At 0.5/1/3 atm, double target depth while keeping the viewing depth fixed,
+  then double both depths, for the same three seeds (18 cases).
+
+The 2.2/2.3-atm pair brackets the printed atomic-density exponent transition.
+Depth variants separate finite-target and binning sensitivity. All cases still
+start at the surface: an internal bulk-gas recoil is **not** implemented by
+this diagnostic. Reused seeds are deliberate; none of the 1,800 diagnostic
+histories enter production counts or independent precision estimates.
+
+Planning allowance: about one hour; hard/cumulative cap: two hours. Limits:
+15 cores/workers, 24/32 GiB soft/hard RAM, zero scan swap, isolated Wine prefixes.
+Each case retains raw inputs/outputs; completed cases are hash-checked on resume.
+Failures stop further releases. No automatic production expansion follows.
+
+```bash
+bash scripts/pressure_diagnostic.sh start
+bash scripts/pressure_diagnostic.sh status
+bash scripts/pressure_diagnostic.sh logs
+bash scripts/pressure_diagnostic.sh stop
+bash scripts/pressure_diagnostic.sh resume
+```
+
+Report: `runs/kr_pressure_diagnostic/index.html`; descriptive within-seed
+contrasts: `runs/kr_pressure_diagnostic/comparisons.csv`. Results require review,
+not a rule that keeps sampling until a p-value passes.
+
 ### Reviewed result: precision complete; pressure diagnostic required
 
 The fixed closeout finished on 30 September in **1 h 3 min**: all 564 new
