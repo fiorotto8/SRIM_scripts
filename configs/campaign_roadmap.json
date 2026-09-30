@@ -2,10 +2,12 @@
   "schema_version": 1,
   "updated_on": "2026-09-30",
   "mode": "manual_continue_gates_no_automatic_launches",
+  "current_stage_id": "C2a",
+  "production_release": "hold_pending_interior_geometry_review",
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. Stage launchers after D0 are planned, not yet implemented; their final parameters and budgets depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -44,7 +46,9 @@
     {
       "id": "D0",
       "title": "Current Kr pressure/binning diagnostic",
-      "status": "running_at_plan_creation",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 0.4042,
+      "review": "36/36 cases audited, 3/3 exact replays pass. Width-only changes identical; doubled-bin ionization changes at most 0.00494% relative. Across the density-header exponent transition, no tenfold transport jump; three-seed ionization changes 0.0293-0.1234% relative. This supports a text-format defect locally, not universal pressure equivalence. Source unchanged, peak 13.17 GiB, zero scan swap.",
       "run": "runs/kr_pressure_diagnostic",
       "launcher": "scripts/pressure_diagnostic.sh",
       "expected_compute_hours": [0.5, 1],
@@ -55,15 +59,28 @@
     {
       "id": "R1",
       "title": "Pressure and observable/geometry release review",
+      "status": "reviewed_geometry_followup_required",
       "depends_on": ["D0"],
       "expected_active_work_hours": [0.5, 2],
       "scope": "Determine what D0 establishes; inspect supported SRIM input/geometry capabilities and define precisely the quantity to be reported. Separate a printed density defect from a transport defect; separate deposited ionization from a contained recoil's total ionization.",
       "exit_gate": "No unexplained critical numerical defect; production observable/model explicitly stated. If an interior-recoil model is required but unavailable, ask for a scientific decision. If a fix/model change is needed, insert C1/C2/C3 before production."
     },
     {
+      "id": "C2a",
+      "title": "Documented TRIM.DAT interior-start feasibility",
+      "status": "prepared_for_detached_launch",
+      "depends_on": ["R1"],
+      "run": "runs/kr_bulk_geometry_probe",
+      "launcher": "scripts/bulk_geometry_probe.sh",
+      "expected_compute_hours": [0.5, 1.5],
+      "cap_hours": 3,
+      "scope": "28 fixed 50-ion diagnostic cases: one mode-2 surface endpoint control, then mode-5 near-surface and two interior depths at .5/1/3 atm with three reused seeds, Kr80 F100keV. Two startup canaries gate the variants. Use documented TRIM.DAT formatting and save primary endpoints. Do not pool with production.",
+      "exit_gate": "Audit 50 events, executed bindings, raw input hashes and endpoint counts. Mode-2 observables must reproduce the source; interior cases require no primary escape and no ionization-profile signal at the boundaries. Review origin-subtracted ranges, ionization and depth sensitivity; do not adopt a new geometry or release production automatically. If geometry changes materially, insert C3 and reforecast baseline reuse."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["R1"],
+      "depends_on": ["C2a"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -192,6 +209,11 @@
       "date": "2026-09-30",
       "stage": "D0",
       "decision": "Working full-grid schedule created at user's request. D0 remains the only active run; all three exact replays passed. Variants still running at first planning check. No next simulation launched; review only after completion and user continue."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "R1",
+      "decision": "D0 audited complete in 24.25 minutes. No finite-depth effect at the tested surface geometry; density-header discontinuity not accompanied by a large transport jump. Local SRIM input manual 8-14/8-15 and PySRIM calculation-mode documentation support interior starts through mode 5/TRIM.DAT. Insert C2a before P2a to measure surface versus interior response and clarify endpoint coordinates. No production model adoption or data pooling authorized by this diagnostic; 143-hour baseline estimate remains conditional on model compatibility."
     }
   ]
 }

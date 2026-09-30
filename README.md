@@ -39,6 +39,7 @@ claim of detector-calibrated quenching.
 | --- | --- | --- | --- |
 | D0 | Current 36-case pressure/depth diagnostic | 0.5–1 h compute | 2 h |
 | R1 | Interpret pressure/header discrepancy and define the accepted observable/geometry | 0.5–2 h active review | No simulation |
+| C2a (inserted after R1) | Mode-5 interior-start feasibility and endpoint-coordinate checks; 28 diagnostic cases | 0.5–1.5 h compute | 3 h |
 | P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.5 h planning | 6 h |
 | P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.5 h planning | 8 h |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 15 h planning | 24 h |
@@ -96,7 +97,49 @@ planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: bounded Kr pressure/geometry diagnostic
+### Current step: interior-start geometry feasibility (C2a)
+
+The 36-case pressure/depth diagnostic completed in 24 minutes; all raw artifacts
+and three exact replays passed. Width-only changes left range/ionization unchanged;
+doubling profile-bin width changed ionization by at most 0.00494% relative. Across
+2.2 → 2.3 atm the printed atom-density exponent changes incorrectly, while matched
+ionization changes only 0.0293–0.1234% and pressure×range at most 0.0334%.
+This supports a header-format explanation locally, not universal pressure equivalence.
+Three reused seeds are diagnostic evidence, not independent confirmation statistics.
+
+The installed SRIM input manual (pages 8-14/8-15), its example TRIM1.DAT and
+PySRIM's calculation-mode documentation support mode 5 with specified starting
+positions. The [official input manual](https://www.srim.org/SRIM/SRIM%2008.pdf)
+describes this interface. C2a tests it before any 1-MeV expansion:
+
+- One mode-2 surface control with primary endpoint output, and one mode-5
+  near-surface canary; both must pass before further variants.
+- Three archived seeds × 0.5/1/3 atm × near-surface, central and deeper-central
+  starts: 27 mode-5 cases, plus the mode-2 control = 28 fixed 50-ion cases.
+- Keep all 1,400 histories separate from production. Preserve raw RANGE.TXT
+  summaries and endpoint-minus-start ranges separately; do not assume the
+  summary already subtracts the starting coordinate. Interior cases require
+  50 endpoints, no primary escape, and no ionization at either profile edge.
+
+Allow 30–90 minutes, with a three-hour cumulative cap, at most 15 cores,
+24/32 GiB soft/hard RAM and zero scan swap. No new production model is adopted
+automatically; changing geometry requires a compatibility decision and new timing
+forecast. The previous six-day baseline estimate remains conditional.
+
+```bash
+bash scripts/bulk_geometry_probe.sh status
+bash scripts/bulk_geometry_probe.sh logs
+bash scripts/bulk_geometry_probe.sh stop
+bash scripts/bulk_geometry_probe.sh resume
+```
+
+Report: `runs/kr_bulk_geometry_probe/index.html`. Reproduce the read-only D0 audit
+with `bash scripts/bulk_geometry_probe.sh review`; it writes
+`runs/kr_pressure_diagnostic/review/summary.json`. On the next `continue`, review
+C2a before deciding whether to extend validation, adopt a compatible model, or
+release the high-energy canaries. Existing production data remain unchanged.
+
+### Completed step: bounded Kr pressure/geometry diagnostic
 
 `scripts/pressure_diagnostic.sh` runs 36 fixed 50-ion cases at Kr80/CF4-20,
 F recoil, 100 keV. First, three archived 0.5/1/3-atm cases must reproduce

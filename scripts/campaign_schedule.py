@@ -112,7 +112,8 @@ def main():
             row['cap_hours'] = stage.get('cap_hours', stage.get('cap_hours_per_wave'))
             row['fits_proposed_cap'] = row['planning_hours'] <= row['cap_hours']
             forecasts.append(row)
-    diagnostic = ROOT / 'runs/kr_pressure_diagnostic/status.json'
+    current = next(stage for stage in plan['stages'] if stage['id'] == plan.get('current_stage_id', 'D0'))
+    diagnostic = ROOT / current['run'] / 'status.json'
     totals = dict(remaining_baseline_new_points=2781,
                   remaining_baseline_batches=sum(r['batches'] for r in forecasts),
                   remaining_baseline_histories=sum(r['histories'] for r in forecasts),
@@ -131,7 +132,8 @@ def main():
                    assumptions='Current accepted model and retained 243 points remain reusable. '
                    'No estimate includes time waiting for user continue, model-change reruns or unplanned fixes. '
                    'Core/RAM contention may require fewer workers and a revised forecast.',
-                   baseline_totals=totals, stages=forecasts,
+                   baseline_totals=totals, stages=forecasts, current_stage=current['id'],
+                   production_release=plan.get('production_release', 'review_required'),
                    current_diagnostic=json.loads(diagnostic.read_text()) if diagnostic.exists() else None)
     atomic_text(OUT / 'forecast.json', json.dumps(summary, indent=2) + '\n')
     atomic_text(OUT / 'baseline_schedule.csv', csv_text(forecasts, list(forecasts[0])))
@@ -144,9 +146,12 @@ is not detector-calibrated quenching. No unattended stage chaining is enabled.</
 <p><a href="../../configs/campaign_roadmap.json">Full roadmap and contingencies</a> ·
 <a href="forecast.json">Timing assumptions and live-status snapshot</a> ·
 <a href="baseline_schedule.csv">Baseline schedule CSV</a> ·
-<a href="../kr_pressure_diagnostic/index.html">Current diagnostic</a> ·
+<a href="../kr_pressure_diagnostic/index.html">Completed pressure diagnostic</a> ·
 <a href="../noble_cf4_corrected_closeout/review/index.html">Completed preliminary analysis</a></p>'''
     body += '<p>Snapshot: ' + html.escape(summary['generated_at']) + '</p>'
+    report_link = Path('..') / Path(current['run']).name / 'index.html'
+    body += '<p>Current stage: ' + html.escape(current['id']) + ' — <a href="' + str(report_link) + '">live report</a>. '
+    body += html.escape(summary['production_release']) + '. Baseline timings below remain conditional on retaining the current model.</p>'
     body += '<p>' + html.escape(summary['timing_method']) + '</p>'
     body += table([totals], list(totals))
     body += '<h2>Compute-only baseline stages (each awaits continue)</h2>'
