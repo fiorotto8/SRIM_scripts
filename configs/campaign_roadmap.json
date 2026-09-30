@@ -68,7 +68,8 @@
     {
       "id": "C2a",
       "title": "Documented TRIM.DAT interior-start feasibility",
-      "status": "prepared_for_detached_launch",
+      "status": "running",
+      "started_at": "2026-09-30T15:28:24+02:00",
       "depends_on": ["R1"],
       "run": "runs/kr_bulk_geometry_probe",
       "launcher": "scripts/bulk_geometry_probe.sh",
@@ -214,6 +215,11 @@
       "date": "2026-09-30",
       "stage": "R1",
       "decision": "D0 audited complete in 24.25 minutes. No finite-depth effect at the tested surface geometry; density-header discontinuity not accompanied by a large transport jump. Local SRIM input manual 8-14/8-15 and PySRIM calculation-mode documentation support interior starts through mode 5/TRIM.DAT. Insert C2a before P2a to measure surface versus interior response and clarify endpoint coordinates. No production model adoption or data pooling authorized by this diagnostic; 143-hour baseline estimate remains conditional on model compatibility."
+    },
+    {
+      "date": "2026-09-30",
+      "stage": "C2a",
+      "decision": "Launched detached at 15:28 Europe/Rome with three-hour cumulative cap, 15-core maximum, 24/32 GiB RAM and zero scan swap. Both startup canaries observed running without error dialogs. Await completion and user continue; high-energy production remains held. Implementation commit 7060c28; 152 tests passed."
     }
   ]
 }
