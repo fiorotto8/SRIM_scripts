@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "updated_on": "2026-09-30",
+  "mode": "manual_continue_gates_no_automatic_launches",
+  "review_allowances": {
+    "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
+    "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. Stage launchers after D0 are planned, not yet implemented; their final parameters and budgets depend on preceding evidence. User callback delays are additional."
+  },
+  "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
+  "target": {
+    "families": ["Ar", "Kr", "Xe"],
+    "noble_percent": [60, 65, 70, 75, 80, 85, 90, 95],
+    "pressures_atm": [0.5, 1, 1.5, 2, 2.5, 3],
+    "energies_kev": [1, 3, 10, 30, 100, 300, 1000],
+    "recoils": "C, F and the noble element in each mixture",
+    "temperature_k": 293.15,
+    "direct_points": 3024,
+    "initial_ions_per_point": 200,
+    "batch_ions": 50,
+    "range_relative_sem_target": 0.05,
+    "ionization_fraction_relative_sem_target": 0.02,
+    "scope_note": "Working full-scan target, not the old 100-energy default. No detector-calibrated quenching claim; no Garfield physics comparison. Any change to geometry/model requires a new model identity and explicit review before pooling or reuse."
+  },
+  "resources": {
+    "max_workers_and_cores": 15,
+    "memory_high_gib": 24,
+    "memory_max_gib": 32,
+    "scan_swap_max_gib": 0,
+    "one_campaign_at_a_time": true,
+    "detach_long_runs": true,
+    "production_wave_cap_hours": 24
+  },
+  "continue_protocol": [
+    "Read this roadmap, git state and current service/status/completion artifacts. If a stage is still running, report progress and do not start another campaign.",
+    "Audit completion counts, failures/retries, input/output hashes, actual target parameters, clipping/escape diagnostics, unique seeds, resource use and source integrity.",
+    "Compare results with the frozen stage criteria. Keep diagnostic replays, different models and selection/confirmation cohorts separate. Non-rejection is not equivalence.",
+    "Record the result and decision; recompute measured timing and remaining work. If necessary, insert a bounded diagnostic/fix stage with its reason, scope, estimate, cap and success criteria before the dependent production stage.",
+    "Implement and test only the next justified stage, freeze its configuration and inputs, and commit scoped code changes locally. Retain validated 1-1000 keV stopping-table bounds. Set per-job timeouts and end-of-session drain allowance from measured longest jobs, verify free disk/RAM, and check the forecast fits the cap. Do not edit a running stage's frozen files; do not push unless requested.",
+    "Launch that stage detached within resource and cumulative-time limits. Provide monitoring commands, report path, expected duration and next review instruction. At completion wait for the user's next continue.",
+    "A missing scientifically meaningful choice, unsupported bulk-recoil implementation or external calibration requirement needs user direction; do not silently change the scientific question."
+  ],
+  "stages": [
+    {
+      "id": "D0",
+      "title": "Current Kr pressure/binning diagnostic",
+      "status": "running_at_plan_creation",
+      "run": "runs/kr_pressure_diagnostic",
+      "launcher": "scripts/pressure_diagnostic.sh",
+      "expected_compute_hours": [0.5, 1],
+      "cap_hours": 2,
+      "scope": "36 fixed 50-ion cases: three exact replays, fifteen paired-pressure cases and eighteen target/view-depth variants. No production histories added.",
+      "exit_gate": "All cases audited; replays byte-identical. Review matched-seed pressure scaling, density-header transition, binning sensitivity and escapes. Do not infer bulk-recoil validity from surface-injection depth tests."
+    },
+    {
+      "id": "R1",
+      "title": "Pressure and observable/geometry release review",
+      "depends_on": ["D0"],
+      "expected_active_work_hours": [0.5, 2],
+      "scope": "Determine what D0 establishes; inspect supported SRIM input/geometry capabilities and define precisely the quantity to be reported. Separate a printed density defect from a transport defect; separate deposited ionization from a contained recoil's total ionization.",
+      "exit_gate": "No unexplained critical numerical defect; production observable/model explicitly stated. If an interior-recoil model is required but unavailable, ask for a scientific decision. If a fix/model change is needed, insert C1/C2/C3 before production."
+    },
+    {
+      "id": "P2a",
+      "title": "High-energy pressure timing/parameter canaries",
+      "depends_on": ["R1"],
+      "selection": "high_energy_pressure",
+      "batches_per_point": 1,
+      "new_unique_points": 18,
+      "cap_hours": 6,
+      "scope": "Ar/Kr/Xe, C/F/noble, 1 MeV, 80% noble, 0.5 and 3 atm; one 50-ion batch per point. This is a timing and integrity gate, not precision certification.",
+      "exit_gate": "Actual target parameters match, no clipping/errors/OOM, validated geometry interpretation; measured heavy-recoil time and memory support the next budget. These histories may be reused only under the unchanged accepted model."
+    },
+    {
+      "id": "P2b",
+      "title": "Complete high-energy pressure controls",
+      "depends_on": ["P2a"],
+      "selection": "high_energy_pressure",
+      "batches_per_point": 3,
+      "new_unique_points": 0,
+      "cap_hours": 8,
+      "scope": "Three additional independent 50-ion batches at the same eighteen points, for 200 ions each. Freeze any pressure-test family and practical margins before inspecting new results; statistical non-rejection is not an equivalence certificate.",
+      "exit_gate": "Eighteen points complete with independent-batch estimates; unresolved numerical/pressure features investigated or explicitly modelled before expansion. Precision shortfalls are recorded for Q6, not repeatedly sampled here."
+    },
+    {
+      "id": "M3",
+      "title": "Complete concentration scan at 1 atm",
+      "depends_on": ["P2b"],
+      "selection": "mixtures_1atm",
+      "batches_per_point": 4,
+      "new_unique_points": 315,
+      "cap_hours": 24,
+      "scope": "Add 65/70/75/85/90% noble for all families, recoils and seven energies. Together with retained 60/80/95%, this gives 504 direct 1-atm points.",
+      "exit_gate": "Complete audited grid, preliminary mixture curves and updated timing/precision flags. Apparent narrow bends receive independent confirmation before physical claims."
+    },
+    {
+      "id": "P4",
+      "title": "Complete pressure/energy scan at 80% noble",
+      "depends_on": ["M3"],
+      "selection": "pressure_80_remaining",
+      "batches_per_point": 4,
+      "new_unique_points": 243,
+      "cap_hours": 24,
+      "scope": "Fill remaining 80%-noble pressure/energy points after P2a/P2b: all six pressures and seven energies. Combined with M3, 819 unique points are covered.",
+      "exit_gate": "Pressure/energy map audited, resource forecast recalibrated and any newly detected numerical artifact checked before cross-grid production."
+    },
+    {
+      "id": "G5",
+      "title": "Complete concentration-pressure cross-grid in seven waves",
+      "depends_on": ["P4"],
+      "selection": "cross_grid",
+      "wave_noble_percent": [60, 65, 70, 75, 85, 90, 95],
+      "batches_per_point": 4,
+      "new_unique_points": 2205,
+      "cap_hours_per_wave": 24,
+      "scope": "One concentration per wave; each adds 315 points at the five non-1-atm pressures, all families/recoils/energies. Wait for continue after EACH wave; reforecast and split a wave if it does not fit the cap.",
+      "exit_gate": "All 3024 direct points accounted for exactly once under the accepted model; no interpolated rows passed off as simulations. Keep unresolved precision flags visible."
+    },
+    {
+      "id": "Q6",
+      "title": "Fixed precision follow-up and feature confirmations",
+      "depends_on": ["G5"],
+      "expected_compute_hours": [0, 110],
+      "cap_hours_per_wave": 24,
+      "scope": "Skip additional histories if no precision/confirmation work remains. Otherwise reserve roughly 6-110 hours, using measured variance/timings to freeze an initial 600-ion independent top-up at selected precision failures (200 to 800 total), split into budgeted waves. Keep independent new-cohort precision separate from pooled estimates. Predeclare separate holdout checks for material mixture/pressure features.",
+      "exit_gate": "Estimated targets met or residual limitations explicitly reviewed. No automatic repeated sampling until significance/precision passes. Forecast is conditional: 10-25% of points needing 600 extra ions at representative grid costs implies roughly 44-110 hours; low-energy-only flags can cost much less."
+    },
+    {
+      "id": "A7",
+      "title": "Final integrity audit, analysis and reproducible release",
+      "depends_on": ["Q6"],
+      "expected_active_work_hours": [2, 4],
+      "expected_compute_hours": [0.5, 2],
+      "scope": "Audit all final raw inputs/results, completeness, model IDs, seeds, hashes, uncertainties and pressure/mixture interpretation. Export PDF plots, CSV points/batches, ROOT, limitations and reproducible commands. Commit code/docs locally; do not push automatically.",
+      "exit_gate": "User-readable final analysis and complete provenance; no unresolved critical integrity/model issue. Detector-calibrated quenching is explicitly outside what SRIM alone establishes."
+    }
+  ],
+  "contingencies": [
+    {
+      "id": "C1",
+      "trigger": "Replay mismatch, wrong executed parameters, parser/integral issue, density/pressure discontinuity, clipping or software failure",
+      "action": "Hold dependent production; preserve failing inputs/output; isolate the cause with a bounded fixed-seed reproduction, implement a scoped fix only when justified, add regression tests and rerun fixed canaries. Freeze a new plan rather than editing an active plan.",
+      "expected_active_work_hours": [1, 4],
+      "expected_compute_hours": [0.5, 4],
+      "cap_hours_per_diagnostic": 6,
+      "uncertainty": "Allowance, not guaranteed resolution time; revise if SRIM internals or unavailable capabilities block diagnosis."
+    },
+    {
+      "id": "C2",
+      "trigger": "Surface-injection results cannot answer the intended contained-recoil question",
+      "action": "Check documented supported input paths before proposing interior starts. Build and validate a separate geometry/model only if supported; otherwise request user direction on a scoped surface-deposition analysis versus a different simulation approach.",
+      "expected_active_work_hours": [2, 8],
+      "expected_compute_hours": [1, 6],
+      "cap_hours_per_diagnostic": 8,
+      "uncertainty": "Feasibility/validation allowance only. No promise that SRIM supports the required geometry; a different solver is a scope decision."
+    },
+    {
+      "id": "C3",
+      "trigger": "Accepted geometry or physical model changes",
+      "action": "Use a new model identity; never pool incompatible data. Revalidate representative low/high-energy points, then rebuild required baseline points and recompute all remaining timing/precision estimates.",
+      "expected_compute_hours": [12, 24],
+      "cap_hours_per_wave": 24,
+      "uncertainty": "Current-model timing allowance for baseline/release validation, not a bound for a new solver or materially different transport cost."
+    },
+    {
+      "id": "C4",
+      "trigger": "New non-monotonic mixture feature or pressure effect needing independent confirmation",
+      "action": "Freeze selected points, independent seed set, sample size, effect margins and multiple-testing family BEFORE collecting confirmation; report either outcome. Do not change the endpoint or sample until a p-value passes.",
+      "expected_compute_hours": [1, 12],
+      "cap_hours_per_wave": 24,
+      "uncertainty": "Small targeted study allowance. Recompute from selected energies: 1-MeV heavy recoils are much slower than low-energy points."
+    },
+    {
+      "id": "C5",
+      "trigger": "RAM pressure, OOM, timeout, stall, poor scaling or exhausted time budget",
+      "action": "Stop new submissions, preserve checkpoints, inspect logs, reduce workers or split waves as needed, benchmark again and revise duration. Keep at most 15 cores, RAM limits and zero scan swap; do not bypass caps or alter unrelated applications.",
+      "expected_active_work_hours": [0.5, 2],
+      "expected_compute_hours": [0.5, 3],
+      "cap_hours_per_diagnostic": 4,
+      "uncertainty": "Rerun cost of failed/incomplete batches is additional and measured before resume."
+    }
+  ],
+  "done_criteria": [
+    "The accepted model/geometry and the meaning of range and ionization fraction are explicit; no unresolved critical numerical artifact remains.",
+    "All 3024 target points are direct accepted-model results, unless the user explicitly approves a revised scope.",
+    "At least four independent 50-ion batches per point; estimated SEM targets and independent confirmation outcomes reported without hiding residual failures.",
+    "No legacy/different-model or replay histories contaminate production counts; source/raw/result provenance and seed uniqueness verified.",
+    "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
+  ],
+  "review_history": [
+    {
+      "date": "2026-09-30",
+      "stage": "D0",
+      "decision": "Working full-grid schedule created at user's request. D0 remains the only active run; all three exact replays passed. Variants still running at first planning check. No next simulation launched; review only after completion and user continue."
+    }
+  ]
+}
