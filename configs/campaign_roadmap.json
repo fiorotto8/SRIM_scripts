@@ -229,7 +229,8 @@
     {
       "id": "C3bR",
       "title": "Completion-monitor recovery of the frozen bulk baseline",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-10-01T17:19:23.151196+02:00",
       "depends_on": ["C1c"],
       "run": "runs/noble_cf4_bulk_baseline_retry",
       "launcher": "scripts/bulk_baseline_retry.sh",
@@ -441,6 +442,11 @@
       "date": "2026-10-01",
       "stage": "C3bR",
       "decision": "On NEEDS_ATTENTION, independently audited 132 accepted cases and diagnosed a post-acknowledgement completion-tree race. Preserved one failed truncated output and fourteen interrupted attempts. New opt-in monitor preserves original error checks and the 20-second exit grace, retries only recognized pre-acknowledgement races, and never repeats key injection. One-ion integration run completed normally in 27.023 seconds; its literal-energy-validator rejection was resolved through separate numeric raw re-audit while retaining frozen original evidence. Freeze recovery of exactly 774 original cases: failed 50-ion batch first, then 773 after it passes. Retain 132 audits and all 42 passed depth pairs. Planning 5.977 hours, inherited 3.65344 hours including canary, total 9.63049 within original 12-hour cap. Updated conditional remaining full-baseline estimate 169.15 hours; later stages and precision top-ups still require review."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3bR",
+      "decision": "Launched detached at 17:19 Europe/Rome, implementation commit df00aeb, after all 208 tests passed. Original failed 50-ion batch observed running under the new monitor on an authenticated private display. Retained 132 original cases and all 42 passed depth pairs; 40 combined points already complete. Verified 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap, and service runtime limited to the remaining 8h20min47s of the original cumulative budget. Expected additional 4-6 hours; wait for user continue at completion or failure. No additional baseline stage or precision top-up launches automatically."
     }
   ]
 }
