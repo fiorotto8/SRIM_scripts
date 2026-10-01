@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-01",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C3b",
-  "production_release": "gated_216_point_bulk_baseline_rebuild_only_full_grid_held_pending_review",
+  "current_stage_id": "C3bR",
+  "production_release": "completion_monitor_recovery_only_full_grid_held_pending_baseline_review",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "pilot_audited_gated_baseline_rebuild",
+    "status": "baseline_completion_monitor_recovery",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -16,6 +16,7 @@
     "initial_full_grid_histories": 604800,
     "conditional_baseline_planning_hours": 177.17,
     "remaining_baseline_planning_hours_at_c3b_start": 174.42,
+    "remaining_baseline_planning_hours_at_c3br_start": 169.15,
     "additional_c3b_diagnostic_histories": 2100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
     "note": "C3a raw audit passed: 27 points, 108 independent batches, five precision flags retained. Only the fixed C3b rebuild is released after its 42 paired-depth gates. Full-grid model certification and later stages remain review-gated. The 143-hour surface and 164.33-hour pre-pilot bulk forecasts are historical; regenerate the measured-pilot schedule for current estimates. Precision top-ups, callbacks and active review are additional."
@@ -195,7 +196,10 @@
     {
       "id": "C3b",
       "title": "Rebuild the remaining preliminary grid under the bulk model",
-      "status": "running",
+      "status": "stopped_after_completion_window_probe_race",
+      "actual_compute_hours": 3.64593244,
+      "completed_cases": 132,
+      "review": "All 132 completed cases re-audited: 90 independent new batches plus all 42 paired-depth diagnostics. All 42 depth pairs pass; source/input/raw hashes intact. One failed Xe/F1MeV95% batch: after normal completion acknowledgement, redundant xwininfo query hit a disappearing window (BadWindow/BadDrawable), aborted worker and truncated final files. Fourteen other batches stopped, 759 never launched. Preserve partial data, accept none. Peak 13.559 GiB, zero scan swap. Add opt-in completion-monitor fix and bounded software canary, then retain 132 results and retry exactly 774 cases with original inputs/seeds and cumulative budget.",
       "started_at": "2026-10-01T12:10:16.290389+02:00",
       "depends_on": ["C3a"],
       "run": "runs/noble_cf4_bulk_baseline",
@@ -209,9 +213,41 @@
       "exit_gate": "906 new cases complete including 42 diagnostic repeats; 243 compatible bulk points accounted once, four independent batches each. All integrity/containment gates pass; 42 paired-depth changes <=0.2% ionization and <=0.5% projected range. Report all precision flags. Frozen pressure screen: 108 Bonferroni approximate Welch log-batch intervals, 0.5/3 versus 1atm, 1/10/100keV, all family/recoil combinations; working ratio margins 0.95-1.05 ionization, 0.90-1.10 pressure-scaled range. Overlap is inconclusive, not equivalence; four-batch approximation is not exact coverage. Review density-header behavior, concentration/pressure geometry and timing before P2a; any feature needs separately frozen independent confirmation."
     },
     {
+      "id": "C1c",
+      "title": "Completion-window race fix and one-ion integration check",
+      "status": "completed_and_reviewed",
+      "depends_on": ["C3b"],
+      "run": "runs/completion_retry_canary",
+      "expected_active_work_hours": [0.5, 1.5],
+      "expected_compute_hours": [0.01, 0.084],
+      "cap_hours": 0.084,
+      "actual_compute_hours": 0.00750635,
+      "scope": "Child-only opt-in monitor: original error watchdog remains active; after one exact completion acknowledgement avoid redundant completion-tree queries during the existing 20-second exit grace. Before acknowledgement retry only recognized BadWindow/BadDrawable inspections at most three times, rechecking errors each attempt. Never repeat a key injection. One diagnostic ion from the failed input; all final outputs/parameters/endpoint/normal-exit evidence required.",
+      "review": "Eleven monitor tests cover both actual X11 error formats, recovery, persistent/unknown failure, error precedence, once-only acknowledgement and stall deadline. One-ion simulation exited normally in 27.023 seconds. Initial literal energy validator rejected SRIM's 1000000.E-03 keV; separate numeric raw re-audit confirms F/Z9,1000keV,one ion,bindings,contained endpoint,complete outputs,single acknowledgement,normal exit and source integrity. Preserve original canary result/frozen validator and review.json; no rerun or additional history needed. Peak 1.027 GiB, zero swap.",
+      "exit_gate": "Normal process completion and complete one-ion artifacts pass independent numeric review; unknown/persistent inspection errors remain failures. Then replay the original failed 50-ion batch before releasing remaining work."
+    },
+    {
+      "id": "C3bR",
+      "title": "Completion-monitor recovery of the frozen bulk baseline",
+      "status": "prepared",
+      "depends_on": ["C1c"],
+      "run": "runs/noble_cf4_bulk_baseline_retry",
+      "launcher": "scripts/bulk_baseline_retry.sh",
+      "expected_compute_hours": [4, 6],
+      "planning_compute_hours": 5.97706,
+      "cap_hours": 12,
+      "cap_includes_prior_c3b_hours": 3.64593244,
+      "cap_includes_software_canary_seconds": 27.02286,
+      "per_job_cap_hours": 3,
+      "retained_original_cases": 132,
+      "remaining_original_cases": 774,
+      "scope": "Same frozen 906-case C3b plan, model, inputs, seeds and pressure/precision gates. Retain 132 audited cases; rerun the original failed 50-ion Xe/F1MeV95% case first with the completion fix, then release the other 773 original unfinished cases. Count 42 paired-depth repeats only as diagnostics. Final baseline remains 243 points/972 independent batches including 27 pilot points; no automatic top-ups.",
+      "exit_gate": "Replay has normal completion and all 50 contained endpoints/final outputs/bindings. All 906 original cases accounted for once, new helper/display/raw/source provenance pass, all 42 depth pairs pass, 243 complete points and 108 original pressure comparisons reported. Twelve-hour cumulative cap carries prior run and software canary; service runtime is only the remaining allowance. Stop and await user continue at completion or failure."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["C3b"],
+      "depends_on": ["C3bR"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -400,6 +436,11 @@
       "date": "2026-10-01",
       "stage": "C3b",
       "decision": "Launched detached at 12:10 Europe/Rome, implementation commit 0c5918e, after all 191 regression tests passed. Active service and limits verified: 1500% CPU quota, 24/32 GiB soft/hard RAM, zero scan swap, 12-hour service/cumulative cap and three-hour per-job timeout. Low-energy paired-depth gates precede high-energy mixture controls and the remaining independent baseline batches. Await user continue at REVIEW_REQUIRED, NEEDS_ATTENTION or STOPPED; no automatic next-stage launch or precision resampling."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3bR",
+      "decision": "On NEEDS_ATTENTION, independently audited 132 accepted cases and diagnosed a post-acknowledgement completion-tree race. Preserved one failed truncated output and fourteen interrupted attempts. New opt-in monitor preserves original error checks and the 20-second exit grace, retries only recognized pre-acknowledgement races, and never repeats key injection. One-ion integration run completed normally in 27.023 seconds; its literal-energy-validator rejection was resolved through separate numeric raw re-audit while retaining frozen original evidence. Freeze recovery of exactly 774 original cases: failed 50-ion batch first, then 773 after it passes. Retain 132 audits and all 42 passed depth pairs. Planning 5.977 hours, inherited 3.65344 hours including canary, total 9.63049 within original 12-hour cap. Updated conditional remaining full-baseline estimate 169.15 hours; later stages and precision top-ups still require review."
     }
   ]
 }

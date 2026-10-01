@@ -49,7 +49,9 @@ claim of detector-calibrated quenching.
 | C1b | Atomic display allocation: 60/60 synchronized startup/isolation/cleanup checks passed | Under 1 s actual | 5 min |
 | C2d | All 37 cases and 18 depth pairs audited complete | 71 min retry; 76 min cumulative | Original 6 h cumulative, including C2c |
 | C3a | Independent bulk pilot audited: 27 points, 108 batches; 22 points meet both precision targets | 89 min actual | 6 h |
-| C3b (current) | Compatible baseline rebuild: 216 new points plus 42 separate paired-depth controls | 7.2 h model; 11.25 h with margin | 12 h |
+| C3b | 132 cases completed, all 42 depth pairs passed; completion-window inspection race stopped remaining work | 3.65 h actual, preserved | Original 12 h cumulative |
+| C1c | Completion monitor fix and one-ion integration check; raw numeric validation passed | 27 s actual | 5 min |
+| C3bR (current) | Retain 132 audited cases and run the original 774 unfinished cases | About 4–6 h additional | Remaining 8.35 h of original cap |
 | P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.7 h planning | 6 h |
 | P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.8 h planning | 8 h |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 17.2 h planning | 24 h |
@@ -64,8 +66,8 @@ The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the pilot audit, the conditional remaining bulk-baseline forecast is about
-**174 compute hours (7.3 days)** from the start of C3b, including its depth controls
+After the recovery audit, the conditional remaining bulk-baseline forecast is about
+**169 compute hours (7.0 days)** from the start of C3bR, including remaining recovery work
 and planning margin. Overall allow roughly **7–12 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
@@ -110,7 +112,47 @@ planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: gated compatible bulk-baseline rebuild (C3b)
+### Current step: completion-monitor recovery (C3bR)
+
+C3b completed **132 cases** (90 independent batches and all 42 depth diagnostics)
+before stopping. Every completed case passed the raw audit and all depth pairs
+passed. One Xe/F1MeV95% batch failed during final save: a redundant `xwininfo`
+query hit a closing Wine window after the exact completion acknowledgement.
+Its final output is incomplete. Fourteen other batches were interrupted.
+
+The opt-in monitor now keeps the original error watchdog active while allowing
+the existing 20-second exit grace without a redundant completion query. Before
+acknowledgement, recognized window races get at most three inspection attempts.
+Persistent/unknown errors still stop the worker; key injection is attempted once.
+Eleven monitor tests passed. A one-ion simulation completed normally in 27 seconds;
+its separate raw review accepts SRIM's scientific energy format (`1000000.E-03 keV`).
+The initial literal-format canary result and frozen source remain preserved beside
+[`review.json`](runs/completion_retry_canary/review.json).
+
+C3bR retains all 132 audited results. It first reruns the failed **original 50-ion
+input and seed**, then releases the other 773 original cases after that batch
+passes every completion/parameter/endpoint/output check. The fixed baseline,
+pressure-screen specification and precision flags remain as documented below.
+
+Allow **4–6 additional hours** (3.65-hour timing model, 5.98 hours with margin).
+The original **12-hour cumulative cap** includes the prior 3.65-hour run and the
+software canary, leaving about **8.35 hours** maximum for this continuation.
+At most 15 cores, 24/32 GiB RAM and zero scan swap. A slow run can stop safely
+with checkpoints for review.
+
+```bash
+bash scripts/bulk_baseline_retry.sh status
+bash scripts/bulk_baseline_retry.sh logs
+bash scripts/bulk_baseline_retry.sh stop
+bash scripts/bulk_baseline_retry.sh resume
+```
+
+Report: `runs/noble_cf4_bulk_baseline_retry/index.html`. Tell the assistant
+`continue` at `REVIEW_REQUIRED`, or send `NEEDS_ATTENTION`/`STOPPED` for review.
+The original failed run stays at `runs/noble_cf4_bulk_baseline`; use the new
+launcher for recovery. The next stage requires another review and `continue`.
+
+### Frozen scope: compatible bulk-baseline rebuild (C3b)
 
 The independent pilot finished in **89.18 minutes**: all 108 batches passed raw
 audit, with 108 distinct seeds, complete contained endpoints, unchanged sources,

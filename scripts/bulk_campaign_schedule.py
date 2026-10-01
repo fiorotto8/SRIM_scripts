@@ -59,15 +59,27 @@ def main():
         rows[1].update(model_hours=round(frozen['forecast']['model_hours'],2),
                        planning_hours=round(frozen['forecast']['planning_hours'],2),
                        diagnostic_batches=frozen['diagnostic_batches'],diagnostic_histories=frozen['diagnostic_histories'])
+    recovery_plan=ROOT/'runs/noble_cf4_bulk_baseline_retry/plan.json'
+    recovery=json.loads(recovery_plan.read_text()) if recovery_plan.exists() else None
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
     totals.update(remaining_planning_hours=round(sum(r['planning_hours'] for r in rows[1:]),2),
                   elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+sum(r['planning_hours'] for r in rows[1:]),2),
                   baseline_planning_hours=round(sum(r['planning_hours'] for r in rows),2),
                   diagnostic_histories_additional=2100)
+    if recovery is not None:
+        rows[1].update(retained_original_cases=len(recovery['retained_cases']),
+                       remaining_original_cases=recovery['new_cases_to_run'],
+                       recovery_planning_hours=round(recovery['forecast']['planning_hours'],2),
+                       inherited_cumulative_hours=round(recovery['inherited_used_seconds']/3600,4))
+        totals.update(remaining_planning_hours=round(recovery['forecast']['planning_hours']+sum(r['planning_hours'] for r in rows[2:]),2),
+                      elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+recovery['inherited_used_seconds']/3600+
+                                                         recovery['forecast']['planning_hours']+sum(r['planning_hours'] for r in rows[2:]),2),
+                      diagnostic_histories_additional=2101)
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
     status=ROOT/current['run']/'status.json'
     sources=[Path(__file__),Path(rebuild.__file__),legacy.PLAN,legacy.TIMINGS,pilot.RUN/'results.json']
     if rebuild_plan.exists():sources.append(rebuild_plan)
+    if recovery_plan.exists():sources.append(recovery_plan)
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='PROVISIONAL_BULK_MODEL_FORECAST_NOT_PRODUCTION_RELEASE',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
