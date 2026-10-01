@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-01",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C3a",
-  "production_release": "independent_bulk_pilot_only_full_grid_held_pending_pilot_and_baseline_review",
+  "current_stage_id": "C3b",
+  "production_release": "gated_216_point_bulk_baseline_rebuild_only_full_grid_held_pending_review",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "provisional_independent_pilot",
+    "status": "pilot_audited_gated_baseline_rebuild",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -14,14 +14,16 @@
     "remaining_rebuild_points": 216,
     "initial_full_grid_batches": 12096,
     "initial_full_grid_histories": 604800,
-    "conditional_baseline_planning_hours": 164.33,
+    "conditional_baseline_planning_hours": 177.17,
+    "remaining_baseline_planning_hours_at_c3b_start": 174.42,
+    "additional_c3b_diagnostic_histories": 2100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
-    "note": "C3a is authorized as a fixed independent pilot, not full-grid model certification. C3b and later launchers remain review-gated. The old 143-hour retained-surface forecast is historical, not the active bulk forecast. Precision top-ups, callbacks and active review are additional."
+    "note": "C3a raw audit passed: 27 points, 108 independent batches, five precision flags retained. Only the fixed C3b rebuild is released after its 42 paired-depth gates. Full-grid model certification and later stages remain review-gated. The 143-hour surface and 164.33-hour pre-pilot bulk forecasts are historical; regenerate the measured-pilot schedule for current estimates. Precision top-ups, callbacks and active review are additional."
   },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics and C3a independent bulk pilot are implemented; C3b and later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics, C3a pilot and C3b gated rebuild are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -176,7 +178,9 @@
     {
       "id": "C3a",
       "title": "Independent-batch bulk precision and timing pilot",
-      "status": "running",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 1.48632619,
+      "review": "All 108 raw cases, distinct independent seeds, actual inputs/bindings, endpoints, containment, completion and source hashes pass. 27 points, 5400 histories; 22 meet both estimated SEM targets. Four range flags: Kr/C1keV 6.29%, Xe/C1keV 5.47%, Xe/F1keV 10.06%, Xe/Xe100keV 5.74%; Ar/C1keV ionization SEM 2.072%. Preserve flags without automatic top-ups. Longest batch 84.02 min, elapsed 89.18 min, peak 14.684 GiB, zero scan swap. Support gated baseline expansion, not full-grid accuracy or pressure equivalence.",
       "started_at": "2026-10-01T09:49:17.662584+02:00",
       "depends_on": ["C2d"],
       "run": "runs/noble_cf4_bulk_precision_pilot",
@@ -191,14 +195,17 @@
     {
       "id": "C3b",
       "title": "Rebuild the remaining preliminary grid under the bulk model",
-      "status": "planned_pending_pilot_review",
+      "status": "prepared",
       "depends_on": ["C3a"],
+      "run": "runs/noble_cf4_bulk_baseline",
+      "launcher": "scripts/bulk_baseline_rebuild.sh",
       "bulk_baseline_points": 216,
-      "expected_compute_hours": [7, 10],
-      "planning_compute_hours": 8.88,
+      "expected_compute_hours": [7, 12],
+      "planning_compute_hours": 11.25401,
       "cap_hours": 12,
-      "scope": "If C3a supports the bulk model, independently simulate the other 216 points of the former 243-point coverage: 60/80/95% noble, all seven energies at 1 atm, plus 80% at 0.5/3 atm and 1/10/100keV, excluding C3a's 27 points. Four fresh 50-ion batches per point, 864 batches and 43200 histories. Stage the mixture/pressure release gates and any selected paired-depth controls before launch. No old surface histories reused.",
-      "exit_gate": "243 compatible bulk points accounted for once, four independent batches each, all integrity/containment gates passed; precision flags reported. Predeclare pressure-family tests and practical margins before collecting this stage. Review density-header behavior, concentration/pressure geometry and timing before P2a. Any unsupported model/observable choice requires user direction."
+      "per_job_cap_hours": 3,
+      "scope": "216 new points of the former 243-point coverage: 60/80/95% noble, all seven energies at 1 atm, plus 80% at 0.5/3 atm and 1/10/100keV, excluding C3a's 27 retained points. Four fresh 50-ion batches per point, 864 batches and 43200 histories. Add 42 paired-depth diagnostic batches (2100 histories), excluded from statistics. Gates: 36 low-energy pairs across all species and mixture/pressure boundaries, then six heavy-recoil 1MeV mixture-boundary pairs, then remaining 822 independent batches. No old surface histories reused; no automatic precision top-ups.",
+      "exit_gate": "906 new cases complete including 42 diagnostic repeats; 243 compatible bulk points accounted once, four independent batches each. All integrity/containment gates pass; 42 paired-depth changes <=0.2% ionization and <=0.5% projected range. Report all precision flags. Frozen pressure screen: 108 Bonferroni approximate Welch log-batch intervals, 0.5/3 versus 1atm, 1/10/100keV, all family/recoil combinations; working ratio margins 0.95-1.05 ionization, 0.90-1.10 pressure-scaled range. Overlap is inconclusive, not equivalence; four-batch approximation is not exact coverage. Review density-header behavior, concentration/pressure geometry and timing before P2a; any feature needs separately frozen independent confirmation."
     },
     {
       "id": "P2a",
@@ -382,6 +389,11 @@
       "date": "2026-10-01",
       "stage": "C3a",
       "decision": "Launched detached at 09:49 Europe/Rome, implementation commit 21c65b5, after all 184 tests passed. Verified active service, CPU affinity 0-14 with 1500% quota, 24/32 GiB soft/hard RAM limits, zero scan swap and six-hour runtime/cumulative cap. Authenticated display startup evidence observed for all 15 workers; first 30 low-energy batches completed without integrity failures. Early precision flags are retained for review, not automatically resampled. Only this fixed pilot is released; await user continue after completion or NEEDS_ATTENTION, with no automatic baseline rebuild or full production."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3b",
+      "decision": "Completed pilot raw audit passed all 108 independent cases in 89.18 minutes, 22/27 points meeting both SEM targets; retain five flags for later fixed precision cohorts. Release only C3b's 216 new points with 42 paired-depth controls across low-energy mixture/pressure boundaries and high-energy heavy mixture corners. Diagnostic repeats are excluded from statistics. Freeze 108 pressure screening contrasts and working margins before collecting new pressure data. New measured-pilot timings forecast 7.17 hours model/11.25 with margin within a 12-hour cap; dependent work stops on any geometry or integrity failure. Remaining full baseline estimate 174.42 hours at C3b start, including 2100 additional diagnostic histories, excluding Q6/reviews/callbacks; all later stages remain gated."
     }
   ]
 }
