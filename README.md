@@ -31,8 +31,11 @@ Working final target: **3,024 direct points** = Ar/Kr/Xe × eight noble fraction
 (60–95% in 5% steps) × six pressures (0.5–3 atm in 0.5-atm steps) × seven energies
 (1/3/10/30/100/300/1000 keV) × C/F/noble recoil. Begin with four independent
 50-ion batches per point and add fixed independent cohorts where justified.
-The existing 243 points are reused **only if the accepted model/geometry stays
-compatible**. This goal is SRIM range and ionization-fraction mapping, not a
+The existing 243 **surface-injection** points remain separate. The provisional
+interior model needs a compatible 243-point baseline: a 27-point independent
+pilot (C3a), then the remaining 216 points (C3b), subject to review.
+No surface or paired-diagnostic histories enter that baseline.
+This goal is SRIM range and ionization-fraction mapping, not a
 claim of detector-calibrated quenching.
 
 | Stage | Work and review gate | Expected time | Run cap |
@@ -44,24 +47,27 @@ claim of detector-calibrated quenching.
 | C2b | Completion-aware retry: 28/28 cases completed and audited | 20.4 min actual | 3 h |
 | C2c | All 19 canaries passed; high-energy phase stopped by display startup failure | 5.2 min actual | 6 h |
 | C1b | Atomic display allocation: 60/60 synchronized startup/isolation/cleanup checks passed | Under 1 s actual | 5 min |
-| C2d (current) | Retain 19 canaries; retry only the 18 unfinished high-energy cases | About 2.4 h planning | Original 6 h cumulative, including C2c |
-| P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.5 h planning | 6 h |
+| C2d | All 37 cases and 18 depth pairs audited complete | 71 min retry; 76 min cumulative | Original 6 h cumulative, including C2c |
+| C3a (current) | Independent bulk pilot: 27 points, four fresh 50-ion batches each | About 2.5 h planning | 6 h |
+| C3b | Compatible bulk-baseline rebuild: remaining 216 points, no surface reuse | About 8.9 h planning | 12 h |
+| P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.3 h planning | 6 h |
 | P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.5 h planning | 8 h |
-| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 15 h planning | 24 h |
-| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11 h planning | 24 h |
-| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 13–18 h per wave; 110 h total planning | 24 h per wave |
+| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 16 h planning | 24 h |
+| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 12 h planning | 24 h |
+| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 14–20 h per wave; 118 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (13.3), 65% (14.0), 70% (14.6),
-75% (15.3), 85% (16.7), 90% (17.5), 95% (18.3). Recompute before each wave.
-The baseline adds **2,781 points / 11,124 batches / 556,200 histories**. P2a/P2b
-count the same eighteen points once, not twice. Final baseline history total,
-including retained top-ups, would be 648,250 before Q6.
+G5 wave order and planning hours: 60% (14.3), 65% (15.0), 70% (15.7),
+75% (16.4), 85% (18.0), 90% (18.8), 95% (19.6). Recompute before each wave.
+The bulk baseline requires **3,024 points / 12,096 independent batches /
+604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
+P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-Current timing forecast: about **143 compute hours (six days)** for P2–G5 with
-margin, conditional on unchanged physics/geometry and baseline reuse. Overall
-allow roughly **6–11 compute days** including Q6/reporting, not a guarantee.
+Current conditional bulk-baseline forecast: about **164 compute hours (6.8 days)**
+including C3a/C3b and margin. Overall allow roughly **7–12 compute days** with
+possible Q6/reporting, not a guarantee. The earlier 143-hour forecast assumed
+surface-baseline reuse and is no longer the active bulk forecast.
 User callback delays, reviews, implementation and conditional interventions are
 additional. Allow 15–45 minutes of active review per completed stage/wave and
 0.5–2 hours to prepare each new stage type; these are work allowances, not
@@ -91,18 +97,57 @@ different solver require an explicit scope decision.
 Regenerate the read-only schedule report and timing snapshot:
 
 ```bash
-.venv/bin/python scripts/campaign_schedule.py
-xdg-open runs/campaign_schedule/index.html
+.venv/bin/python scripts/bulk_campaign_schedule.py
+xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
-This command launches no simulations. Its forecast uses measured corrected-model
-batch times, 15-worker longest-first scheduling, mixture interpolation and
-conservative pressure factors, then adds 50% and 30 minutes per wave. These are
+This command launches no simulations. Its forecast uses measured surface-model
+costs adjusted with interior endpoint-energy timings and startup overhead,
+15-worker longest-first scheduling, mixture interpolation and pressure factors,
+then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: display-safe bulk-corner continuation (C2d)
+### Current step: independent-batch interior precision pilot (C3a)
+
+All 37 C2d cases passed raw re-audit. Maximum changes when doubling interior depth
+were **0.0074% ionization and 0.0112% projected displacement**. Peak RAM was
+12.967 GiB, scan swap zero, source unchanged. See the
+[corner review](runs/noble_cf4_bulk_corners_retry/review/index.html).
+These are numerical/containment checks, not independent precision certification.
+
+C3a runs **27 points**: Ar/Kr/Xe × C/F/noble × 1/100/1000keV, at 80% noble and
+1 atm. Each gets **four fresh independent 50-ion batches**, 108 unique seeds and
+5,400 histories in total. Provisional model `noble-cf4-bulk-trim5-eps1e9-v1`
+uses full-cascade mode 5, central start W in target 2W, and the validated near-zero
+binding parameters. Range means signed endpoint X minus initial X over all
+contained primary ions—not the absolute `RANGE.TXT` mean or total track length.
+
+The 36 low-energy batches must pass integrity before the other 72 start.
+Targets remain estimated batch SEM ≤5% for projected range and ≤2% for ionization.
+Precision failures are reported without automatic resampling; integrity errors
+stop submission. No surface results or paired-depth histories are pooled.
+
+Allow about **2.5 hours**, with a six-hour cumulative cap, three-hour per-job
+timeout, at most 15 cores, 24/32 GiB RAM and zero scan swap. CSV points/batches
+update during the run; PDF/PNG plots are generated at successful completion.
+The next review will assess precision/independence and intermediate-energy
+containment, then freeze C3b or a bounded follow-up if needed. C3b is planned,
+not launched, and will not automatically follow the pilot.
+
+```bash
+bash scripts/bulk_precision_pilot.sh status
+bash scripts/bulk_precision_pilot.sh logs
+bash scripts/bulk_precision_pilot.sh stop
+bash scripts/bulk_precision_pilot.sh resume
+```
+
+Report: `runs/noble_cf4_bulk_precision_pilot/index.html`. Tell the assistant
+`continue` on `REVIEW_REQUIRED` or `NEEDS_ATTENTION`. Full-grid production remains
+held until the independent-pilot and compatible-baseline reviews.
+
+### Completed step: display-safe bulk-corner continuation (C2d)
 
 C2c passed all 18 low-energy cases and the exact replay, but stopped at the
 high-energy phase's concurrent display startup. Ubuntu's `xvfb-run -a` exhausted

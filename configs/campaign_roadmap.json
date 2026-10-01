@@ -1,13 +1,27 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-09-30",
+  "updated_on": "2026-10-01",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C2d",
-  "production_release": "hold_pending_cross_family_energy_validation_and_model_review",
+  "current_stage_id": "C3a",
+  "production_release": "independent_bulk_pilot_only_full_grid_held_pending_pilot_and_baseline_review",
+  "bulk_model_transition": {
+    "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
+    "status": "provisional_independent_pilot",
+    "surface_points_reused": 0,
+    "paired_diagnostic_histories_reused": 0,
+    "baseline_rebuild_points": 243,
+    "pilot_points": 27,
+    "remaining_rebuild_points": 216,
+    "initial_full_grid_batches": 12096,
+    "initial_full_grid_histories": 604800,
+    "conditional_baseline_planning_hours": 164.33,
+    "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
+    "note": "C3a is authorized as a fixed independent pilot, not full-grid model certification. C3b and later launchers remain review-gated. The old 143-hour retained-surface forecast is historical, not the active bulk forecast. Precision top-ups, callbacks and active review are additional."
+  },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. D0 and C2a-C2d diagnostic launchers are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics and C3a independent bulk pilot are implemented; C3b and later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -143,7 +157,10 @@
     {
       "id": "C2d",
       "title": "Display-safe continuation of the fixed bulk-corner validation",
-      "status": "running",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 1.18334289,
+      "actual_cumulative_c2c_c2d_hours": 1.27030642,
+      "review": "All 37 cases raw-audited, including 19 retained canaries and 18 completed high-energy cases. All 18 depth pairs pass; maximum ionization change 0.00743524%, projected displacement change 0.01117246%. Exact replay, actual parameters, complete endpoints, containment, normal completion and private-display metadata pass. Source unchanged, peak 12.967 GiB, zero scan swap. High-energy retry took 71 minutes; longest 50-ion batch 70.83 minutes. Ready for a separate independent-batch pilot, not global precision/model certification.",
       "started_at": "2026-09-30T18:21:48+02:00",
       "depends_on": ["C1b"],
       "run": "runs/noble_cf4_bulk_corners_retry",
@@ -157,9 +174,35 @@
       "exit_gate": "All original 37 cases accounted for once, including 19 explicitly retained results and 18 newly completed high-energy cases. All original C2c physics and depth gates still pass; display-startup metadata and raw hashes audited. Review model/timing before any production release; no automatic next stage or baseline rebuild."
     },
     {
+      "id": "C3a",
+      "title": "Independent-batch bulk precision and timing pilot",
+      "status": "prepared",
+      "depends_on": ["C2d"],
+      "run": "runs/noble_cf4_bulk_precision_pilot",
+      "launcher": "scripts/bulk_precision_pilot.sh",
+      "bulk_baseline_points": 27,
+      "expected_compute_hours": [2, 3],
+      "planning_compute_hours": 2.5072,
+      "cap_hours": 6,
+      "scope": "27 points: Ar/Kr/Xe, C/F/noble, 1/100/1000keV, 80% noble, 1 atm. Four fresh 50-ion batches per point, 108 unique seeds and 5400 histories, no old or paired histories retained. Provisional bulk model: mode5 central start W in 2W target, 21eV displacement and 1e-9eV lattice/surface binding. All 36 low-energy integrity canaries gate the remaining 72 cases.",
+      "exit_gate": "All raw inputs, actual parameters, complete endpoints, zero primary escape/profile-edge signal, normal completion, unique seeds and source integrity audited. Report independent-batch SEM targets (5% projected displacement, 2% ionization), retaining all fixed-sample flags. No automatic resampling. Review precision, intermediate-energy containment and measured timing before C3b. Any justified follow-up is separately frozen; do not pool surface data or claim detector quenching."
+    },
+    {
+      "id": "C3b",
+      "title": "Rebuild the remaining preliminary grid under the bulk model",
+      "status": "planned_pending_pilot_review",
+      "depends_on": ["C3a"],
+      "bulk_baseline_points": 216,
+      "expected_compute_hours": [7, 10],
+      "planning_compute_hours": 8.88,
+      "cap_hours": 12,
+      "scope": "If C3a supports the bulk model, independently simulate the other 216 points of the former 243-point coverage: 60/80/95% noble, all seven energies at 1 atm, plus 80% at 0.5/3 atm and 1/10/100keV, excluding C3a's 27 points. Four fresh 50-ion batches per point, 864 batches and 43200 histories. Stage the mixture/pressure release gates and any selected paired-depth controls before launch. No old surface histories reused.",
+      "exit_gate": "243 compatible bulk points accounted for once, four independent batches each, all integrity/containment gates passed; precision flags reported. Predeclare pressure-family tests and practical margins before collecting this stage. Review density-header behavior, concentration/pressure geometry and timing before P2a. Any unsupported model/observable choice requires user direction."
+    },
+    {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "depends_on": ["C2d"],
+      "depends_on": ["C3b"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
@@ -186,7 +229,7 @@
       "batches_per_point": 4,
       "new_unique_points": 315,
       "cap_hours": 24,
-      "scope": "Add 65/70/75/85/90% noble for all families, recoils and seven energies. Together with retained 60/80/95%, this gives 504 direct 1-atm points.",
+      "scope": "Add 65/70/75/85/90% noble for all families, recoils and seven energies. Together with the rebuilt bulk-model 60/80/95% points, this gives 504 direct 1-atm points.",
       "exit_gate": "Complete audited grid, preliminary mixture curves and updated timing/precision flags. Apparent narrow bends receive independent confirmation before physical claims."
     },
     {
@@ -328,6 +371,11 @@
       "date": "2026-09-30",
       "stage": "C2d",
       "decision": "Launched detached at 18:21 Europe/Rome, implementation commit 87cb56e, after all 177 tests passed. Retained 19 audited canaries; verified 15 simultaneously ready, uniquely allocated authenticated displays. Resource limits unchanged: 15-core maximum, 24/32 GiB RAM and zero scan swap. Previous 313.07 seconds retained in the original six-hour cumulative budget. Eighteen high-energy cases only; await user continue at completion or failure, with no automatic production release."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3a",
+      "decision": "Audited completed C2d: 37/37 raw cases and all 18 paired-depth checks pass, retry 71 minutes, source unchanged. Proceed only to a fixed independent-batch pilot of provisional model noble-cf4-bulk-trim5-eps1e9-v1: 27 points, 108 fresh batches, 5400 histories, about 2.5 hours planning and six-hour cap. Surface results and paired diagnostics remain separate. Insert C3b's 216-point compatible baseline rebuild before P2a; about 8.9 hours preliminary planning, 12-hour cap, selection/pressure tests to be frozen after pilot review. New conditional full-baseline forecast is 164.33 hours for 3024 points/12096 batches/604800 histories, excluding precision top-ups and callback/review time; no promise of full completion in seven days."
     }
   ]
 }
