@@ -176,7 +176,8 @@
     {
       "id": "C3a",
       "title": "Independent-batch bulk precision and timing pilot",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-10-01T09:49:17.662584+02:00",
       "depends_on": ["C2d"],
       "run": "runs/noble_cf4_bulk_precision_pilot",
       "launcher": "scripts/bulk_precision_pilot.sh",
@@ -376,6 +377,11 @@
       "date": "2026-10-01",
       "stage": "C3a",
       "decision": "Audited completed C2d: 37/37 raw cases and all 18 paired-depth checks pass, retry 71 minutes, source unchanged. Proceed only to a fixed independent-batch pilot of provisional model noble-cf4-bulk-trim5-eps1e9-v1: 27 points, 108 fresh batches, 5400 histories, about 2.5 hours planning and six-hour cap. Surface results and paired diagnostics remain separate. Insert C3b's 216-point compatible baseline rebuild before P2a; about 8.9 hours preliminary planning, 12-hour cap, selection/pressure tests to be frozen after pilot review. New conditional full-baseline forecast is 164.33 hours for 3024 points/12096 batches/604800 histories, excluding precision top-ups and callback/review time; no promise of full completion in seven days."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3a",
+      "decision": "Launched detached at 09:49 Europe/Rome, implementation commit 21c65b5, after all 184 tests passed. Verified active service, CPU affinity 0-14 with 1500% quota, 24/32 GiB soft/hard RAM limits, zero scan swap and six-hour runtime/cumulative cap. Authenticated display startup evidence observed for all 15 workers; first 30 low-energy batches completed without integrity failures. Early precision flags are retained for review, not automatically resampled. Only this fixed pilot is released; await user continue after completion or NEEDS_ATTENTION, with no automatic baseline rebuild or full production."
     }
   ]
 }
