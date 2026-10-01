@@ -195,7 +195,8 @@
     {
       "id": "C3b",
       "title": "Rebuild the remaining preliminary grid under the bulk model",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-10-01T12:10:16.290389+02:00",
       "depends_on": ["C3a"],
       "run": "runs/noble_cf4_bulk_baseline",
       "launcher": "scripts/bulk_baseline_rebuild.sh",
@@ -394,6 +395,11 @@
       "date": "2026-10-01",
       "stage": "C3b",
       "decision": "Completed pilot raw audit passed all 108 independent cases in 89.18 minutes, 22/27 points meeting both SEM targets; retain five flags for later fixed precision cohorts. Release only C3b's 216 new points with 42 paired-depth controls across low-energy mixture/pressure boundaries and high-energy heavy mixture corners. Diagnostic repeats are excluded from statistics. Freeze 108 pressure screening contrasts and working margins before collecting new pressure data. New measured-pilot timings forecast 7.17 hours model/11.25 with margin within a 12-hour cap; dependent work stops on any geometry or integrity failure. Remaining full baseline estimate 174.42 hours at C3b start, including 2100 additional diagnostic histories, excluding Q6/reviews/callbacks; all later stages remain gated."
+    },
+    {
+      "date": "2026-10-01",
+      "stage": "C3b",
+      "decision": "Launched detached at 12:10 Europe/Rome, implementation commit 0c5918e, after all 191 regression tests passed. Active service and limits verified: 1500% CPU quota, 24/32 GiB soft/hard RAM, zero scan swap, 12-hour service/cumulative cap and three-hour per-job timeout. Low-energy paired-depth gates precede high-energy mixture controls and the remaining independent baseline batches. Await user continue at REVIEW_REQUIRED, NEEDS_ATTENTION or STOPPED; no automatic next-stage launch or precision resampling."
     }
   ]
 }
