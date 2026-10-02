@@ -117,7 +117,7 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: post-upgrade environment check (C1d)
+### Current review gate: post-upgrade environment check (C1d)
 
 P2b's full raw audit passed: **18/18 pressure points meet both precision targets**,
 with four independent 50-ion batches each. Worst estimated relative SEM is
@@ -145,6 +145,11 @@ waves** (allocation, authentication, isolation and cleanup), then **one exact
 independent production statistics. Allow 1–3 minutes, five-minute budget,
 six-minute service failsafe, at most 15 cores, 4/8 GiB soft/hard RAM and zero swap.
 M3 remains held for review after this additional gate.
+
+C1d completed at 15:00 on 2 October in **32.4 seconds**: all 60 display checks
+passed, the 50-ion replay matched exactly, and source/executable hashes remained
+unchanged. Peak RAM was **1.966 GiB**, host and scan swap zero. Its status is
+`REVIEW_REQUIRED`; no mixture production has launched. Send `continue` for M3.
 
 ```bash
 bash scripts/xvfb_upgrade_gate.sh status

@@ -154,6 +154,9 @@ def main():
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
+    environment_diagnostics=roadmap.get('bulk_model_transition',{}).get('additional_c1d_diagnostic_histories',0)
+    totals['post_upgrade_diagnostic_histories_additional']=environment_diagnostics
+    totals['diagnostic_histories_additional']+=environment_diagnostics
     status=ROOT/current['run']/'status.json'
     sources=[Path(__file__),Path(rebuild.__file__),Path(bulk_review.__file__),legacy.PLAN,
              bulk_review.RUN/'completion.json',bulk_review.RUN/'results.json',pilot.RUN/'results.json']

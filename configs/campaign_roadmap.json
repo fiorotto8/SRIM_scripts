@@ -6,7 +6,7 @@
   "production_release": "post_upgrade_display_and_exact_replay_gate_only_mixture_expansion_held",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "261_bulk_points_audited_post_upgrade_environment_validation_required",
+    "status": "261_bulk_points_audited_current_environment_gate_passed_awaiting_user_review",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -25,6 +25,7 @@
     "accepted_independent_batches": 1044,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
+    "additional_c1d_diagnostic_histories": 50,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
     "note": "P2b scientific raw audit passed: all 18 pressure points meet both SEM targets, 72 independent batches at those points. Combined accepted model: 261 complete points, 1044 independent batches, 52200 histories; 215 meet both precision targets and 46 prior flags remain. The prespecified pressure screen has 17 intervals inside working margins, 19 inconclusive, zero entirely outside; not global equivalence. OS maintenance upgraded Xvfb after P2b completed, followed by reboot. Old executable recovered hash-identically for historical provenance; current execution must pass C1d's 60 display checks and one exact 50-ion replay before M3. No frozen data/source record edited, system downgrade or automatic mixture release."
   },
@@ -298,7 +299,12 @@
     {
       "id": "C1d",
       "title": "Post-OS-upgrade display and exact-replay validation",
-      "status": "prepared",
+      "status": "completed_pending_user_review",
+      "started_at": "2026-10-02T14:59:49.942112+02:00",
+      "completed_at": "2026-10-02T15:00:22.387226+02:00",
+      "actual_compute_hours": 0.00901254,
+      "review": "Current-environment service reached REVIEW_REQUIRED in 32.445 seconds. All 60 display checks and the exact 50-ion replay passed; source/executable hashes unchanged, normal completion and all raw integrity/containment/parameter gates pass. Peak RAM 1.966 GiB, zero host and scan swap. Diagnostic replay contributes no independent production histories. Await user continue before preparing/freeze/launch of M3.",
+      "implementation_commit": "87f5ee1",
       "depends_on": ["P2b"],
       "run": "runs/xvfb_upgrade_gate",
       "launcher": "scripts/xvfb_upgrade_gate.sh",
@@ -519,6 +525,16 @@
       "date": "2026-10-02",
       "stage": "C1d",
       "decision": "Implementation and frozen gate plan prepared; all 233 regression tests pass, followed by a fresh nine-test gate/provenance rerun after completing the explicit runtime-source manifest. Shell syntax, Python compilation and whitespace checks pass. The new manifest pins 54 current execution/source/reference paths, including the upgraded Xvfb bytes independently of historical hash resolution. Original replay inputs and seed remain exact; fifty diagnostic histories and zero additional production histories. Host preflight: no active SRIM service, swap empty, approximately 52 GiB available RAM. Ready for the detached bounded C1d check only; M3 remains held for user callback."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "C1d",
+      "decision": "Launched detached at 14:59:49 Europe/Rome using local implementation commit 87f5ee1. Verified CPU affinity 0-14, 1500% quota, MemoryHigh 4 GiB, MemoryMax 8 GiB, MemorySwapMax and current scan swap zero, RuntimeMaxSec six minutes. All 60 current-Xvfb startup/allocation/authentication/isolation/cleanup checks passed; the single exact bulk replay is running. Expected 1-3 minutes within five-minute supervisor budget, no production samples or automatic M3 release."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "C1d",
+      "decision": "Service completed successfully at 15:00:22 Europe/Rome in 32.445 seconds. Independent post-completion cold audit revalidated the frozen current manifest, all 60 display checks and artifacts, exact original input/event bytes, actual parameters, fifty contained endpoints, normal completion and identical IONIZ/RANGE/RANGE_3D/TDATA output bytes: 258 distinct current-source/reference/raw hashes checked. Peak RAM 1.966 GiB, host and scan swap zero. No new independent production histories: accepted totals remain 261 points/1044 batches/52200 histories and 46 precision flags. C1d is completed pending user review; no SRIM service or mixture production remains running. Await continue to prepare/freeze M3's 315 direct mixture points, approximately 16.22 planning hours, 24-hour cap; remaining baseline forecast 131.81 compute hours excluding Q6/reviews/reporting."
     }
   ]
 }
