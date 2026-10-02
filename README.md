@@ -52,23 +52,23 @@ claim of detector-calibrated quenching.
 | C3b | 132 cases completed, all 42 depth pairs passed; completion-window inspection race stopped remaining work | 3.65 h actual, preserved | Original 12 h cumulative |
 | C1c | Completion monitor fix and one-ion integration check; raw numeric validation passed | 27 s actual | 5 min |
 | C3bR | All 906 cases audited; 243 bulk points complete | 3.28 h recovery; 6.93 h C3b/recovery cumulative | Original 12 h cap |
-| P2a (current) | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | 2.1 h model; 3.65 h with margin | 6 h |
-| P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.7 h planning | 8 h |
+| P2a | All eighteen 50-ion pressure canaries raw-audited; containment and input gates pass | 1 h 49 min actual | 6 h |
+| P2b (current) | Three reserved 50-ion batches at each of those 18 points; pressure/precision review | 1.82 h model; 3.23 h with margin | 8 h |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 16.2 h planning | 24 h |
-| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.9 h planning | 24 h |
-| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 14–19 h per wave; 115 h total planning | 24 h per wave |
+| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 10.9 h planning | 24 h |
+| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 102 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (13.7), 65% (14.5), 70% (15.4),
-75% (16.3), 85% (17.8), 90% (18.4), 95% (19.0). Recompute before each wave.
+G5 wave order and planning hours: 60% (12.1), 65% (12.9), 70% (13.6),
+75% (14.4), 85% (15.7), 90% (16.2), 95% (16.7). Recompute before each wave.
 The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the complete baseline audit, the conditional remaining forecast is about
-**151 compute hours (6.3 days)** from P2a start, including planning margin.
-Overall allow roughly **6–11 additional compute days** with
+After the P2a audit, the conditional remaining forecast is about
+**132 compute hours (5.5 days)** from P2b start, including planning margin.
+Overall allow roughly **5.5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
 User callback delays, reviews, implementation and conditional interventions are
@@ -105,14 +105,56 @@ xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
 This command launches no simulations. Its forecast uses measured means from
-all 972 independent bulk baseline batches,
+all 972 independent bulk baseline batches and eighteen P2a timing observations,
 15-worker longest-first scheduling, mixture interpolation and pressure factors,
 then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
-the exact timing-source hash and assumptions; replace pressure extrapolations
-with measured P2 evidence at the next planning revision.
+the timing-source hashes and assumptions. At 1 MeV, measured 80%-noble pressure
+cost ratios replace low-energy extrapolations; other concentrations inherit
+those ratios and intermediate-pressure costs interpolate the 1/3-atm anchors.
+These are runtime predictions, not interpolated physics results. Recalibrate
+using four-batch P2b means at the next review.
 
-### Current step: 1 MeV pressure timing and containment gate (P2a)
+### Current step: independent 1 MeV pressure batches (P2b)
+
+P2a passed all 18 raw audits in **1 h 49 min**, with all 50 contained endpoints
+per case, zero primary escapes/profile-edge signal, normal completion and
+unchanged source. Peak RAM was 11.292 GiB; scan swap zero. The slowest batch
+(Xe recoil at 0.5 atm) took 109 minutes. Across matched species, 0.5-atm batches
+took 2.43–3.01 times their 3-atm counterparts.
+
+P2a has only one batch per new point: **no independent-batch SEM or pressure
+equivalence claim**. Its largest descriptive differences from the four-batch
+1-atm reference means are 7.28% pressure-scaled displacement and 1.48% ionization.
+See [audited pressure plots and CSV](runs/noble_cf4_high_energy_pressure/review/index.html).
+
+P2b adds exactly **54 reserved independent 50-ion batches** (repeats 1/2/3),
+retaining P2a b0 by audited provenance. All eighteen Ar/Kr/Xe80/CF4-20,
+C/F/noble, 1-MeV, 0.5/3-atm points then have four independent batches,
+**200 ions per point**. Only seed and identifying labels change; physics,
+density, geometry and event coordinates remain unchanged.
+
+The 36 Bonferroni approximate Welch log-batch pressure intervals use the
+specification frozen **before P2a observations**. All outcomes and estimated
+SEM flags remain visible. No automatic top-ups or mixture expansion.
+
+Allow **2–4 hours** (1.82-hour model, 3.23-hour planning estimate), with an
+**eight-hour cap**, three-hour per-job limit, 15-core maximum, 24/32 GiB RAM,
+and zero scan swap. After review, the next scheduled stage is M3: 315 new
+1-atm mixture points, approximately 16.2 planning hours, subject to the
+pressure/integrity release gate.
+
+```bash
+bash scripts/high_energy_pressure_batches.sh status
+bash scripts/high_energy_pressure_batches.sh logs
+bash scripts/high_energy_pressure_batches.sh stop
+bash scripts/high_energy_pressure_batches.sh resume
+```
+
+Report: `runs/noble_cf4_high_energy_pressure_batches/index.html`. Tell the
+assistant `continue` at `REVIEW_REQUIRED`, or report `NEEDS_ATTENTION`/`STOPPED`.
+
+### Completed step: 1 MeV pressure timing and containment gate (P2a)
 
 The complete bulk baseline passed raw audit: **243 points, 972 independent batches,
 48,600 histories**, and all 42 paired-depth checks. C3bR took 3 h 17 min; the
@@ -147,18 +189,8 @@ pressure contrasts at 1 MeV, working ratio margins 0.95–1.05 for ionization an
 0.90–1.10 for pressure-scaled displacement. Four batches per condition will be
 compared with the existing 1 atm reference; inconclusive results remain visible.
 
-Allow **2–4 hours** (2.10-hour model, 3.65-hour planning estimate), with a **six-hour
-cap**, 15-core maximum, 24/32 GiB RAM and zero scan swap. No P2b launch is automatic.
-
-```bash
-bash scripts/high_energy_pressure.sh status
-bash scripts/high_energy_pressure.sh logs
-bash scripts/high_energy_pressure.sh stop
-bash scripts/high_energy_pressure.sh resume
-```
-
-Report: `runs/noble_cf4_high_energy_pressure/index.html`. Tell the assistant
-`continue` at `REVIEW_REQUIRED`, or report `NEEDS_ATTENTION`/`STOPPED` for review.
+The original 2.10-hour model/3.65-hour planning estimate and six-hour cap
+were respected. [Audited P2a report](runs/noble_cf4_high_energy_pressure/review/index.html).
 
 ### Completed step: completion-monitor recovery (C3bR)
 

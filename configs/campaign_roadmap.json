@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-02",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "P2a",
-  "production_release": "18_point_high_energy_pressure_gate_only_later_stages_review_required",
+  "current_stage_id": "P2b",
+  "production_release": "54_reserved_independent_pressure_batches_only_mixture_expansion_review_required",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "243_point_bulk_baseline_audited_precision_flags_retained",
+    "status": "bulk_baseline_and_p2a_audited_fixed_p2b_prepared",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -14,21 +14,23 @@
     "remaining_rebuild_points": 216,
     "initial_full_grid_batches": 12096,
     "initial_full_grid_histories": 604800,
-    "conditional_baseline_planning_hours": 164.47,
+    "conditional_baseline_planning_hours": 149.65,
     "remaining_baseline_planning_hours_at_c3b_start": 174.42,
     "remaining_baseline_planning_hours_at_c3br_start": 169.15,
     "remaining_baseline_planning_hours_at_p2a_start": 150.51,
+    "remaining_baseline_planning_hours_at_p2b_start": 132.04,
     "accepted_bulk_points": 243,
-    "accepted_independent_batches": 972,
+    "partial_bulk_points": 18,
+    "accepted_independent_batches": 990,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
-    "note": "Complete bulk baseline raw audit passed: 243 points, 972 independent batches, 48600 histories, 197 points meeting both SEM targets and 46 flags retained. All 42 paired-depth checks pass. Prespecified pressure screen: 106 inconclusive, two inside working margins, zero entirely outside; pressure equivalence unresolved. Release only 18 P2a timing/containment points. Current forecast uses measured means across the compatible baseline; older surface/pilot forecasts are historical. Precision top-ups, callbacks and active review are additional."
+    "note": "Complete bulk baseline raw audit passed: 243 points, 972 independent batches, 48600 histories, 197 points meeting both SEM targets and 46 flags retained. All 42 paired-depth checks pass. P2a adds 18 audited single-batch 1-MeV pressure points, 900 histories; they remain partial until P2b supplies three reserved batches each. Total 990 independent batches, 49500 histories. All containment/parameter/completion/source gates pass; no precision or pressure-equivalence claim from one batch. Release only 54 P2b batches. Current remaining forecast 132.04 hours uses measured bulk costs and P2a same-energy pressure cost factors; extrapolated mixture/intermediate-pressure costs remain planning only. Precision top-ups, callbacks and active review are additional."
   },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics, compatible baseline and P2a timing gate are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics, compatible baseline and P2a/P2b pressure stages are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -255,7 +257,9 @@
     {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
-      "status": "running",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 1.82415302,
+      "review": "18/18 raw cases pass; 18 distinct independent seeds, 900 histories. Exact inputs/species/energy/bindings/density, 50 endpoints per case, zero primary escapes or profile-edge signal, normal completion/private displays/source hashes pass. No completion-monitor races. Wall 1h49m, longest batch 109.02min, peak 11.292 GiB, zero scan swap. Low-pressure batches took 2.43-3.01 times their 3-atm counterparts. Descriptive differences from four-batch 1-atm means are at most 7.28% pressure-scaled range and 1.48% ionization; single-batch pressure points have no batch SEM and cannot establish equivalence. Release only the already reserved three additional batches per point and unchanged 36-contrast pressure family.",
       "started_at": "2026-10-02T09:33:19.323610+02:00",
       "run": "runs/noble_cf4_high_energy_pressure",
       "launcher": "scripts/high_energy_pressure.sh",
@@ -273,12 +277,18 @@
     {
       "id": "P2b",
       "title": "Complete high-energy pressure controls",
+      "status": "prepared",
+      "run": "runs/noble_cf4_high_energy_pressure_batches",
+      "launcher": "scripts/high_energy_pressure_batches.sh",
       "depends_on": ["P2a"],
       "selection": "high_energy_pressure",
       "batches_per_point": 3,
       "new_unique_points": 0,
+      "expected_compute_hours": [2, 4],
+      "planning_compute_hours": 3.22544,
       "cap_hours": 8,
-      "scope": "Three additional independent 50-ion batches at the same eighteen points, for 200 ions each. Freeze any pressure-test family and practical margins before inspecting new results; statistical non-rejection is not an equivalence certificate.",
+      "per_job_cap_hours": 3,
+      "scope": "Exactly 54 additional independent 50-ion batches at the same eighteen P2a points, using reserved repeats 1/2/3 from the P2a plan. Retain audited b0 by provenance; four independent batches and 200 ions each, 3600 total histories. Only seed and identifying labels change. The 36 pressure-test family, 0.95-1.05 ionization and 0.90-1.10 pressure-scaled range margins remain the specification frozen before P2a data. Approximate Bonferroni Welch log-batch intervals report every outcome; non-rejection is not equivalence. Measured P2a same-condition timings forecast 1.817 hours model and 3.225 with margin, eight-hour cap, three-hour job cap.",
       "exit_gate": "Eighteen points complete with independent-batch estimates; unresolved numerical/pressure features investigated or explicitly modelled before expansion. Precision shortfalls are recorded for Q6, not repeatedly sampled here."
     },
     {
@@ -471,6 +481,11 @@
       "date": "2026-10-02",
       "stage": "P2a",
       "decision": "Launched detached at 09:33 Europe/Rome, implementation commit 4e0ab2e, after all 214 tests passed. All 15 workers observed running without reported error dialogs on 15 uniquely allocated authenticated displays. Verified active service, CPU affinity 0-14 with 1500% quota, 24/32 GiB soft/hard RAM, zero scan swap, six-hour cumulative/runtime cap and three-hour per-job timeout. Eighteen fresh 50-ion points only; expect 2-4 hours, stop at REVIEW_REQUIRED, NEEDS_ATTENTION or STOPPED and await user continue. No automatic P2b launch, additional histories or precision top-up. Preliminary 243-point PDF and CSV available; remaining full-baseline planning estimate 150.51 hours before Q6/reviews/callback delays."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "P2b",
+      "decision": "On REVIEW_REQUIRED, audited all 18 P2a raw cases and the full frozen baseline chain. All actual parameters, contained endpoints, zero escapes/edge signal, completion/private-display/raw/source checks pass. P2a completed in 1.824 hours, peak 11.292 GiB and zero scan swap; 0.5-atm batch costs 2.43-3.01 times 3-atm costs. Single-batch observations are descriptive only, with no independent-batch SEM or pressure-equivalence claim. Release exactly the three reserved independent 50-ion batches per point, 54 new batches and 2700 histories, unchanged physics and 36-comparison pressure screen frozen before P2a data. Timing forecast 1.817 hours model/3.225 with margin fits eight-hour cap and three-hour job limit. All 224 tests pass, including exact event/physics preservation, reserved seed independence, pressure critical values/classifications and high-energy timing interpolation. Remaining full-baseline planning 132.04 hours after incorporating measured 1-MeV pressure costs; all later mixture/cross-grid work and fixed precision cohorts remain review-gated."
     }
   ]
 }
