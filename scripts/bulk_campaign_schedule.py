@@ -137,6 +137,13 @@ def main():
                                                           longest_batch_hours=round(frozen['forecast']['longest_estimated_batch_hours'],2))
     if batch_review is not None:
         next(row for row in rows if row['id']=='P2b').update(status='completed_and_reviewed',actual_hours=batch_review['actual_hours'])
+    mixture_plan=ROOT/'runs/noble_cf4_mixtures_1atm/plan.json'
+    if mixture_plan.exists():
+        frozen=json.loads(mixture_plan.read_text())
+        next(row for row in rows if row['id']=='M3').update(model_hours=round(frozen['forecast']['model_hours'],2),
+                                                         planning_hours=round(frozen['forecast']['planning_hours'],2),
+                                                         longest_batch_hours=round(frozen['forecast']['longest_estimated_batch_hours'],2),
+                                                         status='frozen_direct_mixture_scan_review_gated')
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -164,6 +171,7 @@ def main():
     if recovery_plan.exists():sources.append(recovery_plan)
     if high_plan.exists():sources.append(high_plan)
     if batch_plan.exists():sources.append(batch_plan)
+    if mixture_plan.exists():sources.append(mixture_plan)
     sources.extend(high_sources)
     sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
@@ -178,6 +186,8 @@ def main():
                  'interpolate the 1/3-atm timing anchors. This is a timing estimate, not a pressure/mixture physics result. '
                  'C3b diagnostic repeats are excluded from timing means and statistics; actual cumulative completion time is retained. '
                  'Mixture and pressure cost interpolation/extrapolation are planning only, not simulated physics points. '
+                 'Once M3 is frozen, its adjacent-anchor maximum four-batch costs and sequential low-energy gate '
+                 'replace the earlier linearly interpolated M3 runtime estimate. '
                  '15 workers, 50% margin plus 30 minutes per stage/wave. Replace estimates with measured pilot/rebuild times. '
                  'Does not include precision top-ups, user callbacks, active review or new defects; Q6 allowance remains conditional.',
                  input_sha256={str(p):pilot.scan.sha256_file(p) for p in sources})

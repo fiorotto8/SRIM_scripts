@@ -54,8 +54,8 @@ claim of detector-calibrated quenching.
 | C3bR | All 906 cases audited; 243 bulk points complete | 3.28 h recovery; 6.93 h C3b/recovery cumulative | Original 12 h cap |
 | P2a | All eighteen 50-ion pressure canaries raw-audited; containment and input gates pass | 1 h 49 min actual | 6 h |
 | P2b | All eighteen four-batch pressure points audited; all meet estimated SEM targets | 2 h 6 min actual | 8 h |
-| C1d (current) | Post-OS-upgrade environment check: 60 display checks and one exact diagnostic replay | About 1–3 min | 5 min; 6 min service failsafe |
-| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 16.2 h planning | 24 h |
+| C1d | All 60 display checks and the exact diagnostic replay passed | 32.4 s actual | 5 min; 6 min service failsafe |
+| M3 (current) | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | 11.4 h model; 17.6 h planning | 24 h |
 | P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.0 h planning | 24 h |
 | G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 105 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
@@ -68,7 +68,8 @@ The bulk baseline requires **3,024 points / 12,096 independent batches /
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
 After the P2b audit, the conditional remaining forecast is about
-**132 compute hours (5.5 days)** before M3, including planning margin.
+**133 compute hours (5.6 days)** before M3, including planning margin and
+its newly frozen conservative adjacent-anchor runtime estimate.
 Overall allow roughly **5.5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
@@ -117,7 +118,59 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current review gate: post-upgrade environment check (C1d)
+### Current step: direct concentration scan at 1 atm (M3)
+
+M3 adds **315 direct points / 1,260 independent batches / 63,000 histories**:
+Ar/Kr/Xe with C/F/noble recoils, 65/70/75/85/90% noble, at 1 atm and 293.15 K,
+energies 1/3/10/30/100/300/1000 keV. Four fixed independent 50-ion batches per
+point. Combining them with the audited 60/80/95% anchors gives **504 complete
+1-atm points**, or **576 total points** including existing pressure slices.
+
+The post-upgrade environment gate passed and was reviewed on your `continue`.
+Density and atomic-composition calculations first reproduce all 189 old 1-atm
+anchor inputs. New density follows the same ideal-gas equation and SRIM masses;
+fractions are molecular percentages converted to normalized atomic fractions.
+No physics result is interpolated. The accepted bulk mode 5 and binding model
+are unchanged, with central starts in the larger full target width of the
+adjacent audited concentration anchors. Every batch must remain contained.
+
+First, **45 fixed 1-keV b0 production batches** check all new gas/species/
+concentration combinations. All must pass executed density, atomic/mass
+composition, bindings, species/energy/count, endpoint/edge, normal-completion
+and private-display/helper checks before the other 1,215 batches start.
+These canaries count once as production, not as independent diagnostic repeats.
+
+Allow **roughly 12–18 hours**, with a **24-hour cumulative cap**, three-hour
+per-job timeout and drain reserve, at most 15 cores, 24/32 GiB soft/hard RAM and
+zero scan swap. The frozen model predicts 11.41 hours; 17.61 hours includes
+50% margin plus 30 minutes. This replaces the earlier 16.2-hour estimate with
+the slower measured four-batch mean of each pair of adjacent concentration
+anchors. Timing interpolation is not used as a simulation result.
+
+```bash
+bash scripts/mixtures_1atm.sh status
+bash scripts/mixtures_1atm.sh logs
+bash scripts/mixtures_1atm.sh stop
+```
+
+Report: `runs/noble_cf4_mixtures_1atm/index.html`; combined results and batch
+SEMs in `points.csv`, independent records in `batches.csv`. On completion,
+`mixtures.pdf` has the noble-recoil overview and nine family/recoil mixture
+plots. Partial points do not meet the fixed precision gate until four batches
+are present. Preserve all 46 preceding flags and any new SEM shortfalls for
+fixed Q6 follow-ups; no automatic resampling. Estimated SEM is not model accuracy.
+
+At `REVIEW_REQUIRED`, send `continue` for the mixture/timing/precision review
+before preparing P4. Report `NEEDS_ATTENTION` or `STOPPED` if seen. Do not
+relaunch a failed or complete run; safe interruption recovery requires review
+and preserves all prior attempts and cumulative elapsed time. No automatic P4,
+selected-feature confirmation or detector-quenching claim.
+
+Validation before launch: all **251 regression tests** passed, including 18 new
+M3 tests for the complete inputs, seed/accounting checks, executed composition,
+failure preservation, low-energy release gate and cumulative budget drain.
+
+### Completed step: post-upgrade environment check (C1d)
 
 P2b's full raw audit passed: **18/18 pressure points meet both precision targets**,
 with four independent 50-ion batches each. Worst estimated relative SEM is
@@ -144,12 +197,12 @@ waves** (allocation, authentication, isolation and cleanup), then **one exact
 50-ion Kr/F1keV bulk replay**. The replay is diagnostic and never added to
 independent production statistics. Allow 1–3 minutes, five-minute budget,
 six-minute service failsafe, at most 15 cores, 4/8 GiB soft/hard RAM and zero swap.
-M3 remains held for review after this additional gate.
+M3 was held until this additional gate and its user-triggered review passed.
 
 C1d completed at 15:00 on 2 October in **32.4 seconds**: all 60 display checks
 passed, the 50-ion replay matched exactly, and source/executable hashes remained
 unchanged. Peak RAM was **1.966 GiB**, host and scan swap zero. Its status is
-`REVIEW_REQUIRED`; no mixture production has launched. Send `continue` for M3.
+`REVIEW_REQUIRED`; its review passed and released M3 preparation on your `continue`.
 
 ```bash
 bash scripts/xvfb_upgrade_gate.sh status
@@ -157,10 +210,9 @@ bash scripts/xvfb_upgrade_gate.sh logs
 bash scripts/xvfb_upgrade_gate.sh stop
 ```
 
-Report: `runs/xvfb_upgrade_gate/index.html`. Send `continue` at `REVIEW_REQUIRED`,
-or report `NEEDS_ATTENTION`. The next scheduled production stage is M3:
-315 new 1-atm mixture points, about 16.2 planning hours, 24-hour cap;
-its inputs and launcher must still be prepared and frozen after this gate.
+Report: `runs/xvfb_upgrade_gate/index.html`. This completed diagnostic must not
+be rerun or included in independent production statistics. M3's separate plan
+and launcher are now prepared and frozen; follow its monitoring commands above.
 
 For regression tests after this documented upgrade, use the explicit historical
 audit context; live display/lifecycle tests still execute the current software:
@@ -203,7 +255,7 @@ Actual elapsed time was **2 h 6 min**, versus the 1.82-hour model and
 per-job limit, 15-core maximum, 24/32 GiB RAM and zero scan swap.
 All eighteen points passed the estimated precision targets; the pressure
 screen retained its inconclusive outcomes. C1d is the next gate after the
-post-completion OS upgrade; M3 remains held until its review.
+post-completion OS upgrade; that review is now complete and M3 is the current stage.
 
 ```bash
 bash scripts/high_energy_pressure_batches.sh status

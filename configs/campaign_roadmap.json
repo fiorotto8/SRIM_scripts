@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-02",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C1d",
-  "production_release": "post_upgrade_display_and_exact_replay_gate_only_mixture_expansion_held",
+  "current_stage_id": "M3",
+  "production_release": "M3_1260_fixed_independent_mixture_batches_only_review_before_P4",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "261_bulk_points_audited_current_environment_gate_passed_awaiting_user_review",
+    "status": "261_bulk_points_and_current_environment_audited_M3_fixed_scan_prepared",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -20,6 +20,7 @@
     "remaining_baseline_planning_hours_at_p2a_start": 150.51,
     "remaining_baseline_planning_hours_at_p2b_start": 132.04,
     "remaining_baseline_planning_hours_at_c1d_start": 131.81,
+    "remaining_baseline_planning_hours_at_m3_start": 133.2,
     "accepted_bulk_points": 261,
     "partial_bulk_points": 0,
     "accepted_independent_batches": 1044,
@@ -279,7 +280,7 @@
     {
       "id": "P2b",
       "title": "Complete high-energy pressure controls",
-      "status": "completed_and_reviewed_scientific_environment_followup_required",
+      "status": "completed_and_reviewed",
       "actual_compute_hours": 2.10051934,
       "review": "All 54 new raw cases and 18 retained P2a cases pass. 72 unique independent seeds, 200 ions at each of 18 points; all meet range/ionization SEM targets. Worst relative SEM: range 2.932%, ionization 0.719%. Frozen pressure intervals: 17 within working margins (14 ionization, 3 range), 19 inconclusive, zero entirely outside. No global pressure-equivalence claim. Wall 2h6m, longest batch 125.62min, peak 9.296 GiB, zero scan swap, no completion-monitor races. Combined 261 points/1044 batches/52200 histories; 46 earlier precision flags retained. Historical audit uses recovered hash-identical Xvfb after documented post-completion OS upgrade; current environment C1d required before mixture release.",
       "started_at": "2026-10-02T11:56:21.465846+02:00",
@@ -299,11 +300,11 @@
     {
       "id": "C1d",
       "title": "Post-OS-upgrade display and exact-replay validation",
-      "status": "completed_pending_user_review",
+      "status": "completed_and_reviewed",
       "started_at": "2026-10-02T14:59:49.942112+02:00",
       "completed_at": "2026-10-02T15:00:22.387226+02:00",
       "actual_compute_hours": 0.00901254,
-      "review": "Current-environment service reached REVIEW_REQUIRED in 32.445 seconds. All 60 display checks and the exact 50-ion replay passed; source/executable hashes unchanged, normal completion and all raw integrity/containment/parameter gates pass. Peak RAM 1.966 GiB, zero host and scan swap. Diagnostic replay contributes no independent production histories. Await user continue before preparing/freeze/launch of M3.",
+      "review": "Current-environment service reached REVIEW_REQUIRED in 32.445 seconds. All60 display checks and the exact50-ion replay passed; source/executable hashes unchanged,normal completion and all raw integrity/containment/parameter gates pass. PeakRAM1.966GiB,zero host and scan swap. Diagnostic replay contributes no independent production histories. User continue received; cold current-manifest/raw audit passed again before M3 preparation.",
       "implementation_commit": "87f5ee1",
       "depends_on": ["P2b"],
       "run": "runs/xvfb_upgrade_gate",
@@ -318,13 +319,21 @@
     {
       "id": "M3",
       "title": "Complete concentration scan at 1 atm",
+      "status": "prepared",
+      "run": "runs/noble_cf4_mixtures_1atm",
+      "launcher": "scripts/mixtures_1atm.sh",
+      "expected_compute_hours": [11.41, 17.61],
+      "expected_active_work_hours": [0.5, 2],
+      "new_independent_batches": 1260,
+      "new_histories": 63000,
+      "forecast_method": "Conservative maximum of adjacent 60/80 or 80/95% concentration four-batch mean times, same family/recoil/energy at1atm. Two sequential phases:45 one-batch1keV production canaries,then1215 remaining batches.15-worker longest-first,50% margin plus30min; frozen planning17.608h, longest reference1.506h,24h cumulative cap,3h job cap,3h90s drain reserve. Runtime prediction, not physics interpolation.",
       "depends_on": ["P2b", "C1d"],
       "selection": "mixtures_1atm",
       "batches_per_point": 4,
       "new_unique_points": 315,
       "cap_hours": 24,
       "scope": "Add 65/70/75/85/90% noble for all families, recoils and seven energies. Together with the rebuilt bulk-model 60/80/95% points, this gives 504 direct 1-atm points.",
-      "exit_gate": "Complete audited grid, preliminary mixture curves and updated timing/precision flags. Apparent narrow bends receive independent confirmation before physical claims."
+      "exit_gate": "All45 low-energy composition/containment canaries pass before1215 remaining batches. Exact inputs/events/seed/binding/species/energy,actual mass density and atomic/mass percentages,all50 endpoints,no escape/profile-edge signal,normal completion,current private-display/helper/source evidence.1260 unique independent batches at315 newpoints; combined576completepoints/2304batches/115200histories and504direct1atm points. Fixed estimated SEM targets5% range/2% ionization; flags retained forQ6,no adaptive topups. Ten-page preliminary mixture PDF,CSV and updated timing review. Apparent narrow bends receive independent confirmation before physical claims. Stop for user continue beforeP4."
     },
     {
       "id": "P4",
@@ -535,6 +544,16 @@
       "date": "2026-10-02",
       "stage": "C1d",
       "decision": "Service completed successfully at 15:00:22 Europe/Rome in 32.445 seconds. Independent post-completion cold audit revalidated the frozen current manifest, all 60 display checks and artifacts, exact original input/event bytes, actual parameters, fifty contained endpoints, normal completion and identical IONIZ/RANGE/RANGE_3D/TDATA output bytes: 258 distinct current-source/reference/raw hashes checked. Peak RAM 1.966 GiB, host and scan swap zero. No new independent production histories: accepted totals remain 261 points/1044 batches/52200 histories and 46 precision flags. C1d is completed pending user review; no SRIM service or mixture production remains running. Await continue to prepare/freeze M3's 315 direct mixture points, approximately 16.22 planning hours, 24-hour cap; remaining baseline forecast 131.81 compute hours excluding Q6/reviews/reporting."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "M3",
+      "decision": "User continue releases review of C1d and preparation of M3 only. Cold review confirms all60 current-environment checks, exact50-ion diagnostic replay and258 current/reference/raw hashes unchanged; P2b scientific audit remains passed. New canonical mixture calculation reproduces density,stoichiometry,target species/masses,gas phase and unity correction for all189 existing1atm anchor inputs. Freeze315new Ar/Kr/Xe65/70/75/85/90% noble points,C/F/noble recoils,seven energies1-1000keV,four50-ion batches each:1260 distinct newseeds disjoint from recorded previous plan seeds and1044 retained independent production batches. Preserve all46 earlier precision flags and allhistorical artifacts. Max adjacent-anchor fullwidth withcentral starts; mandatory per-batch containment and executed density/composition checks. Initial45fixed1keV b0 cases gate1215remaining batches; these are production samples,not additional diagnostics or adaptive precision sampling. Frozen conservative runtime11.405h model/17.608h planning,24h cap and3h job cap. P4 remains held for callback."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "M3",
+      "decision": "All251 regression tests passed, including18 new complete-grid/input/composition/provenance/phase/failure/budget tests. Ten-page PDF and PNG rendering validated with synthetic data in temporary outputs, not scientific samples. New frozen plan pins354 source/executable/reference paths. Supplemental prelaunch audit unions1068 preceding plan/bulk seeds with1841 legacy surface records:2904 unique previous seeds,zero overlap with1260 new independent seeds. Evidence in runs/noble_cf4_mixtures_1atm/release-seed-audit.json; no frozen input,seed,plan or source changed after preparation. Updated schedule uses frozen17.608h M3 planning cost,133.2h remaining baseline forecast excludingQ6/callbacks/final analysis. Host no active SRIM service,52GiB available RAM,swap empty,disk1.1TB available. Ready to launch only M3 detached with15-core maximum,24/32GiB RAM andzero swap; later production held."
     }
   ]
 }
