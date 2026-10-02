@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-02",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "P2b",
-  "production_release": "54_reserved_independent_pressure_batches_only_mixture_expansion_review_required",
+  "current_stage_id": "C1d",
+  "production_release": "post_upgrade_display_and_exact_replay_gate_only_mixture_expansion_held",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "bulk_baseline_and_p2a_audited_fixed_p2b_prepared",
+    "status": "261_bulk_points_audited_post_upgrade_environment_validation_required",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -19,13 +19,14 @@
     "remaining_baseline_planning_hours_at_c3br_start": 169.15,
     "remaining_baseline_planning_hours_at_p2a_start": 150.51,
     "remaining_baseline_planning_hours_at_p2b_start": 132.04,
-    "accepted_bulk_points": 243,
-    "partial_bulk_points": 18,
-    "accepted_independent_batches": 990,
+    "remaining_baseline_planning_hours_at_c1d_start": 131.81,
+    "accepted_bulk_points": 261,
+    "partial_bulk_points": 0,
+    "accepted_independent_batches": 1044,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
-    "note": "Complete bulk baseline raw audit passed: 243 points, 972 independent batches, 48600 histories, 197 points meeting both SEM targets and 46 flags retained. All 42 paired-depth checks pass. P2a adds 18 audited single-batch 1-MeV pressure points, 900 histories; they remain partial until P2b supplies three reserved batches each. Total 990 independent batches, 49500 histories. All containment/parameter/completion/source gates pass; no precision or pressure-equivalence claim from one batch. Release only 54 P2b batches. Current remaining forecast 132.04 hours uses measured bulk costs and P2a same-energy pressure cost factors; extrapolated mixture/intermediate-pressure costs remain planning only. Precision top-ups, callbacks and active review are additional."
+    "note": "P2b scientific raw audit passed: all 18 pressure points meet both SEM targets, 72 independent batches at those points. Combined accepted model: 261 complete points, 1044 independent batches, 52200 histories; 215 meet both precision targets and 46 prior flags remain. The prespecified pressure screen has 17 intervals inside working margins, 19 inconclusive, zero entirely outside; not global equivalence. OS maintenance upgraded Xvfb after P2b completed, followed by reboot. Old executable recovered hash-identically for historical provenance; current execution must pass C1d's 60 display checks and one exact 50-ion replay before M3. No frozen data/source record edited, system downgrade or automatic mixture release."
   },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
@@ -277,7 +278,9 @@
     {
       "id": "P2b",
       "title": "Complete high-energy pressure controls",
-      "status": "running",
+      "status": "completed_and_reviewed_scientific_environment_followup_required",
+      "actual_compute_hours": 2.10051934,
+      "review": "All 54 new raw cases and 18 retained P2a cases pass. 72 unique independent seeds, 200 ions at each of 18 points; all meet range/ionization SEM targets. Worst relative SEM: range 2.932%, ionization 0.719%. Frozen pressure intervals: 17 within working margins (14 ionization, 3 range), 19 inconclusive, zero entirely outside. No global pressure-equivalence claim. Wall 2h6m, longest batch 125.62min, peak 9.296 GiB, zero scan swap, no completion-monitor races. Combined 261 points/1044 batches/52200 histories; 46 earlier precision flags retained. Historical audit uses recovered hash-identical Xvfb after documented post-completion OS upgrade; current environment C1d required before mixture release.",
       "started_at": "2026-10-02T11:56:21.465846+02:00",
       "run": "runs/noble_cf4_high_energy_pressure_batches",
       "launcher": "scripts/high_energy_pressure_batches.sh",
@@ -293,9 +296,23 @@
       "exit_gate": "Eighteen points complete with independent-batch estimates; unresolved numerical/pressure features investigated or explicitly modelled before expansion. Precision shortfalls are recorded for Q6, not repeatedly sampled here."
     },
     {
+      "id": "C1d",
+      "title": "Post-OS-upgrade display and exact-replay validation",
+      "status": "prepared",
+      "depends_on": ["P2b"],
+      "run": "runs/xvfb_upgrade_gate",
+      "launcher": "scripts/xvfb_upgrade_gate.sh",
+      "expected_compute_hours": [0.0167, 0.05],
+      "expected_active_work_hours": [0.5, 1],
+      "cap_hours": 0.08334,
+      "service_failsafe_hours": 0.1,
+      "scope": "Xvfb upgraded 2:21.1.12-1ubuntu1.6 to .8 at 14:23 after P2b finished 14:02; host rebooted 14:26. Recover old package binary from local cache and verify original SHA exactly, without changing the OS or any frozen plan. Explicit historical-audit context resolves only old Xvfb checks against recovered bytes; current execution manifests always record actual upgraded bytes. Run four synchronized 15-display waves, then one exact Kr/F1keV50-ion bulk replay on current software. All 50 replayed histories are diagnostics, not independent production samples. Five-minute budget, 15-core maximum, 4/8 GiB soft/hard RAM and zero scan swap.",
+      "exit_gate": "60 allocation/authentication/isolation/cleanup checks pass; exact replay matches IONIZ/RANGE/RANGE_3D/TDATA bytes and unchanged TRIM.IN/TRIM.DAT, actual bindings/species/energy/density, all 50 contained endpoints, no escape or edge signal, current completion-helper evidence and normal process exit. Current source/executable hashes unchanged before/after. Preserve failure and hold M3 if any gate fails. At completion wait for user continue before mixture expansion."
+    },
+    {
       "id": "M3",
       "title": "Complete concentration scan at 1 atm",
-      "depends_on": ["P2b"],
+      "depends_on": ["P2b", "C1d"],
       "selection": "mixtures_1atm",
       "batches_per_point": 4,
       "new_unique_points": 315,
@@ -492,6 +509,16 @@
       "date": "2026-10-02",
       "stage": "P2b",
       "decision": "Launched detached at 11:56 Europe/Rome, implementation commit 29cec53, after all 224 tests passed. All 15 workers observed running without reported error dialogs on 15 unique authenticated private displays. Verified CPU affinity 0-14, 1500% quota, 24/32 GiB soft/hard RAM, zero scan swap, eight-hour cumulative/runtime cap and three-hour per-job timeout. Retain 18 audited P2a b0 batches, execute only 54 reserved repeats, then stop at REVIEW_REQUIRED, NEEDS_ATTENTION or STOPPED for user callback. Expected 2-4 hours. M3 mixture expansion and precision top-ups remain held; no automatic chaining."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "C1d",
+      "decision": "On P2b REVIEW_REQUIRED, first historical raw audit failed closed on the changed /usr/bin/Xvfb fingerprint. Package logs prove upgrade at 14:23:07 after P2b completed 14:02:23; reboot 14:26. Only pinned system Xvfb changed; xauth and xvfb-run hashes unchanged. Recovered original Xvfb from cached old package, SHA exactly matches original frozen fingerprint. Added explicit historical source resolution without changing any old plan/source/raw output or downgrading the OS. Full P2b raw re-audit passes all 54 new and 18 retained cases; all 18 points meet precision targets, 17/36 pressure intervals within working margins, 19 inconclusive and none entirely outside. Combined production 261 points/1044 independent batches/52200 histories, 215 meeting both SEM targets and 46 earlier flags retained. Insert bounded C1d current-environment validation before M3: 60 concurrent display/isolation/cleanup checks plus one exact 50-ion Kr/F1keV replay, expected 1-3 minutes, five-minute budget, 15-core maximum, 4/8 GiB RAM and zero scan swap. No new production histories; await user continue after this extra gate."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "C1d",
+      "decision": "Implementation and frozen gate plan prepared; all 233 regression tests pass, followed by a fresh nine-test gate/provenance rerun after completing the explicit runtime-source manifest. Shell syntax, Python compilation and whitespace checks pass. The new manifest pins 54 current execution/source/reference paths, including the upgraded Xvfb bytes independently of historical hash resolution. Original replay inputs and seed remain exact; fifty diagnostic histories and zero additional production histories. Host preflight: no active SRIM service, swap empty, approximately 52 GiB available RAM. Ready for the detached bounded C1d check only; M3 remains held for user callback."
     }
   ]
 }

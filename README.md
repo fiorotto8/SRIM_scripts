@@ -53,21 +53,22 @@ claim of detector-calibrated quenching.
 | C1c | Completion monitor fix and one-ion integration check; raw numeric validation passed | 27 s actual | 5 min |
 | C3bR | All 906 cases audited; 243 bulk points complete | 3.28 h recovery; 6.93 h C3b/recovery cumulative | Original 12 h cap |
 | P2a | All eighteen 50-ion pressure canaries raw-audited; containment and input gates pass | 1 h 49 min actual | 6 h |
-| P2b (current) | Three reserved 50-ion batches at each of those 18 points; pressure/precision review | 1.82 h model; 3.23 h with margin | 8 h |
+| P2b | All eighteen four-batch pressure points audited; all meet estimated SEM targets | 2 h 6 min actual | 8 h |
+| C1d (current) | Post-OS-upgrade environment check: 60 display checks and one exact diagnostic replay | About 1–3 min | 5 min; 6 min service failsafe |
 | M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 16.2 h planning | 24 h |
-| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 10.9 h planning | 24 h |
-| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 102 h total planning | 24 h per wave |
+| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.0 h planning | 24 h |
+| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 105 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (12.1), 65% (12.9), 70% (13.6),
-75% (14.4), 85% (15.7), 90% (16.2), 95% (16.7). Recompute before each wave.
+G5 wave order and planning hours: 60% (12.5), 65% (13.2), 70% (14.0),
+75% (14.8), 85% (16.1), 90% (16.7), 95% (17.2). Recompute before each wave.
 The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the P2a audit, the conditional remaining forecast is about
-**132 compute hours (5.5 days)** from P2b start, including planning margin.
+After the P2b audit, the conditional remaining forecast is about
+**132 compute hours (5.5 days)** before M3, including planning margin.
 Overall allow roughly **5.5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
@@ -105,7 +106,7 @@ xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
 This command launches no simulations. Its forecast uses measured means from
-all 972 independent bulk baseline batches and eighteen P2a timing observations,
+all 1,044 independent bulk production batches across 261 complete points,
 15-worker longest-first scheduling, mixture interpolation and pressure factors,
 then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
@@ -113,9 +114,63 @@ the timing-source hashes and assumptions. At 1 MeV, measured 80%-noble pressure
 cost ratios replace low-energy extrapolations; other concentrations inherit
 those ratios and intermediate-pressure costs interpolate the 1/3-atm anchors.
 These are runtime predictions, not interpolated physics results. Recalibrate
-using four-batch P2b means at the next review.
+using new mixture timings at the next review. The eighteen pressure anchors
+now use four-batch P2b means rather than single P2a observations.
 
-### Current step: independent 1 MeV pressure batches (P2b)
+### Current step: post-upgrade environment check (C1d)
+
+P2b's full raw audit passed: **18/18 pressure points meet both precision targets**,
+with four independent 50-ion batches each. Worst estimated relative SEM is
+**2.93% range / 0.72% ionization**. The frozen pressure screen has **17 intervals
+inside working margins and 19 inconclusive**, none entirely outside. This
+does not establish global pressure equivalence. P2b took 2 h 6 min, peak RAM
+9.296 GiB, scan swap zero. Combined production is **261 complete points,
+1,044 independent batches, 52,200 histories**; 46 earlier precision flags remain.
+
+- [Pressure PDF with batch SEMs](runs/noble_cf4_high_energy_pressure_batches/review/pressure.pdf)
+- [261-point CSV](runs/noble_cf4_high_energy_pressure_batches/review/points.csv)
+- [Raw audit and 36 simultaneous pressure intervals](runs/noble_cf4_high_energy_pressure_batches/review/index.html)
+
+The host upgraded Xvfb at 14:23 on 2 October, **after** P2b finished at 14:02,
+then rebooted at 14:26. The strict historical fingerprint check correctly
+held the next launch. The original binary was recovered from the cached old
+package and matches its frozen SHA exactly; no OS downgrade or frozen-file
+edit was made. `scripts/historical_execution.py` resolves only historical
+Xvfb hash checks against these recovered bytes, verifies the upgrade chronology,
+and rejects unknown current versions. New manifests always pin actual current bytes.
+
+C1d validates the current environment with **four synchronized 15-display
+waves** (allocation, authentication, isolation and cleanup), then **one exact
+50-ion Kr/F1keV bulk replay**. The replay is diagnostic and never added to
+independent production statistics. Allow 1–3 minutes, five-minute budget,
+six-minute service failsafe, at most 15 cores, 4/8 GiB soft/hard RAM and zero swap.
+M3 remains held for review after this additional gate.
+
+```bash
+bash scripts/xvfb_upgrade_gate.sh status
+bash scripts/xvfb_upgrade_gate.sh logs
+bash scripts/xvfb_upgrade_gate.sh stop
+```
+
+Report: `runs/xvfb_upgrade_gate/index.html`. Send `continue` at `REVIEW_REQUIRED`,
+or report `NEEDS_ATTENTION`. The next scheduled production stage is M3:
+315 new 1-atm mixture points, about 16.2 planning hours, 24-hour cap;
+its inputs and launcher must still be prepared and frozen after this gate.
+
+For regression tests after this documented upgrade, use the explicit historical
+audit context; live display/lifecycle tests still execute the current software:
+
+```bash
+.venv/bin/python scripts/run_historical_tests.py
+```
+
+Validation: all 233 regression tests passed, plus a fresh nine-test rerun of
+the completed gate/provenance implementation before launch.
+
+Keep `runs/xvfb_upgrade_gate/upgrade-evidence.json` and its recovered old-package
+binary: they are part of the audit provenance, not disposable scratch files.
+
+### Completed step: independent 1 MeV pressure batches (P2b)
 
 P2a passed all 18 raw audits in **1 h 49 min**, with all 50 contained endpoints
 per case, zero primary escapes/profile-edge signal, normal completion and
@@ -128,9 +183,9 @@ equivalence claim**. Its largest descriptive differences from the four-batch
 1-atm reference means are 7.28% pressure-scaled displacement and 1.48% ionization.
 See [audited pressure plots and CSV](runs/noble_cf4_high_energy_pressure/review/index.html).
 
-P2b adds exactly **54 reserved independent 50-ion batches** (repeats 1/2/3),
+P2b added exactly **54 reserved independent 50-ion batches** (repeats 1/2/3),
 retaining P2a b0 by audited provenance. All eighteen Ar/Kr/Xe80/CF4-20,
-C/F/noble, 1-MeV, 0.5/3-atm points then have four independent batches,
+C/F/noble, 1-MeV, 0.5/3-atm points now have four independent batches,
 **200 ions per point**. Only seed and identifying labels change; physics,
 density, geometry and event coordinates remain unchanged.
 
@@ -138,21 +193,19 @@ The 36 Bonferroni approximate Welch log-batch pressure intervals use the
 specification frozen **before P2a observations**. All outcomes and estimated
 SEM flags remain visible. No automatic top-ups or mixture expansion.
 
-Allow **2–4 hours** (1.82-hour model, 3.23-hour planning estimate), with an
-**eight-hour cap**, three-hour per-job limit, 15-core maximum, 24/32 GiB RAM,
-and zero scan swap. After review, the next scheduled stage is M3: 315 new
-1-atm mixture points, approximately 16.2 planning hours, subject to the
-pressure/integrity release gate.
+Actual elapsed time was **2 h 6 min**, versus the 1.82-hour model and
+3.23-hour planning estimate. The run used an eight-hour cap, three-hour
+per-job limit, 15-core maximum, 24/32 GiB RAM and zero scan swap.
+All eighteen points passed the estimated precision targets; the pressure
+screen retained its inconclusive outcomes. C1d is the next gate after the
+post-completion OS upgrade; M3 remains held until its review.
 
 ```bash
 bash scripts/high_energy_pressure_batches.sh status
-bash scripts/high_energy_pressure_batches.sh logs
-bash scripts/high_energy_pressure_batches.sh stop
-bash scripts/high_energy_pressure_batches.sh resume
 ```
 
-Report: `runs/noble_cf4_high_energy_pressure_batches/index.html`. Tell the
-assistant `continue` at `REVIEW_REQUIRED`, or report `NEEDS_ATTENTION`/`STOPPED`.
+Results: `runs/noble_cf4_high_energy_pressure_batches/review/index.html`.
+Do not rerun completed pressure batches.
 
 ### Completed step: 1 MeV pressure timing and containment gate (P2a)
 

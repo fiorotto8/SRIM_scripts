@@ -75,18 +75,28 @@ def forecast(roadmap,rows,calibrated_means=None):
 
 
 def main():
-    roadmap=json.loads(legacy.PLAN.read_text());review,raw,*_=pilot.previous.review()
+    from scripts import historical_execution as history
     from scripts import bulk_baseline_rebuild as rebuild
     from scripts import review_bulk_baseline as bulk_review
-    pilot_review,_,_,_=rebuild.previous.review()
-    baseline_review,_,_,timing,_=bulk_review.review()
+    roadmap=json.loads(legacy.PLAN.read_text())
+    with history.historical_sources():
+        review,raw,*_=pilot.previous.review()
+        pilot_review,_,_,_=rebuild.previous.review()
+        baseline_review,_,_,timing,_=bulk_review.review()
     measured={(r['family'],r['ion'],r['energy_kev'],r['noble_percent'],r['pressure_atm']):r['mean_seconds'] for r in timing}
     high_review=None; high_rows=[]; high_sources=[]
     from scripts import review_high_energy_pressure as high_audit
     if (high_audit.RUN/'completion.json').exists():
-        high_review,high_rows,*_=high_audit.review()
+        with history.historical_sources():
+            high_review,high_rows,*_=high_audit.review()
         measured.update({rebuild.key(r):r['wall_seconds'] for r in high_rows})
         high_sources=[Path(high_audit.__file__),high_audit.RUN/'completion.json',high_audit.RUN/'results.json']
+    batch_review=None; pressure_sources=[]
+    from scripts import review_pressure_batches as pressure_audit
+    if (pressure_audit.RUN/'completion.json').exists():
+        batch_review,_,_,timing,_=pressure_audit.review()
+        measured={(r['family'],r['ion'],r['energy_kev'],r['noble_percent'],r['pressure_atm']):r['mean_seconds'] for r in timing}
+        pressure_sources=[Path(pressure_audit.__file__),pressure_audit.RUN/'completion.json',pressure_audit.RUN/'results.json']
     rows,totals=forecast(roadmap,raw,measured)
     rows[0].update(actual_hours=pilot_review['actual_hours'],status='completed_and_reviewed')
     rebuild_plan=rebuild.RUN/'plan.json'
@@ -125,16 +135,22 @@ def main():
         next(row for row in rows if row['id']=='P2b').update(model_hours=round(frozen['forecast']['model_hours'],2),
                                                           planning_hours=round(frozen['forecast']['planning_hours'],2),
                                                           longest_batch_hours=round(frozen['forecast']['longest_estimated_batch_hours'],2))
+    if batch_review is not None:
+        next(row for row in rows if row['id']=='P2b').update(status='completed_and_reviewed',actual_hours=batch_review['actual_hours'])
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
-    future=rows[3:] if high_review is not None else rows[2:]
-    totals.update(accepted_points=243,partial_points=len(high_rows),accepted_independent_batches=972+len(high_rows),
-                  accepted_histories=48600+50*len(high_rows),
-                  remaining_baseline_points=2781,remaining_baseline_batches=11124-len(high_rows),remaining_baseline_histories=556200-50*len(high_rows),
+    future=rows[4:] if batch_review is not None else rows[3:] if high_review is not None else rows[2:]
+    accepted_points=261 if batch_review is not None else 243
+    accepted_batches=1044 if batch_review is not None else 972+len(high_rows)
+    totals.update(accepted_points=accepted_points,partial_points=0 if batch_review is not None else len(high_rows),
+                  accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
+                  remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
+                  remaining_baseline_histories=50*(12096-accepted_batches),
                   remaining_planning_hours=round(sum(row['planning_hours'] for row in future),2),
                   elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+baseline_review['cumulative_baseline_hours']+
                                                      (high_review['actual_hours'] if high_review is not None else 0)+
+                                                     (batch_review['actual_hours'] if batch_review is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -146,12 +162,15 @@ def main():
     if high_plan.exists():sources.append(high_plan)
     if batch_plan.exists():sources.append(batch_plan)
     sources.extend(high_sources)
+    sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='The complete 243-point bulk baseline passed raw audit; 46 precision flags remain. '
                  'Later stages require their own review. Costs use measured means from all 972 independent bulk batches, '
-                 'plus the eighteen P2a single-batch timings when complete. At 1 MeV, use measured same-energy '
+                 'plus the eighteen pressure points using four-batch P2b means when complete (single P2a times beforehand). '
+                 'Historical executable audit uses a recovered hash-identical Xvfb after the documented post-P2b OS upgrade; '
+                 'new production additionally requires the current environment gate. At 1 MeV, use measured same-energy '
                  '80%-noble pressure ratios; other mixtures inherit those cost factors and intermediate pressures '
                  'interpolate the 1/3-atm timing anchors. This is a timing estimate, not a pressure/mixture physics result. '
                  'C3b diagnostic repeats are excluded from timing means and statistics; actual cumulative completion time is retained. '
