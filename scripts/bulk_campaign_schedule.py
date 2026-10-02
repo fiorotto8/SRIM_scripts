@@ -50,8 +50,11 @@ def forecast(roadmap,rows,calibrated_means=None):
 def main():
     roadmap=json.loads(legacy.PLAN.read_text());review,raw,*_=pilot.previous.review()
     from scripts import bulk_baseline_rebuild as rebuild
-    pilot_review,_,_,timing=rebuild.previous.review()
-    rows,totals=forecast(roadmap,raw,rebuild.calibrated_timings(timing))
+    from scripts import review_bulk_baseline as bulk_review
+    pilot_review,_,_,_=rebuild.previous.review()
+    baseline_review,_,_,timing,_=bulk_review.review()
+    measured={(r['family'],r['ion'],r['energy_kev'],r['noble_percent'],r['pressure_atm']):r['mean_seconds'] for r in timing}
+    rows,totals=forecast(roadmap,raw,measured)
     rows[0].update(actual_hours=pilot_review['actual_hours'],status='completed_and_reviewed')
     rebuild_plan=rebuild.RUN/'plan.json'
     if rebuild_plan.exists():
@@ -75,18 +78,34 @@ def main():
                       elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+recovery['inherited_used_seconds']/3600+
                                                          recovery['forecast']['planning_hours']+sum(r['planning_hours'] for r in rows[2:]),2),
                       diagnostic_histories_additional=2101)
+    high_plan=ROOT/'runs/noble_cf4_high_energy_pressure/plan.json'
+    if high_plan.exists():
+        high=json.loads(high_plan.read_text())
+        stage=next(row for row in rows if row['id']=='P2a')
+        stage.update(model_hours=round(high['forecast']['model_hours'],2),planning_hours=round(high['forecast']['planning_hours'],2),
+                     longest_batch_hours=round(high['forecast']['longest_estimated_batch_hours'],2))
+    rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
+                   remaining_original_cases=0,completed_independent_points=243)
+    for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
+    totals.update(accepted_points=243,accepted_independent_batches=972,accepted_histories=48600,
+                  remaining_baseline_points=2781,remaining_baseline_batches=11124,remaining_baseline_histories=556200,
+                  remaining_planning_hours=round(sum(row['planning_hours'] for row in rows[2:]),2),
+                  elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+baseline_review['cumulative_baseline_hours']+
+                                                     sum(row['planning_hours'] for row in rows[2:]),2),
+                  baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
     status=ROOT/current['run']/'status.json'
-    sources=[Path(__file__),Path(rebuild.__file__),legacy.PLAN,legacy.TIMINGS,pilot.RUN/'results.json']
+    sources=[Path(__file__),Path(rebuild.__file__),Path(bulk_review.__file__),legacy.PLAN,
+             bulk_review.RUN/'completion.json',bulk_review.RUN/'results.json',pilot.RUN/'results.json']
     if rebuild_plan.exists():sources.append(rebuild_plan)
     if recovery_plan.exists():sources.append(recovery_plan)
+    if high_plan.exists():sources.append(high_plan)
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
-                 status='PROVISIONAL_BULK_MODEL_FORECAST_NOT_PRODUCTION_RELEASE',totals=totals,stages=rows,
+                 status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='Full-grid transition remains gated by baseline review. Pilot raw audit passed, with five precision flags retained. '
-                 'No surface or paired-diagnostic histories reused in statistics. Costs use measured surface timings, increased by '
-                 'the maximum measured pilot 100/1000keV bulk-to-surface ratio (never below one), plus nonnegative 1keV startup overhead. '
-                 'C3b includes 42 separately counted depth diagnostics and sequential release gates. '
+                 assumptions='The complete243-point bulk baseline passed raw audit;46 precision flags remain. '
+                 'Later stages require their own review. Costs use measured means from all972 independent bulk batches. '
+                 'C3b diagnostic repeats are excluded from timing means and statistics; actual cumulative completion time is retained. '
                  'Mixture and pressure cost interpolation/extrapolation are planning only, not simulated physics points. '
                  '15 workers, 50% margin plus 30 minutes per stage/wave. Replace estimates with measured pilot/rebuild times. '
                  'Does not include precision top-ups, user callbacks, active review or new defects; Q6 allowance remains conditional.',

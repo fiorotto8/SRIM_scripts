@@ -31,9 +31,9 @@ Working final target: **3,024 direct points** = Ar/Kr/Xe × eight noble fraction
 (60–95% in 5% steps) × six pressures (0.5–3 atm in 0.5-atm steps) × seven energies
 (1/3/10/30/100/300/1000 keV) × C/F/noble recoil. Begin with four independent
 50-ion batches per point and add fixed independent cohorts where justified.
-The existing 243 **surface-injection** points remain separate. The provisional
-interior model needs a compatible 243-point baseline: a 27-point independent
-pilot (C3a), then the remaining 216 points (C3b), subject to review.
+The existing 243 **surface-injection** points remain separate. The compatible
+243-point bulk baseline is now complete and audited: a 27-point independent
+pilot (C3a), then 216 points from C3b/C3bR, with four batches per point.
 No surface or paired-diagnostic histories enter that baseline.
 This goal is SRIM range and ionization-fraction mapping, not a
 claim of detector-calibrated quenching.
@@ -51,24 +51,24 @@ claim of detector-calibrated quenching.
 | C3a | Independent bulk pilot audited: 27 points, 108 batches; 22 points meet both precision targets | 89 min actual | 6 h |
 | C3b | 132 cases completed, all 42 depth pairs passed; completion-window inspection race stopped remaining work | 3.65 h actual, preserved | Original 12 h cumulative |
 | C1c | Completion monitor fix and one-ion integration check; raw numeric validation passed | 27 s actual | 5 min |
-| C3bR (current) | Retain 132 audited cases and run the original 774 unfinished cases | About 4–6 h additional | Remaining 8.35 h of original cap |
-| P2a | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | About 3.7 h planning | 6 h |
-| P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.8 h planning | 8 h |
-| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 17.2 h planning | 24 h |
-| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 12.8 h planning | 24 h |
-| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 15–21 h per wave; 126 h total planning | 24 h per wave |
+| C3bR | All 906 cases audited; 243 bulk points complete | 3.28 h recovery; 6.93 h C3b/recovery cumulative | Original 12 h cap |
+| P2a (current) | Eighteen 50-ion canaries: 1 MeV, all families/recoils, 80% noble, 0.5/3 atm | 2.1 h model; 3.65 h with margin | 6 h |
+| P2b | Three more 50-ion batches at those 18 points; pressure/control review | About 3.7 h planning | 8 h |
+| M3 | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | About 16.2 h planning | 24 h |
+| P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.9 h planning | 24 h |
+| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 14–19 h per wave; 115 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (15.3), 65% (16.0), 70% (16.8),
-75% (17.5), 85% (19.2), 90% (20.1), 95% (21.0). Recompute before each wave.
+G5 wave order and planning hours: 60% (13.7), 65% (14.5), 70% (15.4),
+75% (16.3), 85% (17.8), 90% (18.4), 95% (19.0). Recompute before each wave.
 The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the recovery audit, the conditional remaining bulk-baseline forecast is about
-**169 compute hours (7.0 days)** from the start of C3bR, including remaining recovery work
-and planning margin. Overall allow roughly **7–12 additional compute days** with
+After the complete baseline audit, the conditional remaining forecast is about
+**151 compute hours (6.3 days)** from P2a start, including planning margin.
+Overall allow roughly **6–11 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
 User callback delays, reviews, implementation and conditional interventions are
@@ -104,15 +104,63 @@ Regenerate the read-only schedule report and timing snapshot:
 xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
-This command launches no simulations. Its forecast uses measured surface-model
-costs adjusted with interior endpoint-energy timings and startup overhead,
+This command launches no simulations. Its forecast uses measured means from
+all 972 independent bulk baseline batches,
 15-worker longest-first scheduling, mixture interpolation and pressure factors,
 then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
 the exact timing-source hash and assumptions; replace pressure extrapolations
 with measured P2 evidence at the next planning revision.
 
-### Current step: completion-monitor recovery (C3bR)
+### Current step: 1 MeV pressure timing and containment gate (P2a)
+
+The complete bulk baseline passed raw audit: **243 points, 972 independent batches,
+48,600 histories**, and all 42 paired-depth checks. C3bR took 3 h 17 min; the
+C3b/recovery cumulative time was 6 h 56 min, plus the separate 89-minute pilot.
+Recovery peak RAM was 12.249 GiB, scan swap zero.
+
+**197/243 points meet both estimated SEM targets; 46 remain flagged.** There are
+45 range flags and 3 ionization flags, with two overlaps. Most range flags occur at
+1–10 keV. The 108 prespecified pressure intervals include 106 inconclusive and two
+inside the working margins. Pressure equivalence remains unresolved.
+
+Preliminary results:
+
+- [Six-page PDF: mixture curves and pressure slices](runs/noble_cf4_bulk_baseline_retry/review/baseline.pdf)
+- [243-point CSV with means and batch SEMs](runs/noble_cf4_bulk_baseline_retry/review/points.csv)
+- [Audited report, plots, precision flags and timings](runs/noble_cf4_bulk_baseline_retry/review/index.html)
+
+P2a runs **18 fresh 50-ion batches**: Ar/Kr/Xe80/CF4-20, C/F/noble recoils,
+1 MeV, 0.5 and 3 atm. It measures heavy-recoil timing, actual parameters and containment.
+The one-batch results acquire independent-batch SEMs only after P2b's three additional
+batches per point. Four distinct seeds per point are reserved in the frozen P2a plan.
+
+Pressure gas density/composition come from audited 100 keV pressure inputs;
+the 1 MeV width scales inversely with density before the same central-start geometry.
+Exact executed inputs, bindings, 50 endpoints, no escapes/edge signal, normal completion
+and private-display evidence are required. SRIM's printed mass-density header
+truncates its last decimal, so that check uses its displayed resolution rather
+than an arbitrary percentage tolerance.
+
+The later P2b screen is frozen now: 36 approximate Bonferroni Welch log-batch
+pressure contrasts at 1 MeV, working ratio margins 0.95–1.05 for ionization and
+0.90–1.10 for pressure-scaled displacement. Four batches per condition will be
+compared with the existing 1 atm reference; inconclusive results remain visible.
+
+Allow **2–4 hours** (2.10-hour model, 3.65-hour planning estimate), with a **six-hour
+cap**, 15-core maximum, 24/32 GiB RAM and zero scan swap. No P2b launch is automatic.
+
+```bash
+bash scripts/high_energy_pressure.sh status
+bash scripts/high_energy_pressure.sh logs
+bash scripts/high_energy_pressure.sh stop
+bash scripts/high_energy_pressure.sh resume
+```
+
+Report: `runs/noble_cf4_high_energy_pressure/index.html`. Tell the assistant
+`continue` at `REVIEW_REQUIRED`, or report `NEEDS_ATTENTION`/`STOPPED` for review.
+
+### Completed step: completion-monitor recovery (C3bR)
 
 C3b completed **132 cases** (90 independent batches and all 42 depth diagnostics)
 before stopping. Every completed case passed the raw audit and all depth pairs

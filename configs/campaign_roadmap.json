@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-01",
+  "updated_on": "2026-10-02",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C3bR",
-  "production_release": "completion_monitor_recovery_only_full_grid_held_pending_baseline_review",
+  "current_stage_id": "P2a",
+  "production_release": "18_point_high_energy_pressure_gate_only_later_stages_review_required",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "baseline_completion_monitor_recovery",
+    "status": "243_point_bulk_baseline_audited_precision_flags_retained",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -14,17 +14,21 @@
     "remaining_rebuild_points": 216,
     "initial_full_grid_batches": 12096,
     "initial_full_grid_histories": 604800,
-    "conditional_baseline_planning_hours": 177.17,
+    "conditional_baseline_planning_hours": 164.47,
     "remaining_baseline_planning_hours_at_c3b_start": 174.42,
     "remaining_baseline_planning_hours_at_c3br_start": 169.15,
+    "remaining_baseline_planning_hours_at_p2a_start": 150.51,
+    "accepted_bulk_points": 243,
+    "accepted_independent_batches": 972,
+    "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
-    "note": "C3a raw audit passed: 27 points, 108 independent batches, five precision flags retained. Only the fixed C3b rebuild is released after its 42 paired-depth gates. Full-grid model certification and later stages remain review-gated. The 143-hour surface and 164.33-hour pre-pilot bulk forecasts are historical; regenerate the measured-pilot schedule for current estimates. Precision top-ups, callbacks and active review are additional."
+    "note": "Complete bulk baseline raw audit passed: 243 points, 972 independent batches, 48600 histories, 197 points meeting both SEM targets and 46 flags retained. All 42 paired-depth checks pass. Prespecified pressure screen: 106 inconclusive, two inside working margins, zero entirely outside; pressure equivalence unresolved. Release only 18 P2a timing/containment points. Current forecast uses measured means across the compatible baseline; older surface/pilot forecasts are historical. Precision top-ups, callbacks and active review are additional."
   },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
     "active_hours_to_prepare_each_new_stage_type": [0.5, 2],
-    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics, C3a pilot and C3b gated rebuild are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
+    "note": "Human/agent active-work allowances, not machine runtime or appointments. Diagnostics, compatible baseline and P2a timing gate are implemented; later production launchers remain planned and depend on preceding evidence. User callback delays are additional."
   },
   "objective": "Validated direct SRIM range and ionization-fraction maps for Ar/Kr/Xe-CF4 over the specified concentration, pressure and energy grid, with independent-batch uncertainty, provenance and readable exports.",
   "target": {
@@ -229,7 +233,10 @@
     {
       "id": "C3bR",
       "title": "Completion-monitor recovery of the frozen bulk baseline",
-      "status": "running",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 3.27665853,
+      "actual_cumulative_baseline_hours": 6.93009732,
+      "review": "All 906 cases raw-audited, including 774 completed recovery cases and 132 retained originals. All 243 points have 972 distinct independent 50-ion batches; 48600 histories. All 42 depth pairs pass. 197 points meet both SEM targets; 46 flags retained (45 range flags, 3 ionization flags, overlap 2). Pressure screen 108 contrasts: 106 inconclusive, two inside working margins, zero entirely outside; no pressure-equivalence claim. Recovery wall 3.277 h, C3b/recovery cumulative 6.930 h excluding the separate 1.486-hour pilot, peak 12.249 GiB, scan swap 0, source unchanged. Completed six-page PDF, plots, CSV and timing export. Ready for fixed P2a high-energy pressure timing/containment gate.",
       "started_at": "2026-10-01T17:19:23.151196+02:00",
       "depends_on": ["C1c"],
       "run": "runs/noble_cf4_bulk_baseline_retry",
@@ -248,13 +255,19 @@
     {
       "id": "P2a",
       "title": "High-energy pressure timing/parameter canaries",
+      "status": "prepared",
+      "run": "runs/noble_cf4_high_energy_pressure",
+      "launcher": "scripts/high_energy_pressure.sh",
       "depends_on": ["C3bR"],
       "selection": "high_energy_pressure",
       "batches_per_point": 1,
       "new_unique_points": 18,
+      "expected_compute_hours": [2, 4],
+      "planning_compute_hours": 3.64501,
       "cap_hours": 6,
-      "scope": "Ar/Kr/Xe, C/F/noble, 1 MeV, 80% noble, 0.5 and 3 atm; one 50-ion batch per point. This is a timing and integrity gate, not precision certification.",
-      "exit_gate": "Actual target parameters match, no clipping/errors/OOM, validated geometry interpretation; measured heavy-recoil time and memory support the next budget. These histories may be reused only under the unchanged accepted model."
+      "per_job_cap_hours": 3,
+      "scope": "Ar/Kr/Xe, C/F/noble, 1 MeV, 80% noble, 0.5/3 atm; one fresh 50-ion batch per point, 900 histories. Four batch seeds reserved per point for eventual P2a/P2b, 72 distinct seeds disjoint from prior cohorts. Pressure density/composition inherited from audited 100 keV pressure inputs; 1 MeV width scales inversely with density before unchanged central bulk geometry. One batch per point supports timing/integrity, not batch SEM. Before data collection freeze the later P2b 36-comparison pressure family and practical margins.",
+      "exit_gate": "All 18 input/output/species/energy/binding/count/endpoint/private-display/completion/source gates pass; no primary escape or edge-bin clipping/OOM. Exact input density matches audited pressure source; printed mass-density header agrees within one last-decimal unit because it truncates. Retain atomic-density header with its known formatting limitation. Review actual heavy-recoil timing/RAM/containment before P2b. Eventual P2b screen: 36 Bonferroni approximate Welch log-batch intervals, 0.5/3 vs 1 atm, all families/recoils at 1 MeV; working ratio margins 0.95-1.05 ionization, 0.90-1.10 pressure-scaled range. Flags/inconclusive results retained; selected features require separate confirmation."
     },
     {
       "id": "P2b",
@@ -447,6 +460,11 @@
       "date": "2026-10-01",
       "stage": "C3bR",
       "decision": "Launched detached at 17:19 Europe/Rome, implementation commit df00aeb, after all 208 tests passed. Original failed 50-ion batch observed running under the new monitor on an authenticated private display. Retained 132 original cases and all 42 passed depth pairs; 40 combined points already complete. Verified 15-core affinity/quota, 24/32 GiB soft/hard RAM, zero scan swap, and service runtime limited to the remaining 8h20min47s of the original cumulative budget. Expected additional 4-6 hours; wait for user continue at completion or failure. No additional baseline stage or precision top-up launches automatically."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "P2a",
+      "decision": "Audited completed C3bR recovery: all 906 stage cases and 972 combined independent production batches pass; 243 points, 48600 histories, all 42 depth pairs stable. Recovery took 3.277 hours; C3b/recovery cumulative 6.930 hours plus separate 1.486-hour pilot. 197 points meet both SEM targets and 46 flags remain for separately fixed precision cohorts. The 108 prespecified pressure screens give 106 inconclusive intervals and two inside working margins; do not claim pressure equivalence. Release only the scheduled 18-point 1-MeV timing/containment gate at 80% noble, Ar/Kr/Xe, C/F/noble, 0.5/3 atm, one fresh 50-ion batch each. Reserve four distinct seeds per point and freeze the 36-contrast P2b screen before collecting P2a observations. Exact executed density remains mandatory; printed mass-density comparison uses the header's measured decimal resolution. New measured-bulk forecast: P2a 2.097 hours model, 3.645 with margin, six-hour cap and three-hour job cap; remaining full baseline 150.51 planning hours, excluding Q6 and reviews. All 214 tests pass. P2b and later production remain held pending review."
     }
   ]
 }
