@@ -277,7 +277,8 @@
     {
       "id": "P2b",
       "title": "Complete high-energy pressure controls",
-      "status": "prepared",
+      "status": "running",
+      "started_at": "2026-10-02T11:56:21.465846+02:00",
       "run": "runs/noble_cf4_high_energy_pressure_batches",
       "launcher": "scripts/high_energy_pressure_batches.sh",
       "depends_on": ["P2a"],
@@ -486,6 +487,11 @@
       "date": "2026-10-02",
       "stage": "P2b",
       "decision": "On REVIEW_REQUIRED, audited all 18 P2a raw cases and the full frozen baseline chain. All actual parameters, contained endpoints, zero escapes/edge signal, completion/private-display/raw/source checks pass. P2a completed in 1.824 hours, peak 11.292 GiB and zero scan swap; 0.5-atm batch costs 2.43-3.01 times 3-atm costs. Single-batch observations are descriptive only, with no independent-batch SEM or pressure-equivalence claim. Release exactly the three reserved independent 50-ion batches per point, 54 new batches and 2700 histories, unchanged physics and 36-comparison pressure screen frozen before P2a data. Timing forecast 1.817 hours model/3.225 with margin fits eight-hour cap and three-hour job limit. All 224 tests pass, including exact event/physics preservation, reserved seed independence, pressure critical values/classifications and high-energy timing interpolation. Remaining full-baseline planning 132.04 hours after incorporating measured 1-MeV pressure costs; all later mixture/cross-grid work and fixed precision cohorts remain review-gated."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "P2b",
+      "decision": "Launched detached at 11:56 Europe/Rome, implementation commit 29cec53, after all 224 tests passed. All 15 workers observed running without reported error dialogs on 15 unique authenticated private displays. Verified CPU affinity 0-14, 1500% quota, 24/32 GiB soft/hard RAM, zero scan swap, eight-hour cumulative/runtime cap and three-hour per-job timeout. Retain 18 audited P2a b0 batches, execute only 54 reserved repeats, then stop at REVIEW_REQUIRED, NEEDS_ATTENTION or STOPPED for user callback. Expected 2-4 hours. M3 mixture expansion and precision top-ups remain held; no automatic chaining."
     }
   ]
 }
