@@ -55,7 +55,8 @@ claim of detector-calibrated quenching.
 | P2a | All eighteen 50-ion pressure canaries raw-audited; containment and input gates pass | 1 h 49 min actual | 6 h |
 | P2b | All eighteen four-batch pressure points audited; all meet estimated SEM targets | 2 h 6 min actual | 8 h |
 | C1d | All 60 display checks and the exact diagnostic replay passed | 32.4 s actual | 5 min; 6 min service failsafe |
-| M3 (current) | Add 315 concentration/energy points at 1 atm; full eight-mixture slice | 11.4 h model; 17.6 h planning | 24 h |
+| M3 | Stopped on integer-percent header validation; original attempts preserved | 41 s actual | Carried into M3R |
+| M3R (current) | Continue the same 315-point mixture scan; retain 10 audited batches, run 1,250 remaining | 11.4 h model; 17.6 h planning | Original 24 h cumulative |
 | P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.0 h planning | 24 h |
 | G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 105 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
@@ -118,7 +119,19 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: direct concentration scan at 1 atm (M3)
+### Current step: direct concentration scan recovery at 1 atm (M3R)
+
+The original M3 stopped because its composition checker rejected SRIM's exact
+`F = 50 Atomic Percent` integer formatting in two 75%-noble mixtures. Both
+completed batches passed a full raw-data re-audit. The versioned M3R checker
+accepts omitted decimal zeros while keeping the maximum percentage-point
+error margin at 0.1 (and retaining finer printed precision where present).
+All original code, plans, failed records and raw attempts remain unchanged.
+M3R retains ten completed independent batches exactly once and runs only the
+remaining 1,250 original cases, including seven interrupted cases. Seeds,
+inputs, physical model and sample counts are unchanged. The original 41.18
+seconds count against the same 24-hour budget. Thirty-five remaining low-energy
+cases must pass before the other 1,215 batches are released.
 
 M3 adds **315 direct points / 1,260 independent batches / 63,000 histories**:
 Ar/Kr/Xe with C/F/noble recoils, 65/70/75/85/90% noble, at 1 atm and 293.15 K,
@@ -148,12 +161,12 @@ the slower measured four-batch mean of each pair of adjacent concentration
 anchors. Timing interpolation is not used as a simulation result.
 
 ```bash
-bash scripts/mixtures_1atm.sh status
-bash scripts/mixtures_1atm.sh logs
-bash scripts/mixtures_1atm.sh stop
+bash scripts/mixtures_1atm_retry.sh status
+bash scripts/mixtures_1atm_retry.sh logs
+bash scripts/mixtures_1atm_retry.sh stop
 ```
 
-Report: `runs/noble_cf4_mixtures_1atm/index.html`; combined results and batch
+Report: `runs/noble_cf4_mixtures_1atm_retry/index.html`; combined results and batch
 SEMs in `points.csv`, independent records in `batches.csv`. On completion,
 `mixtures.pdf` has the noble-recoil overview and nine family/recoil mixture
 plots. Partial points do not meet the fixed precision gate until four batches
@@ -166,9 +179,10 @@ relaunch a failed or complete run; safe interruption recovery requires review
 and preserves all prior attempts and cumulative elapsed time. No automatic P4,
 selected-feature confirmation or detector-quenching claim.
 
-Validation before launch: all **251 regression tests** passed, including 18 new
-M3 tests for the complete inputs, seed/accounting checks, executed composition,
-failure preservation, low-energy release gate and cumulative budget drain.
+Validation before recovery launch: all **259 regression tests** passed,
+including 18 M3 tests and eight recovery tests for exact inputs/seeds, raw-data
+revalidation, integer-format rejection boundaries, historical seed provenance,
+failure preservation, frozen plans and cumulative budget inheritance.
 
 ### Completed step: post-upgrade environment check (C1d)
 

@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-02",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "M3",
-  "production_release": "M3_1260_fixed_independent_mixture_batches_only_review_before_P4",
+  "current_stage_id": "M3R",
+  "production_release": "M3R_same_frozen_cohort_1250_remaining_batches_only_review_before_P4",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "261_bulk_points_and_current_environment_audited_M3_fixed_scan_prepared",
+    "status": "M3_header_formatting_recovery_10_new_partial_batches_raw_audited",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -22,8 +22,8 @@
     "remaining_baseline_planning_hours_at_c1d_start": 131.81,
     "remaining_baseline_planning_hours_at_m3_start": 133.2,
     "accepted_bulk_points": 261,
-    "partial_bulk_points": 0,
-    "accepted_independent_batches": 1044,
+    "partial_bulk_points": 10,
+    "accepted_independent_batches": 1054,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "additional_c1d_diagnostic_histories": 50,
@@ -319,7 +319,12 @@
     {
       "id": "M3",
       "title": "Complete concentration scan at 1 atm",
-      "status": "prepared",
+      "status": "validation_failure_preserved_continuation_M3R",
+      "started_at": "2026-10-02T15:51:20.848394+02:00",
+      "stopped_at": "2026-10-02T15:52:02.026994+02:00",
+      "actual_compute_hours": 0.0114385,
+      "implementation_commit": "3833cf5",
+      "failure_review": "8complete,2format-onlyvalidation failures,7interrupted and1243unlaunched. Both failed75% noble cases have exactly50% F atomic content printed as50 without.0; original parser rejected integer resolution despitezero numeric discrepancy. All other actual-parameter,density,input,50endpoint,containment andnormal-completion gates pass. Retain original source/plan/status/raw failures unchanged; versioned M3R revalidates10completed batches,executes1250remaining withunchanged frozen inputs/seeds andcarries41.1786seconds intooriginal24hcap.",
       "run": "runs/noble_cf4_mixtures_1atm",
       "launcher": "scripts/mixtures_1atm.sh",
       "expected_compute_hours": [11.41, 17.61],
@@ -336,9 +341,27 @@
       "exit_gate": "All45 low-energy composition/containment canaries pass before1215 remaining batches. Exact inputs/events/seed/binding/species/energy,actual mass density and atomic/mass percentages,all50 endpoints,no escape/profile-edge signal,normal completion,current private-display/helper/source evidence.1260 unique independent batches at315 newpoints; combined576completepoints/2304batches/115200histories and504direct1atm points. Fixed estimated SEM targets5% range/2% ionization; flags retained forQ6,no adaptive topups. Ten-page preliminary mixture PDF,CSV and updated timing review. Apparent narrow bends receive independent confirmation before physical claims. Stop for user continue beforeP4."
     },
     {
+      "id": "M3R",
+      "title": "Versioned integer-percent parser and fixed M3 continuation",
+      "status": "prepared",
+      "depends_on": ["M3"],
+      "run": "runs/noble_cf4_mixtures_1atm_retry",
+      "launcher": "scripts/mixtures_1atm_retry.sh",
+      "expected_compute_hours": [11.4, 17.61],
+      "expected_active_work_hours": [0.5, 2],
+      "cap_hours": 24,
+      "inherited_used_seconds": 41.178600558,
+      "retained_original_independent_batches": 10,
+      "new_cases_to_run": 1250,
+      "new_unique_points_beyond_M3": 0,
+      "additional_histories_beyond_M3": 0,
+      "scope": "Do not edit original frozen M3 plan/source/results. Versioned parser handles omitted decimal zeros without widening the original0.1-percentage-point maximum acceptance margin; finer decimals retain tighter tolerances. Full raw re-audit retains8oldsuccesses plus2complete format-rejected batches,each exactlyonce; seven interrupted attempts remain excluded andpreserved. Reconstruct predecessor seed registry onlyfromoriginal frozen hash-bound plan paths so laterdependent plans do not invalidate historical seed accounting. Same1260cases/seeds/physics total;1250remaining,including35remaining1keVb0canaries before1215production batches. Original spenttime carries into24h cumulativecap;15cores,24/32GiB RAM,zero scan swap.",
+      "exit_gate": "All original M3 integrity/composition/containment/precision/accounting gates unchanged; all45lowenergycanaries complete beforeotherproduction. Reject genuinelywrongpercentages and all unrelated failures; preserve originalfailure artifacts. Combined576completepoints/2304independentbatches/115200histories and504direct1atm points withnoextra samples. Manual user callback beforeP4."
+    },
+    {
       "id": "P4",
       "title": "Complete pressure/energy scan at 80% noble",
-      "depends_on": ["M3"],
+      "depends_on": ["M3R"],
       "selection": "pressure_80_remaining",
       "batches_per_point": 4,
       "new_unique_points": 243,
@@ -430,6 +453,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-02",
+      "stage": "M3R",
+      "decision": "Recovery release validation: all 259 regression tests passed in 393 seconds, including eight new recovery tests. Original frozen plan, raw attempts and status remain unchanged. New frozen continuation retains ten raw-audited batches exactly once, reruns seven interrupted cases and executes 1243 previously unlaunched cases; 35 remaining low-energy cases gate 1215 production batches. Updated monitoring documentation and remaining-only forecast. Host preflight: no active SRIM service, 53 GiB RAM available, host swap empty. Launch only this detached recovery; P4 remains held for user callback."
+    },
     {
       "date": "2026-09-30",
       "stage": "D0",
@@ -554,6 +582,11 @@
       "date": "2026-10-02",
       "stage": "M3",
       "decision": "All251 regression tests passed, including18 new complete-grid/input/composition/provenance/phase/failure/budget tests. Ten-page PDF and PNG rendering validated with synthetic data in temporary outputs, not scientific samples. New frozen plan pins354 source/executable/reference paths. Supplemental prelaunch audit unions1068 preceding plan/bulk seeds with1841 legacy surface records:2904 unique previous seeds,zero overlap with1260 new independent seeds. Evidence in runs/noble_cf4_mixtures_1atm/release-seed-audit.json; no frozen input,seed,plan or source changed after preparation. Updated schedule uses frozen17.608h M3 planning cost,133.2h remaining baseline forecast excludingQ6/callbacks/final analysis. Host no active SRIM service,52GiB available RAM,swap empty,disk1.1TB available. Ready to launch only M3 detached with15-core maximum,24/32GiB RAM andzero swap; later production held."
+    },
+    {
+      "date": "2026-10-02",
+      "stage": "M3R",
+      "decision": "Original M3 launched at15:51using3833cf5 and stopped at15:52bytheinteger-percent validation gate beforefullproduction. Cause isolated in two75% noble rawTDATA headers:F=50AtomicPercent,exactlyexpected; source checker falsely rejected integer printing resolution. Both have normal completion,50endpoints,noescape/edge signal,correctinputs/actualbindings/species/energy/density. Eight othercases complete; seven activecases interrupted,1243notlaunched. Added separate versioned continuation andregression tests, preservingall originalfrozenfiles/raws/statuses. Retain10fullyre-auditedindependent batches;run1250remaining originalcases. Correction keepsmaximumabsolutepercentage margin0.1(not1)andfinerprinteddecimalmargins. Carry41.1786seconds intooriginal24hcap. Expectedremainingcompute11.4hmodel/17.6hplanning;35remaining lowenergycases gate1215others;noextra physicalsamples orautomaticP4."
     }
   ]
 }

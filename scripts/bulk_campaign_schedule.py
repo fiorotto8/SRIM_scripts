@@ -144,13 +144,25 @@ def main():
                                                          planning_hours=round(frozen['forecast']['planning_hours'],2),
                                                          longest_batch_hours=round(frozen['forecast']['longest_estimated_batch_hours'],2),
                                                          status='frozen_direct_mixture_scan_review_gated')
+    mixture_retry_plan=ROOT/'runs/noble_cf4_mixtures_1atm_retry/plan.json'
+    mixture_retry=json.loads(mixture_retry_plan.read_text()) if mixture_retry_plan.exists() else None
+    if mixture_retry is not None:
+        next(row for row in rows if row['id']=='M3').update(
+            status='M3R_frozen_recovery_review_gated',
+            model_hours=round(mixture_retry['forecast']['model_hours'],2),
+            planning_hours=round(mixture_retry['forecast']['planning_hours'],2),
+            retained_original_cases=len(mixture_retry['retained_original_cases']),
+            remaining_original_cases=mixture_retry['new_cases_to_run'],
+            inherited_cumulative_hours=round(mixture_retry['inherited_used_seconds']/3600,4))
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
     future=rows[4:] if batch_review is not None else rows[3:] if high_review is not None else rows[2:]
     accepted_points=261 if batch_review is not None else 243
     accepted_batches=1044 if batch_review is not None else 972+len(high_rows)
-    totals.update(accepted_points=accepted_points,partial_points=0 if batch_review is not None else len(high_rows),
+    retained_mixture=len(mixture_retry['retained_original_cases']) if mixture_retry is not None else 0
+    accepted_batches+=retained_mixture
+    totals.update(accepted_points=accepted_points,partial_points=retained_mixture if batch_review is not None else len(high_rows),
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
                   remaining_baseline_histories=50*(12096-accepted_batches),
@@ -158,6 +170,7 @@ def main():
                   elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+baseline_review['cumulative_baseline_hours']+
                                                      (high_review['actual_hours'] if high_review is not None else 0)+
                                                      (batch_review['actual_hours'] if batch_review is not None else 0)+
+                                                     (mixture_retry['inherited_used_seconds']/3600 if mixture_retry is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -172,6 +185,7 @@ def main():
     if high_plan.exists():sources.append(high_plan)
     if batch_plan.exists():sources.append(batch_plan)
     if mixture_plan.exists():sources.append(mixture_plan)
+    if mixture_retry_plan.exists():sources.append(mixture_retry_plan)
     sources.extend(high_sources)
     sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
@@ -188,6 +202,8 @@ def main():
                  'Mixture and pressure cost interpolation/extrapolation are planning only, not simulated physics points. '
                  'Once M3 is frozen, its adjacent-anchor maximum four-batch costs and sequential low-energy gate '
                  'replace the earlier linearly interpolated M3 runtime estimate. '
+                 'M3R retains ten raw-audited original batches and forecasts only the remaining original cases; '
+                 'accepted counts are the reviewed recovery-start snapshot, not live progress. '
                  '15 workers, 50% margin plus 30 minutes per stage/wave. Replace estimates with measured pilot/rebuild times. '
                  'Does not include precision top-ups, user callbacks, active review or new defects; Q6 allowance remains conditional.',
                  input_sha256={str(p):pilot.scan.sha256_file(p) for p in sources})
