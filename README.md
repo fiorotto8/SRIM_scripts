@@ -57,7 +57,8 @@ claim of detector-calibrated quenching.
 | C1d | All 60 display checks and the exact diagnostic replay passed | 32.4 s actual | 5 min; 6 min service failsafe |
 | M3 | Stopped on integer-percent header validation; original attempts preserved | 41 s actual | Carried into M3R |
 | M3R | 401 batches raw-audited; stopped on a pre-TRIM display connection failure; 859 batches remain | 8.41 h cumulative used | Original 24 h cumulative |
-| C1e (current) | Display-reset controls, versioned noreset launcher and two diagnostic replays | 3–8 min expected | 15 min; no production release |
+| C1e | All 120 display checks and both diagnostic replays passed; reset causality not reproduced | 6.47 min actual | 15 min |
+| M3R2 (current) | Retain 401 audited batches; execute 859 outstanding original inputs with validated noreset launcher | 2.08 h model; 3.62 h planning | Original 24 h cumulative, 8.52 h already charged |
 | P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.0 h planning | 24 h |
 | G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 105 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
@@ -121,7 +122,38 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: display-reset validation (C1e); mixture production paused
+### Current step: remaining mixture scan with validated display launcher (M3R2)
+
+C1e passed and was reviewed on your `continue`: **60 original-launcher and
+60 noreset-launcher displays** passed all connection, authentication, allocation
+and cleanup checks. Both diagnostic SRIM replays passed; the completed-reference
+replay reproduced its output bytes exactly. **The suspected reset race was not
+reproduced**, so this is validated launcher hardening, not proof of the original
+cause. Completion-watchdog and physical checks remain unchanged and fail closed.
+
+M3R2 retains **401 audited production batches** and runs only the **859 remaining
+original inputs/seeds**. Both diagnostic replays remain excluded from production.
+All frozen M3/M3R/C1e files and failed/interrupted raw attempts are preserved.
+Allow **2–4 hours** at up to **15 cores**, **24/32 GiB soft/hard RAM**, zero scan
+swap. The original 24-hour cumulative budget starts with **8.5204 hours already
+charged**, including the 6.47-minute diagnostic. The same four batches of 50 ions
+per point and all 47 currently observed complete-point precision flags remain.
+
+```bash
+bash scripts/mixtures_1atm_noreset.sh status
+bash scripts/mixtures_1atm_noreset.sh logs
+bash scripts/mixtures_1atm_noreset.sh stop
+```
+
+Report: `runs/noble_cf4_mixtures_1atm_noreset/index.html`. The report links the
+combined `points.csv`, `batches.csv`, and, on completion, `mixtures.pdf`.
+Completion gives **576 complete combined points**, including **504 at 1 atm**,
+with 2,304 independent batches / 115,200 histories. At `REVIEW_REQUIRED`, send
+`continue` for the precision, mixture and timing review before P4. On
+`NEEDS_ATTENTION`, ask for review; do not resume a failed launcher blindly.
+No automatic P4 or precision top-ups.
+
+### Preserved C1e diagnostic scope and stop review
 
 On October 3, M3R stopped before launching `Xe_C_e300_n90_p1_b2`: its virtual
 display had reported ready, but the completion watchdog could not reconnect.

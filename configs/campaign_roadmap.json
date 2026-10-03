@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-03",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C1e",
-  "production_release": "held_for_display_reset_gate_then_manual_review_before_versioned_M3_continuation",
+  "current_stage_id": "M3R2",
+  "production_release": "M3R2_only_859_remaining_original_batches_manual_review_before_P4",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "M3R_401_batches_raw_audited_pre_TRIM_display_failure_production_held",
+    "status": "C1e_review_passed_401_M3_batches_retained_859_original_batches_released",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -28,6 +28,7 @@
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "additional_c1d_diagnostic_histories": 50,
+    "additional_c1e_diagnostic_histories": 100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
     "note": "P2b scientific raw audit passed: all 18 pressure points meet both SEM targets, 72 independent batches at those points. Combined accepted model: 261 complete points, 1044 independent batches, 52200 histories; 215 meet both precision targets and 46 prior flags remain. The prespecified pressure screen has 17 intervals inside working margins, 19 inconclusive, zero entirely outside; not global equivalence. OS maintenance upgraded Xvfb after P2b completed, followed by reboot. Old executable recovered hash-identically for historical provenance; current execution must pass C1d's 60 display checks and one exact 50-ion replay before M3. No frozen data/source record edited, system downgrade or automatic mixture release."
   },
@@ -344,7 +345,7 @@
     {
       "id": "M3R",
       "title": "Versioned integer-percent parser and fixed M3 continuation",
-      "status": "pre_TRIM_display_failure_preserved_pending_C1e",
+      "status": "pre_TRIM_display_failure_preserved_continuation_M3R2",
       "actual_cumulative_hours": 8.412522548251388,
       "reviewed_complete_batches": 401,
       "remaining_batches_after_review": 859,
@@ -365,7 +366,9 @@
     {
       "id": "C1e",
       "title": "Last-client display reset control and noreset replay gate",
-      "status": "prepared",
+      "status": "completed_and_reviewed",
+      "actual_compute_seconds": 388.3468270380108,
+      "review": "60/60 original and60/60 noreset displays passed20reconnections each,authentication,allocation andcleanup. Both50-ion diagnostic replays passed fullraw/input/parameter/containment/completion audit; reference output byte-identical. Source andartifact hashes unchanged. Reset hypothesis NOT reproduced: validated hardening,not proven causal fix. Peak1.087GiB,zero swap. Bothdiagnostics excluded fromproduction. Usercontinue permits M3R2 only; original401accepted batches retained,859originalcases rerun withunchanged seeds andphysics. Charge6.4724diagnostic minutes intooriginal24h budget.",
       "release_validation": "20 targeted tests passed in19.686seconds: ten new gate/wrapper tests, five original private-display tests and five schedule tests. Full401-batch raw audit passed; frozen C1e plan prepared. Remaining M3 forecast2.0793h model/3.6190h planning, fits original24h allowance including8.4125hspent,15-minute diagnostic cap and3h90sdrain reserve. Later baseline remaining119.21planning hours excluding diagnostics,Q6,reporting andcallbacks.",
       "depends_on": ["M3R"],
       "run": "runs/xvfb_reset_gate",
@@ -379,9 +382,28 @@
       "exit_gate": "All60 noreset displays and both full raw-audited replays pass; exact reference outputs byte-identical. Record whether reset hypothesis reproduced,without claiming proof from a negative stress test. Check frozen source/raw hashes before and after. Stop for manual continue. Prepare versioned M3 continuation only after review,retain401 production batches,rerun859 outstanding original inputs/seeds. Carry8.41252255hours plus diagnostic wall time into original24h budget; P4 held."
     },
     {
+      "id": "M3R2",
+      "title": "Validated noreset launcher and remaining fixed M3 cohort",
+      "status": "prepared",
+      "release_validation": "55 targeted regression tests passed in211.474seconds using explicit historical executable and frozen predecessor-seed contexts: original M3,integer-parser recovery,nine new M3R2 tests,display gate/wrapper andschedule tests. Live supervisor-binding preparation passes. All11293 pinned source/input/raw/gate artifacts remain verified. Frozen forecast2.0793hmodel/3.6190hplanning; inherited8.5204h plus planning and3h90sdrain fits24h. Host preflight50GiB available RAM,zero swap,1.1TiB free disk. Launch only detached M3R2; no P4.",
+      "depends_on": ["C1e"],
+      "run": "runs/noble_cf4_mixtures_1atm_noreset",
+      "launcher": "scripts/mixtures_1atm_noreset.sh",
+      "expected_compute_hours": [2.0793, 3.6190],
+      "expected_active_work_hours": [0.25, 0.75],
+      "cap_hours": 24,
+      "inherited_used_seconds": 30673.42800074301,
+      "retained_original_independent_batches": 401,
+      "new_cases_to_run": 859,
+      "new_unique_points_beyond_M3": 0,
+      "additional_histories_beyond_M3": 0,
+      "scope": "New versioned continuation; originalM3/M3R/C1e plans,sources andraw attempts unchanged. Retain401fullyaudited production batches exactlyonce. Diagnostic replays areexcluded,includingthe successful failed-input replay. Execute859outstanding originalcases withsame1260-cohort inputs/seeds usingvalidated authenticated-displayfd-noreset launcher; originalwatchdog andallphysicalgates unchanged. Carry8.5203967hours includingC1e intooriginal24h cap.15cores,24/32GiB RAM,zeroswap. All45compositioncanaries alreadyaccepted; anynewfailureholdsproduction.",
+      "exit_gate": "All1260 M3 batches complete,315newpoints; combined576completepoints/2304independentbatches/115200histories and504at1atm. Raw/source/input/noreset-lifecycle checks; fixed4x50-ion design. Preserve47currentcompletepoint SEMflags pendingfinalreview; noadaptive resampling. ExportCSV and10pagePDF. Manualcontinue forprecision/timing/mixture review beforeP4; noautomaticnextstage."
+    },
+    {
       "id": "P4",
       "title": "Complete pressure/energy scan at 80% noble",
-      "depends_on": ["M3R"],
+      "depends_on": ["M3R2"],
       "selection": "pressure_80_remaining",
       "batches_per_point": 4,
       "new_unique_points": 243,
@@ -473,6 +495,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-03",
+      "stage": "M3R2",
+      "decision": "Usercontinue: coldreview passesC1e fullsource/artifact andtwo rawreplay audits;120displaychecks pass,butresetcausalityunproved. Freezeversioned continuation retaining401M3production batches,excluding100diagnostic histories,rerunning859outstanding originalinputs/seeds. Noexistingfrozenfile edited. Forecast2.0793hmodel/3.6190hplanning,30673.4280seconds production+diagnostic time inheritedunder24h cap. Stoponanynewfailure; noautomaticP4 orprecisiontopup."
+    },
     {
       "date": "2026-10-03",
       "stage": "C1e",
