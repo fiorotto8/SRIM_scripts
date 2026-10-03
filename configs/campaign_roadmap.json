@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-02",
+  "updated_on": "2026-10-03",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "M3R",
-  "production_release": "M3R_same_frozen_cohort_1250_remaining_batches_only_review_before_P4",
+  "current_stage_id": "C1e",
+  "production_release": "held_for_display_reset_gate_then_manual_review_before_versioned_M3_continuation",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "M3_header_formatting_recovery_10_new_partial_batches_raw_audited",
+    "status": "M3R_401_batches_raw_audited_pre_TRIM_display_failure_production_held",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -21,9 +21,10 @@
     "remaining_baseline_planning_hours_at_p2b_start": 132.04,
     "remaining_baseline_planning_hours_at_c1d_start": 131.81,
     "remaining_baseline_planning_hours_at_m3_start": 133.2,
-    "accepted_bulk_points": 261,
-    "partial_bulk_points": 10,
-    "accepted_independent_batches": 1054,
+    "accepted_bulk_points": 350,
+    "partial_bulk_points": 45,
+    "accepted_independent_batches": 1445,
+    "precision_flags_at_m3r_review": 47,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
     "additional_c1d_diagnostic_histories": 50,
@@ -343,7 +344,10 @@
     {
       "id": "M3R",
       "title": "Versioned integer-percent parser and fixed M3 continuation",
-      "status": "prepared",
+      "status": "pre_TRIM_display_failure_preserved_pending_C1e",
+      "actual_cumulative_hours": 8.412522548251388,
+      "reviewed_complete_batches": 401,
+      "remaining_batches_after_review": 859,
       "depends_on": ["M3"],
       "run": "runs/noble_cf4_mixtures_1atm_retry",
       "launcher": "scripts/mixtures_1atm_retry.sh",
@@ -357,6 +361,22 @@
       "additional_histories_beyond_M3": 0,
       "scope": "Do not edit original frozen M3 plan/source/results. Versioned parser handles omitted decimal zeros without widening the original0.1-percentage-point maximum acceptance margin; finer decimals retain tighter tolerances. Full raw re-audit retains8oldsuccesses plus2complete format-rejected batches,each exactlyonce; seven interrupted attempts remain excluded andpreserved. Reconstruct predecessor seed registry onlyfromoriginal frozen hash-bound plan paths so laterdependent plans do not invalidate historical seed accounting. Same1260cases/seeds/physics total;1250remaining,including35remaining1keVb0canaries before1215production batches. Original spenttime carries into24h cumulativecap;15cores,24/32GiB RAM,zero scan swap.",
       "exit_gate": "All original M3 integrity/composition/containment/precision/accounting gates unchanged; all45lowenergycanaries complete beforeotherproduction. Reject genuinelywrongpercentages and all unrelated failures; preserve originalfailure artifacts. Combined576completepoints/2304independentbatches/115200histories and504direct1atm points withnoextra samples. Manual user callback beforeP4."
+    },
+    {
+      "id": "C1e",
+      "title": "Last-client display reset control and noreset replay gate",
+      "status": "prepared",
+      "release_validation": "20 targeted tests passed in19.686seconds: ten new gate/wrapper tests, five original private-display tests and five schedule tests. Full401-batch raw audit passed; frozen C1e plan prepared. Remaining M3 forecast2.0793h model/3.6190h planning, fits original24h allowance including8.4125hspent,15-minute diagnostic cap and3h90sdrain reserve. Later baseline remaining119.21planning hours excluding diagnostics,Q6,reporting andcallbacks.",
+      "depends_on": ["M3R"],
+      "run": "runs/xvfb_reset_gate",
+      "launcher": "scripts/xvfb_reset_gate.sh",
+      "expected_compute_hours": [0.05, 0.1333333333],
+      "expected_active_work_hours": [0.25, 0.75],
+      "cap_hours": 0.25,
+      "diagnostic_histories": 100,
+      "new_independent_production_histories": 0,
+      "scope": "Preserve and fully raw-audit401 complete M3 batches; failed pre-TRIM display connection and14 interrupted attempts remain excluded. Compare60 original display controls with60 versioned -noreset displays,20 disconnect/reconnect probes each. Retain authentication,no TCP,atomic allocation,readiness,cleanup and unchanged completion watchdog. Exact50-ion completed-reference replay and50-ion failed-input diagnostic replay; no production pooling. At most15 cores,8GiB RAM,zero swap;15-minute cap.",
+      "exit_gate": "All60 noreset displays and both full raw-audited replays pass; exact reference outputs byte-identical. Record whether reset hypothesis reproduced,without claiming proof from a negative stress test. Check frozen source/raw hashes before and after. Stop for manual continue. Prepare versioned M3 continuation only after review,retain401 production batches,rerun859 outstanding original inputs/seeds. Carry8.41252255hours plus diagnostic wall time into original24h budget; P4 held."
     },
     {
       "id": "P4",
@@ -453,6 +473,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-03",
+      "stage": "C1e",
+      "decision": "M3R stopped03:22 after8.41252255cumulative hours:401complete,1failed,14interrupted,844unlaunched. Full raw/source/input re-audit passed401accepted independent batches; combined350complete+45partial points,1445batches,72250histories,47complete-point SEM flags. All45composition canaries passed. Failure Xe_C_e300_n90_p1_b2 lost display access after READY but before TRIM launch; no failed physics output accepted. Peak13.908GiB,zero scan/hostswap. Last-client reset is a hypothesis; add versioned noreset display helper and bounded A/B connection+exact-reference+failed-input replay gate without relaxing watchdog. Preserve all frozen sources/raw attempts and carry elapsed time forward. No automatic M3 continuation or P4."
+    },
     {
       "date": "2026-10-02",
       "stage": "M3R",

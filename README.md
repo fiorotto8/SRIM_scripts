@@ -56,7 +56,8 @@ claim of detector-calibrated quenching.
 | P2b | All eighteen four-batch pressure points audited; all meet estimated SEM targets | 2 h 6 min actual | 8 h |
 | C1d | All 60 display checks and the exact diagnostic replay passed | 32.4 s actual | 5 min; 6 min service failsafe |
 | M3 | Stopped on integer-percent header validation; original attempts preserved | 41 s actual | Carried into M3R |
-| M3R (current) | Continue the same 315-point mixture scan; retain 10 audited batches, run 1,250 remaining | 11.4 h model; 17.6 h planning | Original 24 h cumulative |
+| M3R | 401 batches raw-audited; stopped on a pre-TRIM display connection failure; 859 batches remain | 8.41 h cumulative used | Original 24 h cumulative |
+| C1e (current) | Display-reset controls, versioned noreset launcher and two diagnostic replays | 3–8 min expected | 15 min; no production release |
 | P4 | Add the remaining 243 pressure/energy points at 80% noble | About 11.0 h planning | 24 h |
 | G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 105 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
@@ -68,10 +69,11 @@ The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the P2b audit, the conditional remaining forecast is about
-**133 compute hours (5.6 days)** before M3, including planning margin and
-its newly frozen conservative adjacent-anchor runtime estimate.
-Overall allow roughly **5.5–10 additional compute days** with
+After the October 3 M3R audit, the conditional remaining forecast is about
+**119 compute hours (5 days)**, including planning margins but excluding C1e.
+The 859 remaining M3 batches predict **2.08 hours**, or **3.62 hours with
+planning margin**: the expensive high-energy batches were scheduled first.
+Overall allow roughly **5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
 User callback delays, reviews, implementation and conditional interventions are
@@ -119,7 +121,40 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: direct concentration scan recovery at 1 atm (M3R)
+### Current step: display-reset validation (C1e); mixture production paused
+
+On October 3, M3R stopped before launching `Xe_C_e300_n90_p1_b2`: its virtual
+display had reported ready, but the completion watchdog could not reconnect.
+All **401 completed M3 batches passed a fresh raw-data audit**. Combined with
+earlier production this gives **350 complete points, 45 partial points,
+1,445 independent batches and 72,250 histories**. There are 47 complete-point
+precision flags; they remain visible for later fixed follow-ups.
+One failed and fourteen interrupted batches are excluded. **859 original M3
+batches remain**; no seeds, physics settings or sample targets have changed.
+
+C1e tests whether last-client Xvfb resets explain the disconnect. It compares
+60 original displays with 60 `-noreset` displays, with 20 reconnects each,
+authentication rejection, unique live allocation and cleanup checks. Then it
+runs a byte-identical completed-reference replay and the exact failed input.
+Both are diagnostic, **not new independent production samples**. The original
+completion watchdog and all physical/data-integrity gates remain unchanged.
+Allow **3–8 minutes**, capped at **15 minutes**, at most 15 cores, **8 GiB RAM**
+and zero swap. M3's 8.4125 elapsed hours plus this diagnostic's wall time carry
+forward into the original 24-hour budget. Peak M3R memory was 13.91 GiB and
+host/scan swap remained zero.
+
+```bash
+bash scripts/xvfb_reset_gate.sh status
+bash scripts/xvfb_reset_gate.sh logs
+bash scripts/xvfb_reset_gate.sh stop
+```
+
+Report: `runs/xvfb_reset_gate/index.html`. At `REVIEW_REQUIRED`, send `continue`
+to review the controls/replays and prepare a versioned M3 continuation.
+Production does **not** restart automatically. Do not resume the failed M3R
+launcher. P4 remains held until M3 is complete and reviewed.
+
+### Preserved M3/M3R design and original release forecast
 
 The original M3 stopped because its composition checker rejected SRIM's exact
 `F = 50 Atomic Percent` integer formatting in two 75%-noble mixtures. Both

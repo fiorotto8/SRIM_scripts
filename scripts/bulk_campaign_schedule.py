@@ -154,6 +154,23 @@ def main():
             retained_original_cases=len(mixture_retry['retained_original_cases']),
             remaining_original_cases=mixture_retry['new_cases_to_run'],
             inherited_cumulative_hours=round(mixture_retry['inherited_used_seconds']/3600,4))
+    reset_plan=ROOT/'runs/xvfb_reset_gate/plan.json'
+    reset_review=None
+    if reset_plan.exists():
+        from scripts import xvfb_reset_gate as reset_gate
+        reset=json.loads(reset_plan.read_text())
+        reset_gate.verify_hashes(reset['input_sha256'])
+        reset_review=reset['review']
+        remaining=reset_review['remaining_frozen_forecast']
+        next(row for row in rows if row['id']=='M3').update(
+            status='401_batches_audited_859_remaining_held_for_C1e_review',
+            model_hours=round(remaining['model_hours'],2),planning_hours=round(remaining['planning_hours'],2),
+            longest_batch_hours=round(remaining['longest_estimated_batch_hours'],2),
+            retained_original_cases=401,remaining_original_cases=859,
+            inherited_cumulative_hours=round(reset_review['inherited_used_seconds']/3600,4),
+            pending_diagnostic_cap_hours=.25,
+            fits_cumulative_cap_with_diagnostic_and_drain=
+                remaining['planning_hours']+reset_review['inherited_used_seconds']/3600+.25+3.025<=24)
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -162,7 +179,14 @@ def main():
     accepted_batches=1044 if batch_review is not None else 972+len(high_rows)
     retained_mixture=len(mixture_retry['retained_original_cases']) if mixture_retry is not None else 0
     accepted_batches+=retained_mixture
-    totals.update(accepted_points=accepted_points,partial_points=retained_mixture if batch_review is not None else len(high_rows),
+    partial_points=retained_mixture if batch_review is not None else len(high_rows)
+    mixture_spent=mixture_retry['inherited_used_seconds']/3600 if mixture_retry is not None else 0
+    if reset_review is not None:
+        accepted_points=reset_review['combined_complete_points']
+        accepted_batches=reset_review['combined_independent_batches']
+        partial_points=reset_review['partial_points']
+        mixture_spent=reset_review['inherited_used_seconds']/3600
+    totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
                   remaining_baseline_histories=50*(12096-accepted_batches),
@@ -170,7 +194,7 @@ def main():
                   elapsed_plus_remaining_hours=round(pilot_review['actual_hours']+baseline_review['cumulative_baseline_hours']+
                                                      (high_review['actual_hours'] if high_review is not None else 0)+
                                                      (batch_review['actual_hours'] if batch_review is not None else 0)+
-                                                     (mixture_retry['inherited_used_seconds']/3600 if mixture_retry is not None else 0)+
+                                                     mixture_spent+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -186,6 +210,7 @@ def main():
     if batch_plan.exists():sources.append(batch_plan)
     if mixture_plan.exists():sources.append(mixture_plan)
     if mixture_retry_plan.exists():sources.append(mixture_retry_plan)
+    if reset_plan.exists():sources.append(reset_plan)
     sources.extend(high_sources)
     sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
@@ -202,8 +227,11 @@ def main():
                  'Mixture and pressure cost interpolation/extrapolation are planning only, not simulated physics points. '
                  'Once M3 is frozen, its adjacent-anchor maximum four-batch costs and sequential low-energy gate '
                  'replace the earlier linearly interpolated M3 runtime estimate. '
-                 'M3R retains ten raw-audited original batches and forecasts only the remaining original cases; '
-                 'accepted counts are the reviewed recovery-start snapshot, not live progress. '
+                 'When C1e is prepared, counts use its full raw-audited M3R stop snapshot:401 M3 batches, '
+                 '350 combined complete points and45partial points;859 M3 batches remain. The remaining M3 '
+                 'forecast retains frozen adjacent-anchor costs,not a linear fraction of elapsed time. '
+                 'C1e diagnostic replays do not count as production;allow3-8minutes,15-minute cap,plus manual review. '
+                 'Before C1e, accepted counts use the ten-batch M3R recovery-start snapshot. No live unaudited pooling. '
                  '15 workers, 50% margin plus 30 minutes per stage/wave. Replace estimates with measured pilot/rebuild times. '
                  'Does not include precision top-ups, user callbacks, active review or new defects; Q6 allowance remains conditional.',
                  input_sha256={str(p):pilot.scan.sha256_file(p) for p in sources})
