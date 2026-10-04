@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-03",
+  "updated_on": "2026-10-04",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "M3R2",
-  "production_release": "M3R2_only_859_remaining_original_batches_manual_review_before_P4",
+  "current_stage_id": "P4",
+  "production_release": "P4_fixed243pressure_points_only_45low_then27high_canaries_gate900remaining_batches_manual_review_beforeG5",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "C1e_review_passed_401_M3_batches_retained_859_original_batches_released",
+    "status": "M3_complete_raw_audit_passed_P4_released",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -21,9 +21,11 @@
     "remaining_baseline_planning_hours_at_p2b_start": 132.04,
     "remaining_baseline_planning_hours_at_c1d_start": 131.81,
     "remaining_baseline_planning_hours_at_m3_start": 133.2,
-    "accepted_bulk_points": 350,
-    "partial_bulk_points": 45,
-    "accepted_independent_batches": 1445,
+    "remaining_baseline_planning_hours_at_p4_start": 120.0,
+    "accepted_bulk_points": 576,
+    "partial_bulk_points": 0,
+    "accepted_independent_batches": 2304,
+    "precision_flags_at_m3_completion": 99,
     "precision_flags_at_m3r_review": 47,
     "precision_flags_at_baseline_review": 46,
     "additional_c3b_diagnostic_histories": 2100,
@@ -384,7 +386,10 @@
     {
       "id": "M3R2",
       "title": "Validated noreset launcher and remaining fixed M3 cohort",
-      "status": "prepared",
+      "status": "completed_and_reviewed",
+      "actual_continuation_hours": 1.9534836671200004,
+      "actual_m3_cumulative_hours": 10.473880333993058,
+      "completion_review": "Fullraw/source/input/composition/density/containment/completion audit passed1260M3batches; combined576completepoints,504at1atm,2304independentbatches,115200histories.477points meetbothSEMtargets;99flags(46prior+53new),98range/3ionization with2overlapping. Flagsbyenergy1:31,3:22,10:22,30:13,100:9,300:2; no1MeVflags. MaxrelativeSEM11.2704%range,2.0723%ionization. Last859batches finished1.9535h,peak12.951GiB,zeroscan swap,nocompletionprobe recoveries. Ten-pagePDF verified. Preserveflags forfixedQ6; descriptive concentration ratios are not independentfeatureconfirmation or detectorquenching. ReleaseP4only.",
       "release_validation": "55 targeted regression tests passed in211.474seconds using explicit historical executable and frozen predecessor-seed contexts: original M3,integer-parser recovery,nine new M3R2 tests,display gate/wrapper andschedule tests. Live supervisor-binding preparation passes. All11293 pinned source/input/raw/gate artifacts remain verified. Frozen forecast2.0793hmodel/3.6190hplanning; inherited8.5204h plus planning and3h90sdrain fits24h. Host preflight50GiB available RAM,zero swap,1.1TiB free disk. Launch only detached M3R2; no P4.",
       "depends_on": ["C1e"],
       "run": "runs/noble_cf4_mixtures_1atm_noreset",
@@ -403,13 +408,21 @@
     {
       "id": "P4",
       "title": "Complete pressure/energy scan at 80% noble",
+      "status": "prepared",
+      "release_validation": "54 targeted regressions passed in240.341seconds acrossP4,priorpressurestages,noresetcontinuation,displaygate andschedule. Repeated all14P4tests againstthefrozenplan:passed69.649seconds,includinglive-supervisorbindings,exactinputs/columngeometry,independence,immutable predecessorregistry,pressureintervalfamily,partialprecision andfailure/budgetphasegates.56628source/input/raw paths pinned. FullM3rawauditpassed and10-pagePDF verified. Preflight:about50GiB availableRAM,1.1TiB freedisk,noactiveSRIMservice; zeroscan-swap enforced. LaunchP4only,waitforcallback beforeG5.",
       "depends_on": ["M3R2"],
+      "run": "runs/noble_cf4_pressure_grid",
+      "launcher": "scripts/pressure_grid.sh",
+      "expected_compute_hours": [12.4353, 19.1529],
+      "expected_active_work_hours": [0.25, 0.75],
+      "frozen_canaries": {"low_energy_batches": 45, "high_energy_batches": 27, "remaining_batches": 900},
+      "timing_note": "Replacesrough11hforecast. Same-energy maxmeasured0.5/1/3atm four-batch mean whereavailable;3/30/300keV1atm means usemaximum observedpressure runtimefactor forfamily/recoil across1/10/100/1000keV. Separatecanary phases,15workers,50%margin+30min. Longestestimatedbatch2.0151h;19.1529hplanning+3h90sdrain fits24h.",
       "selection": "pressure_80_remaining",
       "batches_per_point": 4,
       "new_unique_points": 243,
       "cap_hours": 24,
-      "scope": "Fill remaining 80%-noble pressure/energy points after P2a/P2b: all six pressures and seven energies. Combined with M3, 819 unique points are covered.",
-      "exit_gate": "Pressure/energy map audited, resource forecast recalibrated and any newly detected numerical artifact checked before cross-grid production."
+      "scope": "972fixedindependent50-ion batches at243new80%-noble points: Ar/Kr/Xe,C/F/noble,0.5/1.5/2/2.5/3atm andseven1-1000keVenergies where notalreadymeasured. Combined819points,3276batches,163800histories;378points covercomplete80%pressure/energy grid.45low-energyb0canaries then27intermediate-pressure1MeVb0canaries then900remainingbatches; allcountonce asproduction. Ideal-gas density andsamecomposition,centralstarts; targetwidth retainsmaxaudited arealdepth scaledby1/pressure.972newseeds disjointfrom4164previousplan/bulk/legacyseeds.15cores,24/32GiB RAM,zeroscan swap,24hcumulative and3hjobcaps.",
+      "exit_gate": "Exactinput/source/noresetdisplay/completion/actualparameters/composition/density/50endpoints/noescape/noedge audits. All243newfour-batch points complete; fixed5%range/2%ionization SEMtargets withflagsretained.630prespecified approximateBonferroniWelchlogbatch pressureintervals:9recoils x7energies x5pressures x2metrics,margins10%pressure-scaledrange/5%ionization. Existinganchorsvisible; notindependent confirmation orglobalpressureequivalence. ExportCSV,nine-pagepressurePDF,timings. Manualcontinue beforeG5; significantoutside-margin features requireboundedreview/holdout. Noautomaticextra histories."
     },
     {
       "id": "G5",
@@ -495,6 +508,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-04",
+      "stage": "P4",
+      "decision": "Usercontinue: completedM3R2 coldrawaudit passed,all576points complete,477meetbothSEMgoals and99flags preserved forQ6.859batch continuation finished1.9535h; cumulativeM3includingdiagnostics10.4739h. Addedimmutable-next-stage review,exports andP4pressuregrid with45low/27high canaries gating900remainingbatches.972newseeds disjointfrom4164knownpredecessors; nohistory reuse except2304auditedproductionbaseline. Conservative12.4353hmodel/19.1529hplanning fits24h cap withdrain; earlier11hestimate superseded. NoautomaticG5; pressureintervals anduncertainty reviewedaftercompletion."
+    },
     {
       "date": "2026-10-03",
       "stage": "M3R2",

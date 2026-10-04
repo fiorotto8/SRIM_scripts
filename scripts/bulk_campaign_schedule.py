@@ -24,9 +24,18 @@ def batch_cost(key, means):
         return means[key]
     family, ion, energy, noble, pressure = key
     anchors = [(family, ion, 1000., 80, p) for p in (.5, 1., 3.)]
+    mixture_anchor = (family, ion, energy, noble, 1.)
+    if energy != 1000 and mixture_anchor in means:
+        def pressure_ratio(q):
+            same_energy = (family, ion, energy, 80, q)
+            if same_energy in means:
+                return means[same_energy]/means[family, ion, energy, 80, 1.]
+            return max(means[family, ion, e, 80, q]/means[family, ion, e, 80, 1.] for e in (1., 10., 100.))
+        ratio = 1. if pressure == 1. else pressure_ratio(.5) if pressure == .5 else legacy.interpolate(pressure, 1., 3., 1., pressure_ratio(3.))
+        return means[mixture_anchor]*ratio
     if energy != 1000 or not all(k in means for k in anchors):
         return legacy.batch_cost(key, means)
-    base = legacy.batch_cost((family, ion, energy, noble, 1.), means)
+    base = means[mixture_anchor] if mixture_anchor in means else legacy.batch_cost(mixture_anchor, means)
     ratio = 1. if pressure == 1. else means[anchors[0]] / means[anchors[1]] if pressure == .5 else \
         legacy.interpolate(pressure, 1., 3., 1., means[anchors[2]] / means[anchors[1]])
     return base * ratio
@@ -97,6 +106,13 @@ def main():
         batch_review,_,_,timing,_=pressure_audit.review()
         measured={(r['family'],r['ion'],r['energy_kev'],r['noble_percent'],r['pressure_atm']):r['mean_seconds'] for r in timing}
         pressure_sources=[Path(pressure_audit.__file__),pressure_audit.RUN/'completion.json',pressure_audit.RUN/'results.json']
+    mixture_review=None; mixture_sources=[]
+    from scripts import review_mixtures as mixture_audit
+    if (mixture_audit.RUN/'completion.json').exists():
+        mixture_review,_,_,timing,_=mixture_audit.review()
+        measured={rebuild.key(r):r['mean_seconds'] for r in timing}
+        mixture_sources=[Path(mixture_audit.__file__),mixture_audit.RUN/'completion.json',
+                         mixture_audit.RUN/'results.json',mixture_audit.RUN/'points.json']
     rows,totals=forecast(roadmap,raw,measured)
     rows[0].update(actual_hours=pilot_review['actual_hours'],status='completed_and_reviewed')
     rebuild_plan=rebuild.RUN/'plan.json'
@@ -182,10 +198,22 @@ def main():
             pending_diagnostic_cap_hours=0,
             fits_cumulative_cap_with_diagnostic_and_drain=
                 noreset['forecast']['planning_including_spent_hours']+3.025<=24)
+    p4_plan=ROOT/'runs/noble_cf4_pressure_grid/plan.json'
+    if p4_plan.exists():
+        fixed=json.loads(p4_plan.read_text())
+        reset_gate.verify_hashes(fixed['input_sha256'])
+        next(row for row in rows if row['id']=='P4').update(
+            status='frozen_direct_pressure_grid_review_gated',model_hours=round(fixed['forecast']['model_hours'],2),
+            planning_hours=round(fixed['forecast']['planning_hours'],2),
+            longest_batch_hours=round(fixed['forecast']['longest_estimated_batch_hours'],2))
+    if mixture_review is not None:
+        next(row for row in rows if row['id']=='M3').update(status='completed_and_reviewed',
+            actual_hours=mixture_review['cumulative_m3_hours'],remaining_original_cases=0,retained_original_cases=1260)
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
     future=rows[4:] if batch_review is not None else rows[3:] if high_review is not None else rows[2:]
+    if mixture_review is not None:future=[row for row in future if row['id']!='M3']
     accepted_points=261 if batch_review is not None else 243
     accepted_batches=1044 if batch_review is not None else 972+len(high_rows)
     retained_mixture=len(mixture_retry['retained_original_cases']) if mixture_retry is not None else 0
@@ -199,6 +227,9 @@ def main():
         mixture_spent=reset_review['inherited_used_seconds']/3600
     if noreset is not None:
         mixture_spent=noreset['inherited_used_seconds']/3600
+    if mixture_review is not None:
+        accepted_points=mixture_review['complete_points']; accepted_batches=mixture_review['independent_batches']
+        partial_points=0; mixture_spent=mixture_review['cumulative_m3_hours']
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -226,12 +257,17 @@ def main():
     if mixture_retry_plan.exists():sources.append(mixture_retry_plan)
     if reset_plan.exists():sources.append(reset_plan)
     if noreset_plan.exists():sources.append(noreset_plan)
+    if p4_plan.exists():sources.append(p4_plan)
+    sources.extend(mixture_sources)
     sources.extend(high_sources)
     sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='The complete 243-point bulk baseline passed raw audit; 46 precision flags remain. '
+                 assumptions='After M3 completion review,576directpoints/2304independentbatches are accepted,99precision flags remain. '
+                 'All504one-atm mixture timings then use measured four-batch means,not concentration interpolation. '
+                 'P4 frozen timing uses maximum observed pressure-anchor costs and separate45low/27high canary phases. '
+                 'Earlier snapshot descriptions below apply only before the corresponding completion audit. '
                  'Later stages require their own review. Costs use measured means from all 972 independent bulk batches, '
                  'plus the eighteen pressure points using four-batch P2b means when complete (single P2a times beforehand). '
                  'Historical executable audit uses a recovered hash-identical Xvfb after the documented post-P2b OS upgrade; '
