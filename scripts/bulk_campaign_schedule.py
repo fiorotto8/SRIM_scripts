@@ -54,6 +54,32 @@ def estimate(keys, batches, means, workers=15):
                 longest_batch_hours=round(costs[0]/3600, 2))
 
 
+def g5_estimate(keys, batches, means, workers=15):
+    """Measured P4 pressure factors and mixture means; include sequential gates."""
+    phases = {'low': [], 'high': [], 'rest': []}
+    if not keys or batches != 4 or workers < 1:
+        raise ValueError('Expected a nonempty fixed four-batch wave')
+    for f, ion, e, noble, pressure in keys:
+        if noble == 80 or pressure == 1.:
+            raise ValueError('G5 contains only missing non1atm mixture points')
+        cost = means[f, ion, e, noble, 1.]*max(
+            1., means[f, ion, e, 80, pressure]/means[f, ion, e, 80, 1.])
+        for repeat in range(batches):
+            phase = 'low' if repeat == 0 and e == 1. else 'high' if repeat == 0 and e == 1000. else 'rest'
+            phases[phase].append(cost)
+    models = {}
+    for phase, costs in phases.items():
+        loads = [0.] * workers
+        for cost in sorted(costs, reverse=True):
+            heapq.heapreplace(loads, loads[0]+cost)
+        models[phase] = max(loads)/3600
+    model = sum(models.values())
+    return dict(points=len(keys), batches=batches*len(keys), histories=50*batches*len(keys),
+                model_hours=round(model, 2), planning_hours=round(1.5*model+.5, 2),
+                longest_batch_hours=round(max(c for costs in phases.values() for c in costs)/3600, 2),
+                phase_model_hours=models, forecast_basis='P4_same_energy_pressure_factors_and_measured_1atm_mixtures')
+
+
 def forecast(roadmap,rows,calibrated_means=None):
     old=legacy.timing_means(legacy.TIMINGS)
     interior={(r['family'],r['ion'],r['energy_kev']):r for r in rows if r['geometry']=='interior' and 'point' in r}
@@ -72,8 +98,10 @@ def forecast(roadmap,rows,calibrated_means=None):
         if 'selection' not in stage:continue
         for wave in stage.get('wave_noble_percent',[None]):
             keys={k for k in groups[stage['selection']] if wave is None or k[3]==wave}
+            estimator = g5_estimate if stage['id'] == 'G5' and all(
+                (k[0], k[1], k[2], 80, k[4]) in means for k in keys) else estimate
             rows_out.append(dict(id=stage['id']+(f'-{wave}' if wave is not None else ''),
-                                 **estimate(keys,stage['batches_per_point'],means),
+                                 **estimator(keys,stage['batches_per_point'],means),
                                  cap_hours=stage.get('cap_hours',stage.get('cap_hours_per_wave'))))
     for r in rows_out:r['fits_cap']=r['planning_hours']<=r['cap_hours']
     totals=dict(direct_points=3024,surface_points_reused=0,initial_batches=sum(r['batches'] for r in rows_out),
@@ -113,6 +141,13 @@ def main():
         measured={rebuild.key(r):r['mean_seconds'] for r in timing}
         mixture_sources=[Path(mixture_audit.__file__),mixture_audit.RUN/'completion.json',
                          mixture_audit.RUN/'results.json',mixture_audit.RUN/'points.json']
+    p4_review=None; p4_sources=[]
+    from scripts import review_pressure_grid as p4_audit
+    if (p4_audit.RUN/'completion.json').exists():
+        p4_review,_,_,timing,_=p4_audit.review()
+        measured={rebuild.key(r):r['mean_seconds'] for r in timing}
+        p4_sources=[Path(p4_audit.__file__),p4_audit.RUN/'completion.json',p4_audit.RUN/'results.json',
+                    p4_audit.RUN/'points.json',p4_audit.RUN/'pressure_checks.json']
     rows,totals=forecast(roadmap,raw,measured)
     rows[0].update(actual_hours=pilot_review['actual_hours'],status='completed_and_reviewed')
     rebuild_plan=rebuild.RUN/'plan.json'
@@ -209,11 +244,22 @@ def main():
     if mixture_review is not None:
         next(row for row in rows if row['id']=='M3').update(status='completed_and_reviewed',
             actual_hours=mixture_review['cumulative_m3_hours'],remaining_original_cases=0,retained_original_cases=1260)
+    if p4_review is not None:
+        next(row for row in rows if row['id']=='P4').update(status='completed_and_reviewed',
+            actual_hours=p4_review['actual_hours'],completed_independent_points=243)
+    g5_plan=ROOT/'runs/noble_cf4_mixture_pressure_60/plan.json'
+    if g5_plan.exists():
+        frozen=json.loads(g5_plan.read_text())
+        reset_gate.verify_hashes(frozen['input_sha256'])
+        next(row for row in rows if row['id']=='G5-60').update(status='frozen_review_gated_wave',
+            model_hours=round(frozen['forecast']['model_hours'],2),
+            planning_hours=round(frozen['forecast']['planning_hours'],2))
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
     future=rows[4:] if batch_review is not None else rows[3:] if high_review is not None else rows[2:]
     if mixture_review is not None:future=[row for row in future if row['id']!='M3']
+    if p4_review is not None:future=[row for row in future if row['id']!='P4']
     accepted_points=261 if batch_review is not None else 243
     accepted_batches=1044 if batch_review is not None else 972+len(high_rows)
     retained_mixture=len(mixture_retry['retained_original_cases']) if mixture_retry is not None else 0
@@ -230,6 +276,8 @@ def main():
     if mixture_review is not None:
         accepted_points=mixture_review['complete_points']; accepted_batches=mixture_review['independent_batches']
         partial_points=0; mixture_spent=mixture_review['cumulative_m3_hours']
+    if p4_review is not None:
+        accepted_points=p4_review['complete_points']; accepted_batches=p4_review['independent_batches']; partial_points=0
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -239,6 +287,7 @@ def main():
                                                      (high_review['actual_hours'] if high_review is not None else 0)+
                                                      (batch_review['actual_hours'] if batch_review is not None else 0)+
                                                      mixture_spent+
+                                                     (p4_review['actual_hours'] if p4_review is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -258,13 +307,21 @@ def main():
     if reset_plan.exists():sources.append(reset_plan)
     if noreset_plan.exists():sources.append(noreset_plan)
     if p4_plan.exists():sources.append(p4_plan)
+    if g5_plan.exists():sources.append(g5_plan)
+    sources.extend(p4_sources)
     sources.extend(mixture_sources)
     sources.extend(high_sources)
     sources.extend(pressure_sources);sources.extend([Path(history.__file__),history.EVIDENCE,history.HISTORICAL,history.LIVE])
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='After M3 completion review,576directpoints/2304independentbatches are accepted,99precision flags remain. '
+                 assumptions='After P4 completion review,819directpoints/3276independentbatches are accepted,141precision flags remain. '
+                 'G5 uses measured same-energy80%-noble pressure/1atm cost ratios floored atone, '
+                 'times measured1atm means for each mixture. Separate45low/45high canary phases gate1170remaining batches. '
+                 'Seven315-point waves remain; onlyG5-60 is released and every subsequent wave requires review. '
+                 'The630 pressure screens are per-wave,not campaign-wide error control or independent confirmation. '
+                 'Earlier snapshot descriptions below apply only before the corresponding completion audit. '
+                 'After M3 completion review,576directpoints/2304independentbatches were accepted,99precision flags remained. '
                  'All504one-atm mixture timings then use measured four-batch means,not concentration interpolation. '
                  'P4 frozen timing uses maximum observed pressure-anchor costs and separate45low/27high canary phases. '
                  'Earlier snapshot descriptions below apply only before the corresponding completion audit. '

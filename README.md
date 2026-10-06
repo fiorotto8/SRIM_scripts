@@ -59,24 +59,28 @@ claim of detector-calibrated quenching.
 | M3R | 401 batches raw-audited; stopped on a pre-TRIM display connection failure; 859 batches remain | 8.41 h cumulative used | Original 24 h cumulative |
 | C1e | All 120 display checks and both diagnostic replays passed; reset causality not reproduced | 6.47 min actual | 15 min |
 | M3R2 | Mixture scan complete and audited: 576 combined points, 2,304 independent batches | 1.95 h final continuation; 10.47 h cumulative M3 | Original 24 h cumulative |
-| P4 (current) | Add 243 pressure/energy points at 80% noble; 45 low/27 high canaries gate 900 remaining batches | 12.44 h model; 19.15 h planning | 24 h |
-| G5 | Seven concentration waves, 315 points each; stop for `continue` after each | About 12–17 h per wave; 101 h total planning | 24 h per wave |
+| P4 | All 243 new pressure/energy points audited; 819 combined points | 6 h 7 min actual | 24 h |
+| G5 (current: 60%) | Seven concentration waves, 315 points each; stop for `continue` after each | First wave 9.70 h model / 15.06 h planning; 126 h total planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (12.2), 65% (12.7), 70% (13.4),
-75% (14.0), 85% (15.6), 90% (16.2), 95% (16.8). Recompute before each wave.
+G5 wave order and planning hours: 60% (15.1), 65% (15.9), 70% (16.7),
+75% (17.5), 85% (19.5), 90% (20.3), 95% (20.9). Recompute before each wave;
+split later waves if their updated forecast plus the 3 h 90 s drain exceeds 24 h.
 The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-After the October 4 M3 completion audit, all 859 outstanding mixture batches
-are finished. P4 now has a **12.44-hour model / 19.15-hour planning forecast**,
-including separate canary phases and conservative measured pressure costs;
-the earlier rough 11-hour P4 estimate is superseded. The live schedule uses
-all 504 measured one-atm mixture timings to reforecast the later G5 waves.
-P4 plus G5 currently totals **about 120 compute hours (five days)** with planning
-margins, excluding precision top-ups, reporting, reviews and callback delays.
+The October 6 P4 cold audit confirms **819 points / 3,276 independent batches /
+163,800 histories**. Of these, 678 points meet both estimated SEM targets;
+141 flags remain for fixed Q6 follow-ups (140 range, five ionization, with overlap).
+The 630 pressure screens give 28 intervals within working margins, 602
+inconclusive and none entirely outside: this does not establish equivalence.
+G5 now uses all measured 80%-noble pressure costs at the same energy, multiplied
+by measured mixture-specific 1-atm means, with the pressure cost ratio floored
+at one. Separate low/high canary phases are included. This supersedes the earlier
+rough G5 forecast. Remaining G5 totals **about 126 compute hours (5.25 days)**
+with planning margins, excluding precision top-ups, reporting, reviews and callbacks.
 Overall allow roughly **5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
@@ -113,19 +117,18 @@ Regenerate the read-only schedule report and timing snapshot:
 xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
-This command launches no simulations. Its forecast uses measured means from
-all 1,044 independent bulk production batches across 261 complete points,
-15-worker longest-first scheduling, mixture interpolation and pressure factors,
-then adds 50% and 30 minutes per wave. These are
+This command launches no simulations. Its current forecast uses measured means from
+all 3,276 audited batches across 819 complete points, 15-worker longest-first
+scheduling and three sequential phases, then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
 the timing-source hashes and assumptions. At 1 MeV, measured 80%-noble pressure
 cost ratios replace low-energy extrapolations; other concentrations inherit
-those ratios and intermediate-pressure costs interpolate the 1/3-atm anchors.
+those ratios. P4 now supplies all intermediate-pressure timings directly.
 These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: direct pressure/energy grid at 80% noble (P4)
+### Current step: direct pressure/energy grid at 60% noble (G5-60)
 
 The completed mixture scan passed its cold raw-data audit on October 4:
 **576 complete points, 2,304 independent batches, 115,200 histories**, including
@@ -139,30 +142,37 @@ ten-page `../mixtures.pdf`, `points.csv`, `precision_flags.csv`, `timing.csv`
 and descriptive `mixture_trends.csv`. All old attempts and diagnostics remain
 preserved; diagnostic replays never count as independent production samples.
 
-P4 adds **243 points / 972 independent 50-ion batches** in Ar/Kr/Xe80–CF4-20,
-C/F/noble recoils, filling the missing pressures from 0.5 to 3 atm and energies
+P4 subsequently completed and passed its raw audit: **819 total points /
+3,276 batches / 163,800 histories**, with 141 precision flags retained.
+Its nine-page PDF is `runs/noble_cf4_pressure_grid/pressure.pdf`; its cold-audit
+report is `runs/noble_cf4_pressure_grid/review/index.html`.
+
+G5-60 adds **315 points / 1,260 independent 50-ion batches** in Ar/Kr/Xe60–CF4-40,
+C/F/noble recoils, at 0.5/1.5/2/2.5/3 atm and energies
 1/3/10/30/100/300/1000 keV. Four batches per point. First **45 low-energy**
-production canaries must pass, then **27 one-MeV** canaries, then the remaining
-900 batches. Density, composition, bindings, exact inputs/seeds, full endpoint
+production canaries must pass, then **45 one-MeV** canaries, then the remaining
+1,170 batches. Density, composition, bindings, exact inputs/seeds, full endpoint
 containment and normal completion are checked for every batch. The validated
 authenticated noreset launcher is retained; any failure holds later phases.
 
-Allow **12–19 hours**, with a **24-hour cumulative cap**, three-hour per-batch
+Allow **10–15 hours**, with a **24-hour cumulative cap**, three-hour per-batch
 cap and drain reserve; at most **15 cores**, **24/32 GiB soft/hard RAM**, and
-**zero scan swap**. No automatic G5 or precision top-ups.
+**zero scan swap**. No automatic G5-65 or precision top-ups. The detached user
+service survives terminal disconnection; no terminal needs to stay open.
 
 ```bash
-bash scripts/pressure_grid.sh status
-bash scripts/pressure_grid.sh logs
-bash scripts/pressure_grid.sh stop
+bash scripts/mixture_pressure_60.sh status
+bash scripts/mixture_pressure_60.sh logs
+bash scripts/mixture_pressure_60.sh stop
 ```
 
-Live report: `runs/noble_cf4_pressure_grid/index.html`. On completion it exports
+Live report: `runs/noble_cf4_mixture_pressure_60/index.html`. On completion it exports
 combined CSV tables, a nine-page pressure PDF and 630 prespecified pressure
-screening intervals. Existing reference data were already visible; these are
-not independent confirmations or proof of global pressure equivalence.
+screening intervals against 1 atm for this concentration. Existing reference data
+were already visible; these are per-wave screening intervals, not campaign-wide
+error control, independent confirmations or proof of global pressure equivalence.
 At `REVIEW_REQUIRED`, send `continue`; report `NEEDS_ATTENTION` if seen.
-P4 completion brings the total to **819 points / 3,276 batches / 163,800 histories**.
+G5-60 completion brings the total to **1,134 points / 4,536 batches / 226,800 histories**.
 
 ### Preserved M3R2 release and recovery design
 

@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-04",
+  "updated_on": "2026-10-06",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "P4",
-  "production_release": "P4_fixed243pressure_points_only_45low_then27high_canaries_gate900remaining_batches_manual_review_beforeG5",
+  "current_stage_id": "G5",
+  "production_release": "G5-60_only_45low_then45high_canaries_gate1170remaining_batches_manual_review_beforeG5-65",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "M3_complete_raw_audit_passed_P4_released",
+    "status": "P4_complete_raw_audit_passed_G5-60_released",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -22,9 +22,11 @@
     "remaining_baseline_planning_hours_at_c1d_start": 131.81,
     "remaining_baseline_planning_hours_at_m3_start": 133.2,
     "remaining_baseline_planning_hours_at_p4_start": 120.0,
-    "accepted_bulk_points": 576,
+    "remaining_baseline_planning_hours_at_g5_60_start": 126.01,
+    "accepted_bulk_points": 819,
     "partial_bulk_points": 0,
-    "accepted_independent_batches": 2304,
+    "accepted_independent_batches": 3276,
+    "precision_flags_at_p4_completion": 141,
     "precision_flags_at_m3_completion": 99,
     "precision_flags_at_m3r_review": 47,
     "precision_flags_at_baseline_review": 46,
@@ -408,7 +410,10 @@
     {
       "id": "P4",
       "title": "Complete pressure/energy scan at 80% noble",
-      "status": "prepared",
+      "status": "completed_and_reviewed",
+      "actual_compute_hours": 6.119957848684717,
+      "completed_at": "2026-10-04T21:02:29.178588+02:00",
+      "review": "Cold raw audit passed all972 new batches; combined819 completepoints,3276 independentseeds,163800histories.678points meetbothSEMtargets;141flags(99prior+42new),140range and5ionization withoverlap.630pressureintervals:28inside workingmargins,602inconclusive,zerooutside;not equivalence. Allsource/input/actualparameter/composition/density/endpoint/containment/completion/noreset checks pass. Peak13.556GiB RAM,zero scanswap. Usercontinue releasesonly G5-60.",
       "release_validation": "54 targeted regressions passed in240.341seconds acrossP4,priorpressurestages,noresetcontinuation,displaygate andschedule. Repeated all14P4tests againstthefrozenplan:passed69.649seconds,includinglive-supervisorbindings,exactinputs/columngeometry,independence,immutable predecessorregistry,pressureintervalfamily,partialprecision andfailure/budgetphasegates.56628source/input/raw paths pinned. FullM3rawauditpassed and10-pagePDF verified. Preflight:about50GiB availableRAM,1.1TiB freedisk,noactiveSRIMservice; zeroscan-swap enforced. LaunchP4only,waitforcallback beforeG5.",
       "depends_on": ["M3R2"],
       "run": "runs/noble_cf4_pressure_grid",
@@ -427,14 +432,24 @@
     {
       "id": "G5",
       "title": "Complete concentration-pressure cross-grid in seven waves",
+      "status": "G5-60_released_for_detached_launch_other_waves_held",
+      "release_validation": "67 targeted tests passed acrossG5-60,P4,P2b,noresetcontinuation,displaygate andschedule;P2b requires the existing historical-Xvfb/frozen-seed audit contexts andpassed all10tests onrerun withoutsourcechanges. Repeated all19G5-60tests againstfrozenplan:passed83.836s. Synthetic within/outside pressureclassification andnine-pagePDF smokechecks passed withoutscientificsamples. Frozen79965source/reference/raw hashes verified;1260newseeds disjointfrom5136earlierseeds. FullP4 coldrawaudit exported;measured schedule regenerated126.01remaining planninghours. Hostabout39GiB availableRAM,1.1TiB freedisk,noactiveSRIMservice,linger enabled;scan swaplimit0. Launchonlythiswave andverifyservice/firstcanaries beforehandoff.",
+      "active_wave_noble_percent": 60,
+      "run": "runs/noble_cf4_mixture_pressure_60",
+      "launcher": "scripts/mixture_pressure_60.sh",
+      "expected_compute_hours_current_wave": [9.70492, 15.05738],
+      "planning_hours_by_wave": {"60": 15.05738, "65": 15.89341, "70": 16.74161, "75": 17.50267, "85": 19.52609, "90": 20.34537, "95": 20.94099},
+      "expected_active_work_hours_per_wave": [0.25, 0.75],
+      "frozen_canaries_current_wave": {"low_energy_batches": 45, "high_energy_batches": 45, "remaining_batches": 1170},
+      "timing_note": "Measured mixture1atm mean times same-energy80%-noble pressure/1atm meanratio flooredatone. Separate low/high/remaining phases,15-worker longest-first;50%margin+30min.126.01hplanning remaining baseline,excludingQ6,review/report/callbacks. Reforecast beforeeverywave;latewaves approach24hcap with3h90s drain andmust besplit ifneeded. Runtime estimatesonly,no scaledphysics.",
       "depends_on": ["P4"],
       "selection": "cross_grid",
       "wave_noble_percent": [60, 65, 70, 75, 85, 90, 95],
       "batches_per_point": 4,
       "new_unique_points": 2205,
       "cap_hours_per_wave": 24,
-      "scope": "One concentration per wave; each adds 315 points at the five non-1-atm pressures, all families/recoils/energies. Wait for continue after EACH wave; reforecast and split a wave if it does not fit the cap.",
-      "exit_gate": "All 3024 direct points accounted for exactly once under the accepted model; no interpolated rows passed off as simulations. Keep unresolved precision flags visible."
+      "scope": "One concentration per wave; each adds315points atfive non1atm pressures,allAr/Kr/Xe,C/F/noble,seven1-1000keVenergies. CurrentG5-60only:1260new50-ion batches,disjointfrom5136previousplan/bulk/legacyseeds,retaining3276auditedbatches. Combined1134points/4536batches/226800histories afterwave.45low then45high productioncanaries gate1170remaining;centralstart inmaximum auditedarealwidth atsamefamily/recoil/energy scaledby1/pressure.15cores,24/32GiB RAM,zeroscan swap,24hcumulative/3hjobcaps. Waitforcontinue afterEACHwave;reforecast andsplit ifcapwouldbeexceeded.",
+      "exit_gate": "Everywave:allraw/input/actualbinding/density/composition/50endpoint/containment/completion/noreset/source gates pass,fourunique50-ionbatches perpoint. Preserveestimated5%range/2%ionizationSEMflags forfixedQ6. Freeze630per-wave pressureintervals versus1atm beforecollection;10%pressure-scaledrange/5%ionizationmargins. Per-wave screening isnotcampaign-wide errorcontrol orindependentconfirmation;outside-margin featuresholdnextwave forreview. ExportCSV/PDF. AtG5end all3024directpoints accountedexactlyonce;nointerpolatedphysics,nodetectorquenchingclaim. Noautomaticnextwave ortopup."
     },
     {
       "id": "Q6",
@@ -508,6 +523,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-06",
+      "stage": "G5-60",
+      "decision": "User continue releases only G5-60 after P4 cold raw audit:972 new batches passed,819 combined points,3276 independent seeds,163800 histories.678 points meet both estimated SEM goals;141 flags retained for fixed Q6. Pressure screen:28 within margins,602 inconclusive,zero outside;not equivalence. P4 took6.120h,peak13.556GiB RAM,zero scan swap. Prepare315 new60%-noble pressure/energy points,1260 unique50-ion batches with45low/45high canaries before1170 remaining. Target width preserves maximum audited areal envelope atsamefamily/recoil/energy. Forecast9.705h model/15.057h planning,24h cumulative/3h jobcaps and3h90s drain. Atmost15cores,24/32GiB RAM,zero scan swap. Seven G5 waves total126.01planninghours before Q6/reviews/reporting;reforecast eachcallback andsplit ifnecessary. Preserve frozen predecessor sources anddata;no automatic nextwave orprecision topup."
+    },
     {
       "date": "2026-10-04",
       "stage": "P4",
