@@ -60,26 +60,29 @@ claim of detector-calibrated quenching.
 | C1e | All 120 display checks and both diagnostic replays passed; reset causality not reproduced | 6.47 min actual | 15 min |
 | M3R2 | Mixture scan complete and audited: 576 combined points, 2,304 independent batches | 1.95 h final continuation; 10.47 h cumulative M3 | Original 24 h cumulative |
 | P4 | All 243 new pressure/energy points audited; 819 combined points | 6 h 7 min actual | 24 h |
-| G5 (current: 60%) | Seven concentration waves, 315 points each; stop for `continue` after each | First wave 9.70 h model / 15.06 h planning; 126 h total planning | 24 h per wave |
+| G5-60 | All 315 new points audited; 1,134 combined points | 7 h 43 min actual | 24 h |
+| G5 (current: 65%) | Six concentration waves remain, 315 points each; stop for `continue` after each | Current wave 10.51 h model / 16.26 h planning; 113.57 h remaining planning | 24 h per wave |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-G5 wave order and planning hours: 60% (15.1), 65% (15.9), 70% (16.7),
-75% (17.5), 85% (19.5), 90% (20.3), 95% (20.9). Recompute before each wave;
-split later waves if their updated forecast plus the 3 h 90 s drain exceeds 24 h.
+Remaining G5 wave order and planning hours: 65% (16.3), 70% (17.1),
+75% (17.9), 85% (20.0), 90% (20.8), 95% (21.4). Recompute before each wave.
+The 95% forecast plus the 3 h 90 s drain currently exceeds 24 h: that wave is
+held for replanning or splitting before release. If split, allow an additional
+0.25–0.75 h active work and 0.5–2 h compute overhead, not included below.
 The bulk baseline requires **3,024 points / 12,096 independent batches /
 604,800 histories**, including the new C3a/C3b baseline, with zero surface reuse.
 P2a/P2b count the same eighteen points once, not twice. Q6 top-ups are additional.
 
-The October 6 P4 cold audit confirms **819 points / 3,276 independent batches /
-163,800 histories**. Of these, 678 points meet both estimated SEM targets;
-141 flags remain for fixed Q6 follow-ups (140 range, five ionization, with overlap).
-The 630 pressure screens give 28 intervals within working margins, 602
+The October 6 G5-60 cold audit confirms **1,134 points / 4,536 independent batches /
+226,800 histories**. Of these, 956 points meet both estimated SEM targets;
+178 flags remain for fixed Q6 follow-ups (176 range, eight ionization, with overlap).
+The 630 latest pressure screens give 37 intervals within working margins, 593
 inconclusive and none entirely outside: this does not establish equivalence.
-G5 now uses all measured 80%-noble pressure costs at the same energy, multiplied
-by measured mixture-specific 1-atm means, with the pressure cost ratio floored
+G5 now uses the maximum measured 60/80%-noble pressure cost ratio at the same energy,
+multiplied by measured mixture-specific 1-atm means, with the ratio floored
 at one. Separate low/high canary phases are included. This supersedes the earlier
-rough G5 forecast. Remaining G5 totals **about 126 compute hours (5.25 days)**
+rough G5 forecast. Remaining G5 totals **about 114 compute hours (4.75 days)**
 with planning margins, excluding precision top-ups, reporting, reviews and callbacks.
 Overall allow roughly **5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
@@ -118,7 +121,7 @@ xdg-open runs/bulk_campaign_schedule/index.html
 ```
 
 This command launches no simulations. Its current forecast uses measured means from
-all 3,276 audited batches across 819 complete points, 15-worker longest-first
+all 4,536 audited batches across 1,134 complete points, 15-worker longest-first
 scheduling and three sequential phases, then adds 50% and 30 minutes per wave. These are
 planning estimates, not statistical confidence bounds. The JSON report records
 the timing-source hashes and assumptions. At 1 MeV, measured 80%-noble pressure
@@ -128,7 +131,7 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: direct pressure/energy grid at 60% noble (G5-60)
+### Current step: direct pressure/energy grid at 65% noble (G5-65)
 
 The completed mixture scan passed its cold raw-data audit on October 4:
 **576 complete points, 2,304 independent batches, 115,200 histories**, including
@@ -147,7 +150,11 @@ P4 subsequently completed and passed its raw audit: **819 total points /
 Its nine-page PDF is `runs/noble_cf4_pressure_grid/pressure.pdf`; its cold-audit
 report is `runs/noble_cf4_pressure_grid/review/index.html`.
 
-G5-60 adds **315 points / 1,260 independent 50-ion batches** in Ar/Kr/Xe60–CF4-40,
+G5-60 also passed its full cold audit: **1,134 combined points**, 4,536 independent
+batches and 226,800 histories, with 178 precision flags retained. Results and the
+nine-page PDF are in `runs/noble_cf4_mixture_pressure_60/`; the audit is in `review/`.
+
+G5-65 adds **315 points / 1,260 independent 50-ion batches** in Ar/Kr/Xe65–CF4-35,
 C/F/noble recoils, at 0.5/1.5/2/2.5/3 atm and energies
 1/3/10/30/100/300/1000 keV. Four batches per point. First **45 low-energy**
 production canaries must pass, then **45 one-MeV** canaries, then the remaining
@@ -155,24 +162,24 @@ production canaries must pass, then **45 one-MeV** canaries, then the remaining
 containment and normal completion are checked for every batch. The validated
 authenticated noreset launcher is retained; any failure holds later phases.
 
-Allow **10–15 hours**, with a **24-hour cumulative cap**, three-hour per-batch
+Allow **11–16 hours**, with a **24-hour cumulative cap**, three-hour per-batch
 cap and drain reserve; at most **15 cores**, **24/32 GiB soft/hard RAM**, and
-**zero scan swap**. No automatic G5-65 or precision top-ups. The detached user
+**zero scan swap**. No automatic G5-70 or precision top-ups. The detached user
 service survives terminal disconnection; no terminal needs to stay open.
 
 ```bash
-bash scripts/mixture_pressure_60.sh status
-bash scripts/mixture_pressure_60.sh logs
-bash scripts/mixture_pressure_60.sh stop
+bash scripts/mixture_pressure_65.sh status
+bash scripts/mixture_pressure_65.sh logs
+bash scripts/mixture_pressure_65.sh stop
 ```
 
-Live report: `runs/noble_cf4_mixture_pressure_60/index.html`. On completion it exports
+Live report: `runs/noble_cf4_mixture_pressure_65/index.html`. On completion it exports
 combined CSV tables, a nine-page pressure PDF and 630 prespecified pressure
 screening intervals against 1 atm for this concentration. Existing reference data
 were already visible; these are per-wave screening intervals, not campaign-wide
 error control, independent confirmations or proof of global pressure equivalence.
 At `REVIEW_REQUIRED`, send `continue`; report `NEEDS_ATTENTION` if seen.
-G5-60 completion brings the total to **1,134 points / 4,536 batches / 226,800 histories**.
+G5-65 completion brings the total to **1,449 points / 5,796 batches / 289,800 histories**.
 
 ### Preserved M3R2 release and recovery design
 

@@ -3,10 +3,10 @@
   "updated_on": "2026-10-06",
   "mode": "manual_continue_gates_no_automatic_launches",
   "current_stage_id": "G5",
-  "production_release": "G5-60_only_45low_then45high_canaries_gate1170remaining_batches_manual_review_beforeG5-65",
+  "production_release": "G5-65_only_45low_then45high_canaries_gate1170remaining_batches_manual_review_beforeG5-70",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "P4_complete_raw_audit_passed_G5-60_released",
+    "status": "G5-60_complete_raw_audit_passed_G5-65_released",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -23,9 +23,11 @@
     "remaining_baseline_planning_hours_at_m3_start": 133.2,
     "remaining_baseline_planning_hours_at_p4_start": 120.0,
     "remaining_baseline_planning_hours_at_g5_60_start": 126.01,
-    "accepted_bulk_points": 819,
+    "remaining_baseline_planning_hours_at_g5_65_start": 113.57,
+    "accepted_bulk_points": 1134,
     "partial_bulk_points": 0,
-    "accepted_independent_batches": 3276,
+    "accepted_independent_batches": 4536,
+    "precision_flags_at_g5_60_completion": 178,
     "precision_flags_at_p4_completion": 141,
     "precision_flags_at_m3_completion": 99,
     "precision_flags_at_m3r_review": 47,
@@ -34,7 +36,7 @@
     "additional_c1d_diagnostic_histories": 50,
     "additional_c1e_diagnostic_histories": 100,
     "schedule_command": ".venv/bin/python scripts/bulk_campaign_schedule.py",
-    "note": "P2b scientific raw audit passed: all 18 pressure points meet both SEM targets, 72 independent batches at those points. Combined accepted model: 261 complete points, 1044 independent batches, 52200 histories; 215 meet both precision targets and 46 prior flags remain. The prespecified pressure screen has 17 intervals inside working margins, 19 inconclusive, zero entirely outside; not global equivalence. OS maintenance upgraded Xvfb after P2b completed, followed by reboot. Old executable recovered hash-identically for historical provenance; current execution must pass C1d's 60 display checks and one exact 50-ion replay before M3. No frozen data/source record edited, system downgrade or automatic mixture release."
+    "note": "G5-60 cold audit passed: 1134 complete points, 4536 independent batches, 226800 histories.956points meetboth SEMtargets;178flags remain forfixedQ6. Latest630pressureintervals:37within workingmargins,593inconclusive,zerooutside;not equivalence. Historical-Xvfb resolution andvalidated authenticated-noreset execution remain unchanged. ReleaseonlyG5-65;alllaterwaves requirecallback. Reforecastorsplit95%before release becauseplanningplusdrain currentlyexceeds24h. No oldsurface/diagnostic pooling or detector-calibratedquenching claim."
   },
   "review_allowances": {
     "active_hours_per_completed_stage_or_wave": [0.25, 0.75],
@@ -432,23 +434,25 @@
     {
       "id": "G5",
       "title": "Complete concentration-pressure cross-grid in seven waves",
-      "status": "G5-60_released_for_detached_launch_other_waves_held",
-      "release_validation": "67 targeted tests passed acrossG5-60,P4,P2b,noresetcontinuation,displaygate andschedule;P2b requires the existing historical-Xvfb/frozen-seed audit contexts andpassed all10tests onrerun withoutsourcechanges. Repeated all19G5-60tests againstfrozenplan:passed83.836s. Synthetic within/outside pressureclassification andnine-pagePDF smokechecks passed withoutscientificsamples. Frozen79965source/reference/raw hashes verified;1260newseeds disjointfrom5136earlierseeds. FullP4 coldrawaudit exported;measured schedule regenerated126.01remaining planninghours. Hostabout39GiB availableRAM,1.1TiB freedisk,noactiveSRIMservice,linger enabled;scan swaplimit0. Launchonlythiswave andverifyservice/firstcanaries beforehandoff.",
-      "active_wave_noble_percent": 60,
-      "run": "runs/noble_cf4_mixture_pressure_60",
-      "launcher": "scripts/mixture_pressure_60.sh",
-      "expected_compute_hours_current_wave": [9.70492, 15.05738],
-      "planning_hours_by_wave": {"60": 15.05738, "65": 15.89341, "70": 16.74161, "75": 17.50267, "85": 19.52609, "90": 20.34537, "95": 20.94099},
+      "status": "G5-65_released_for_detached_launch_other_waves_held",
+      "release_validation": "43 targeted tests passed in175.495s acrossG5-65,G5-60 andschedule. Tests covergrid/counts,6396predecessorseeds,1260newindependentseeds,actualinput/density/stoichiometry/binding/event preservation,arealenvelope,live supervisorbindings,noreset lifecycle,phasefailureholds,cumulativebudgetdrain,pressureintervalclassifications,syntheticPDF andmeasuredtwo-anchor forecasts including95%hold. All110214 frozen source/reference/raw paths verified. Shellsyntax,compilation andwhitespace checks pass. NoactiveSRIMservice;about40GiB availableRAM,1.1TiB freedisk,linger enabled. Commitandlaunch onlyG5-65;verify15core/24-32GiB/zeroscanSwap limitsandinitialcanaries beforehandoff.",
+      "completed_waves": [{"noble_percent": 60, "actual_hours": 7.713029306999443, "completed_at": "2026-10-06T18:16:41.880161+02:00", "new_points": 315, "new_batches": 1260, "combined_points": 1134, "combined_batches": 4536, "precision_flags": 178, "pressure_within": 37, "pressure_inconclusive": 593, "pressure_outside": 0, "review": "Cold source/raw/input/parameter/containment/completion/noreset audit passed.956points meetboth SEMgoals,178flags(141prior+37new). Peak12.201GiB RAM,zero scanswap. Noequivalence ordetectorquenchingclaim."}],
+      "active_wave_noble_percent": 65,
+      "run": "runs/noble_cf4_mixture_pressure_65",
+      "launcher": "scripts/mixture_pressure_65.sh",
+      "expected_compute_hours_current_wave": [10.50930, 16.26395],
+      "planning_hours_by_wave": {"60": 15.05738, "65": 16.26394, "70": 17.13857, "75": 17.91920, "85": 19.99179, "90": 20.83065, "95": 21.42903},
+      "conditional_replan_95": {"status": "held_reforecast_or_split_required", "reason": "21.429hplanning plus3h90sdrain exceeds24hcap. Reforecast afterprecedingwaves;freeze bounded subwaves ifstillneeded,not anautomatic extension.", "expected_active_hours": [0.25, 0.75], "additional_compute_overhead_hours_if_split": [0.5, 2], "note": "Additional splitoverhead excludedfrom113.57hremaining forecast;fixed allocation andestimates onlyafterprecedingreview."},
       "expected_active_work_hours_per_wave": [0.25, 0.75],
       "frozen_canaries_current_wave": {"low_energy_batches": 45, "high_energy_batches": 45, "remaining_batches": 1170},
-      "timing_note": "Measured mixture1atm mean times same-energy80%-noble pressure/1atm meanratio flooredatone. Separate low/high/remaining phases,15-worker longest-first;50%margin+30min.126.01hplanning remaining baseline,excludingQ6,review/report/callbacks. Reforecast beforeeverywave;latewaves approach24hcap with3h90s drain andmust besplit ifneeded. Runtime estimatesonly,no scaledphysics.",
+      "timing_note": "Measured mixture1atm mean times maximumsame-energy60/80%-noble pressure/1atm meanratio,flooredatone. Separate low/high/remaining phases,15-worker longest-first;50%margin+30min.113.57hplanning remaining baseline,excludingQ6,review/report/callbacks andpotential95%splitoverhead. Reforecast beforeeverywave;95%currentlyexceeds24hcap including3h90sdrain andmust bereplannedorsplit beforeitsrelease. Runtime estimatesonly,no scaledphysics.",
       "depends_on": ["P4"],
       "selection": "cross_grid",
       "wave_noble_percent": [60, 65, 70, 75, 85, 90, 95],
       "batches_per_point": 4,
       "new_unique_points": 2205,
       "cap_hours_per_wave": 24,
-      "scope": "One concentration per wave; each adds315points atfive non1atm pressures,allAr/Kr/Xe,C/F/noble,seven1-1000keVenergies. CurrentG5-60only:1260new50-ion batches,disjointfrom5136previousplan/bulk/legacyseeds,retaining3276auditedbatches. Combined1134points/4536batches/226800histories afterwave.45low then45high productioncanaries gate1170remaining;centralstart inmaximum auditedarealwidth atsamefamily/recoil/energy scaledby1/pressure.15cores,24/32GiB RAM,zeroscan swap,24hcumulative/3hjobcaps. Waitforcontinue afterEACHwave;reforecast andsplit ifcapwouldbeexceeded.",
+      "scope": "One concentration per wave; each adds315points atfive non1atm pressures,allAr/Kr/Xe,C/F/noble,seven1-1000keVenergies. CurrentG5-65only:1260new50-ion batches,disjointfrom6396previousplan/bulk/legacyseeds,retaining4536auditedbatches. Combined1449points/5796batches/289800histories afterwave.45low then45high productioncanaries gate1170remaining;centralstart inmaximum auditedarealwidth atsamefamily/recoil/energy scaledby1/pressure.15cores,24/32GiB RAM,zeroscan swap,24hcumulative/3hjobcaps. Waitforcontinue afterEACHwave;reforecast andsplit ifcapwouldbeexceeded.",
       "exit_gate": "Everywave:allraw/input/actualbinding/density/composition/50endpoint/containment/completion/noreset/source gates pass,fourunique50-ionbatches perpoint. Preserveestimated5%range/2%ionizationSEMflags forfixedQ6. Freeze630per-wave pressureintervals versus1atm beforecollection;10%pressure-scaledrange/5%ionizationmargins. Per-wave screening isnotcampaign-wide errorcontrol orindependentconfirmation;outside-margin featuresholdnextwave forreview. ExportCSV/PDF. AtG5end all3024directpoints accountedexactlyonce;nointerpolatedphysics,nodetectorquenchingclaim. Noautomaticnextwave ortopup."
     },
     {
@@ -523,6 +527,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-06",
+      "stage": "G5-65",
+      "decision": "Usercontinue afterG5-60 completion. All1260 newrawbatches passcold audit;combined1134points/4536independentbatches/226800histories.956meetestimated SEMgoals;178flags retained(176range,8ionization,overlap6),37newflags.630pressureintervals:37within,593inconclusive,zerooutside;noequivalenceclaim. Actual7.713h,peak12.201GiB,zero scanswap. ReleaseonlyG5-65 fixed315points/1260batches with45low then45highcanaries before1170remaining. Refined10.509hmodel/16.264hplanning usesmaximummeasured60/80%pressurecostratios. Sixwavesremaining113.57hplanning excludingQ6/reviews/reporting;95%currentlyneedsreforecastorsplit tofit24hwithdrain,additional0.25-0.75hactive and0.5-2hcomputeoverhead ifsplit. Noautomaticnextwave,topups ornewphysics. Preserveallfrozenpredecessorfiles."
+    },
     {
       "date": "2026-10-06",
       "stage": "G5-60",
