@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "updated_on": "2026-10-06",
+  "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "G5",
-  "production_release": "G5-65_only_45low_then45high_canaries_gate1170remaining_batches_manual_review_beforeG5-70",
+  "current_stage_id": "C1f",
+  "production_release": "HELD_C1f_bounded_crash_validation_only_manual_review_before_versioned_G5-65_continuation",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "G5-60_complete_raw_audit_passed_G5-65_released",
+    "status": "G5-65_supervisor_SIGSEGV_251batches_audited_C1f_gate_required",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -24,9 +24,9 @@
     "remaining_baseline_planning_hours_at_p4_start": 120.0,
     "remaining_baseline_planning_hours_at_g5_60_start": 126.01,
     "remaining_baseline_planning_hours_at_g5_65_start": 113.57,
-    "accepted_bulk_points": 1134,
-    "partial_bulk_points": 0,
-    "accepted_independent_batches": 4536,
+    "accepted_bulk_points": 1181,
+    "partial_bulk_points": 63,
+    "accepted_independent_batches": 4787,
     "precision_flags_at_g5_60_completion": 178,
     "precision_flags_at_p4_completion": 141,
     "precision_flags_at_m3_completion": 99,
@@ -434,7 +434,8 @@
     {
       "id": "G5",
       "title": "Complete concentration-pressure cross-grid in seven waves",
-      "status": "G5-65_released_for_detached_launch_other_waves_held",
+      "status": "G5-65_supervisor_SIGSEGV_original_evidence_preserved_C1f_required",
+      "interruption_review": {"crashed_at": "2026-10-07T03:18:31+02:00", "signal": "SIGSEGV", "root_cause_proven": false, "accepted_batches": 251, "interrupted_batches": 15, "unlaunched_batches": 994, "remaining_batches": 1009, "inherited_used_seconds": 20320, "remaining_compute_hours": [3.33493, 5.50239], "note": "All251completebatches raw-audited;oldRUNNINGlabel isstale. Preserve15interruptedattempts/runtime evidence withoutpromotingoutputs. No accessiblecore ornativebacktrace; no proven thread/native-library/hardwarecause. NewC1f validation beforeversionedcontinuation;retainoriginalinputs/seeds andcharge originalelapsed+heartbeatgap+90s conservative cleanupreserve+diagnostic walltime underoriginal24hcap."},
       "release_validation": "43 targeted tests passed in175.495s acrossG5-65,G5-60 andschedule. Tests covergrid/counts,6396predecessorseeds,1260newindependentseeds,actualinput/density/stoichiometry/binding/event preservation,arealenvelope,live supervisorbindings,noreset lifecycle,phasefailureholds,cumulativebudgetdrain,pressureintervalclassifications,syntheticPDF andmeasuredtwo-anchor forecasts including95%hold. All110214 frozen source/reference/raw paths verified. Shellsyntax,compilation andwhitespace checks pass. NoactiveSRIMservice;about40GiB availableRAM,1.1TiB freedisk,linger enabled. Commitandlaunch onlyG5-65;verify15core/24-32GiB/zeroscanSwap limitsandinitialcanaries beforehandoff.",
       "completed_waves": [{"noble_percent": 60, "actual_hours": 7.713029306999443, "completed_at": "2026-10-06T18:16:41.880161+02:00", "new_points": 315, "new_batches": 1260, "combined_points": 1134, "combined_batches": 4536, "precision_flags": 178, "pressure_within": 37, "pressure_inconclusive": 593, "pressure_outside": 0, "review": "Cold source/raw/input/parameter/containment/completion/noreset audit passed.956points meetboth SEMgoals,178flags(141prior+37new). Peak12.201GiB RAM,zero scanswap. Noequivalence ordetectorquenchingclaim."}],
       "active_wave_noble_percent": 65,
@@ -454,6 +455,22 @@
       "cap_hours_per_wave": 24,
       "scope": "One concentration per wave; each adds315points atfive non1atm pressures,allAr/Kr/Xe,C/F/noble,seven1-1000keVenergies. CurrentG5-65only:1260new50-ion batches,disjointfrom6396previousplan/bulk/legacyseeds,retaining4536auditedbatches. Combined1449points/5796batches/289800histories afterwave.45low then45high productioncanaries gate1170remaining;centralstart inmaximum auditedarealwidth atsamefamily/recoil/energy scaledby1/pressure.15cores,24/32GiB RAM,zeroscan swap,24hcumulative/3hjobcaps. Waitforcontinue afterEACHwave;reforecast andsplit ifcapwouldbeexceeded.",
       "exit_gate": "Everywave:allraw/input/actualbinding/density/composition/50endpoint/containment/completion/noreset/source gates pass,fourunique50-ionbatches perpoint. Preserveestimated5%range/2%ionizationSEMflags forfixedQ6. Freeze630per-wave pressureintervals versus1atm beforecollection;10%pressure-scaledrange/5%ionizationmargins. Per-wave screening isnotcampaign-wide errorcontrol orindependentconfirmation;outside-margin featuresholdnextwave forreview. ExportCSV/PDF. AtG5end all3024directpoints accountedexactlyonce;nointerpolatedphysics,nodetectorquenchingclaim. Noautomaticnextwave ortopup."
+    },
+    {
+      "id": "C1f",
+      "title": "Supervisor SIGSEGV audit and subprocess-containment validation",
+      "status": "released_for_detached_thermal_guarded_diagnostic_only",
+      "release_validation": "39 targeted tests passed in49.541s:13crash/replay/provenance/containment,10thermalguard,11completion-monitor and5schedule tests. All116693 frozenC1f source/input/rawpaths verified. Separate thermal-plan preserves original frozenC1f andpins userkernel evidence pluswrapper/launcher. No originalscientific source/input/seed changes. Shellsyntax,compilation andwhitespacechecks pass. Detached15-core/24-32GiB/zeroscanSwap/15mincap only;manualcallback andbothC1f+thermalCOMPLETE required beforeproduction. Thermalstop requirescooling/loadreview,notautomaticretry.",
+      "depends_on": ["G5"],
+      "run": "runs/supervisor_crash_gate",
+      "launcher": "scripts/supervisor_crash_gate_thermal.sh",
+      "thermal_gate": "User kernel excerpts confirm concurrent throttling and Python fault, not causality. Additive frozen thermal-plan.json preserves original C1f source/plan. Require CPU below75C atstart, stop at85C orlower hardware highlimit orany throttle-counter change. Poll0.5s; production requires thermal-status COMPLETE aswell as C1f completion. Anythermalstop requires cooling/load review beforeanother versioned test; noautomaticretry. Remainingtime forecasts assume validated15-worker throughput andmustberevised ifloadreduced.",
+      "expected_compute_hours": [0.05, 0.13334],
+      "expected_active_work_hours": [0.5, 2],
+      "cap_hours": 0.25,
+      "diagnostic_histories": 750,
+      "scope": "Preserve crashedG5-65 and251accepted/15interruptedattempts. Fullrawaudit,3x251boundedthreaded re-audits indedicatedchild,controlledchildSIGSEGV withfaulthandler andparentsurvival,15concurrent isolatedone-keV exact50-ion replays atall9family/recoil0.5atm corners plus6C/F3atm corners. Originalinputs/seeds unchanged;750diagnostic histories excludedfromproduction.15cores,24/32GiB RAM,zeroscan swap,15min gatecap. Post-service finalizer correctsstaleRUNNINGstatus afterabnormalexit. Rootcause remainsunproved unlessreproducedwithtrace.",
+      "exit_gate": "All251rawaudits,753threaded re-audits,fault-detection/containment and15exactreplays pass. RANGE/IONIZ/RANGE_3D/TDATA byte-identical;normalcompletion,noreset,actualparameters,density/composition,50containedendpoints andallsourcehashes unchanged. StopatREVIEW_REQUIRED;manualcallback before1009-batch versionedcontinuation. Anyfailureholdslaterwork;noautomaticretry orpooling. Original20320seconds plusactualdiagnosticwalltime carriedinto24hproductionbudget."
     },
     {
       "id": "Q6",
@@ -527,6 +544,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-07",
+      "stage": "C1f",
+      "decision": "Usercontinue authorizes investigation afterG5-65 supervisorSIGSEGV at03:18:31.251completebatches passfullrawaudit;1181combinedcompletepoints,63partialpoints,4787independentbatches,178completepointprecisionflags.15interruptedattempts and994unlaunchedcases preserved,1009remaining. Userprovidedkernel log confirmsfaultinPython andco-occurring thermal throttling;noaccessiblecore/backtrace,rootcauseunproven. Freezeadditive thermalguard beforeC1flaunch withouteditingoriginal frozenplan/sources: startbelow75C,stopat85C/lowerhardwarehighlimit oranynewthrottling. BoundedC1f3-8minute/15mincap validates threaded re-audits andisolatedworkers withfaulthandler plus15exact50-iondiagnosticreplays. Addservice-exit finalizer topreventstaleRUNNINGlabel. No physics/parser relaxation orproductionpromotion. Remainingproduction3.335hmodel/5.502hplanning assumes15workers;charge20320sinheritedincluding90sreserve plusgatewalltime underoriginal24hbudget. Awaitcallback afterC1f beforeproductioncontinuation."
+    },
     {
       "date": "2026-10-06",
       "stage": "G5-65",

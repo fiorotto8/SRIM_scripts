@@ -275,6 +275,21 @@ def main():
         next(row for row in rows if row['id']=='G5-65').update(status='frozen_review_gated_wave',
             model_hours=round(frozen['forecast']['model_hours'],2),
             planning_hours=round(frozen['forecast']['planning_hours'],2))
+    crash_plan=ROOT/'runs/supervisor_crash_gate/plan.json'
+    crash_review=None
+    if crash_plan.exists():
+        frozen=json.loads(crash_plan.read_text())
+        reset_gate.verify_hashes(frozen['input_sha256'])
+        crash_review=frozen['review']
+        pending=crash_review['remaining_forecast']
+        next(row for row in rows if row['id']=='G5-65').update(
+            status='SIGSEGV_251_audited_production_held_for_C1f',
+            model_hours=round(pending['model_hours'],2),planning_hours=round(pending['planning_hours'],2),
+            phase_model_hours=pending['phase_model_hours'],
+            longest_batch_hours=round(pending['longest_estimated_batch_hours'],2),
+            retained_original_cases=251,remaining_original_cases=1009,
+            inherited_cumulative_hours=crash_review['inherited_used_seconds']/3600,
+            pending_diagnostic_cap_hours=.25)
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -305,6 +320,9 @@ def main():
         accepted_points=p4_review['complete_points']; accepted_batches=p4_review['independent_batches']; partial_points=0
     if g60_review is not None:
         accepted_points=g60_review['complete_points']; accepted_batches=g60_review['independent_batches']; partial_points=0
+    if crash_review is not None:
+        accepted_points=crash_review['complete_points']; accepted_batches=crash_review['independent_batches']
+        partial_points=crash_review['partial_points']
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -316,6 +334,7 @@ def main():
                                                      mixture_spent+
                                                      (p4_review['actual_hours'] if p4_review is not None else 0)+
                                                      (g60_review['actual_hours'] if g60_review is not None else 0)+
+                                                     (crash_review['inherited_used_seconds']/3600 if crash_review is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -337,6 +356,7 @@ def main():
     if p4_plan.exists():sources.append(p4_plan)
     if g5_plan.exists():sources.append(g5_plan)
     if g65_plan.exists():sources.append(g65_plan)
+    if crash_plan.exists():sources.append(crash_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -345,8 +365,14 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='After G5-60 completion review,1134directpoints/4536independentbatches are accepted,178precision flags remain. '
-                 'Six315-point waves remain;onlyG5-65 isreleased. Costsuse themaximum same-energy60/80%-noble '
+                 assumptions='After theG5-65 SIGSEGV audit,251additional batches areaccepted:1181completepoints,63partialpoints, '
+                 '4787independentbatches and178completepointprecisionflags. ProductionisheldforC1f,notautomaticallyresumed. '
+                 'RemainingG5-65 estimate3.335hmodel/5.502hplanning excludesC1f3-8min(15mincap); '
+                 '20320soriginalelapsed+terminationreserve plusdiagnosticwalltime countagainstoriginal24h. '
+                 'Rootcauseisnotproven;userkernel evidence showsthermal throttling nearthePython fault,no nativebacktrace. '
+                 'C1f additionallyrequires thermalguard success; forecastsassume validated15-workerthroughput. Earlierstage descriptionsbelow arehistorical. '
+                 'After G5-60 completion review,1134directpoints/4536independentbatches were accepted,178precision flags remained. '
+                 'Six315-point waves werepending;G5-65 isnowpartlycompleteandheld. Costsuse themaximum same-energy60/80%-noble '
                  'pressure/1atm meanratio,flooredatone,timesmeasuredmixture1atm means. '
                  'G5-95 currentlyrequiresreforecast orsplit becauseplanningplus3h90sdrain exceeds24h; '
                  'itsforecast excludesadditional split overhead untila fixedsplit isapproved. '

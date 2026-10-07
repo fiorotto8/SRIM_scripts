@@ -1,0 +1,16 @@
+{
+  "source": "Kernel journal excerpts pasted by the user on 2026-10-07, requested with sudo journalctl -k --since 2026-10-07T03:17:30 --until 2026-10-07T03:19:00; not directly collected by this agent",
+  "timezone": "Europe/Rome",
+  "excerpts": [
+    "Oct 07 03:18:23 cygno03 kernel: CPU16: Package temperature is above threshold, cpu clock is throttled (total events = 4508785)",
+    "Oct 07 03:18:25 cygno03 kernel: CPU0: Package temperature is above threshold, cpu clock is throttled (total events = 1561668)",
+    "Oct 07 03:18:25 cygno03 kernel: CPU17: Package temperature is above threshold, cpu clock is throttled (total events = 4491559)",
+    "Oct 07 03:18:30 cygno03 kernel: python[966091]: segfault at 40000ba676c ip 00000000005e3259 sp 00007fffd01591e0 error 6 inpython3.12[1e3259,420000+2e3000] likely on CPU 11 (core 15, socket 0)",
+    "Oct 07 03:18:30 cygno03 kernel: Code: fe ff ff e9 4d f7 ff ff e9 48 49 eb ff 0f 1f 40 00 55 48 89 e5 41 54 49 89 f4 53 8b 47 24 48 89 fb 83 e8 01 80 7e 46 00 75 37 <89> 47 24 48 89 f7 e8 ec 44 01 00 49 8b 3c 24 48 8b 07 85 c0 78 0d",
+    "Oct 07 03:18:31 cygno03 kernel: CPU16: Package temperature/speed normal (total events = 4509022)"
+  ],
+  "local_addr2line": {"command": "addr2line -f -e /usr/bin/python3.12 0x5e3259", "output": ["_PyEval_EvalFrameDefault", "??:?"]},
+  "interpretation": "Supervisor native fault in Python evaluation loop; thermal throttling co-occurred. Neither the address nor timing proves heat, a Python bug, a threading bug or hardware instability caused the crash. No native backtrace available. Preserve frozen C1f and add independently frozen thermal guard before launch.",
+  "preflight_sensor_c": {"package": 41, "reported_high": 85, "reported_critical": 105},
+  "root_cause_proven": false
+}

@@ -61,11 +61,12 @@ claim of detector-calibrated quenching.
 | M3R2 | Mixture scan complete and audited: 576 combined points, 2,304 independent batches | 1.95 h final continuation; 10.47 h cumulative M3 | Original 24 h cumulative |
 | P4 | All 243 new pressure/energy points audited; 819 combined points | 6 h 7 min actual | 24 h |
 | G5-60 | All 315 new points audited; 1,134 combined points | 7 h 43 min actual | 24 h |
-| G5 (current: 65%) | Six concentration waves remain, 315 points each; stop for `continue` after each | Current wave 10.51 h model / 16.26 h planning; 113.57 h remaining planning | 24 h per wave |
+| G5-65 (interrupted) | Supervisor SIGSEGV; 251 batches audited, 1,009 remaining; original evidence preserved | 5.62 h before crash; remaining 3.33 h model / 5.50 h planning | Original 24 h, including recovery diagnostics |
+| C1f (current) | Saved-output stress, child-crash containment and 15 exact diagnostic replays; production held | 3–8 min compute | 15 min |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Remaining G5 wave order and planning hours: 65% (16.3), 70% (17.1),
+Remaining G5 wave order and planning hours: 65% remainder (5.5), 70% (17.1),
 75% (17.9), 85% (20.0), 90% (20.8), 95% (21.4). Recompute before each wave.
 The 95% forecast plus the 3 h 90 s drain currently exceeds 24 h: that wave is
 held for replanning or splitting before release. If split, allow an additional
@@ -82,8 +83,8 @@ inconclusive and none entirely outside: this does not establish equivalence.
 G5 now uses the maximum measured 60/80%-noble pressure cost ratio at the same energy,
 multiplied by measured mixture-specific 1-atm means, with the ratio floored
 at one. Separate low/high canary phases are included. This supersedes the earlier
-rough G5 forecast. Remaining G5 totals **about 114 compute hours (4.75 days)**
-with planning margins, excluding precision top-ups, reporting, reviews and callbacks.
+rough G5 forecast. After the G5-65 crash audit, remaining G5 totals **about 103 compute hours (4.3 days)**
+with planning margins, excluding the new diagnostic gate, precision top-ups, reporting, reviews and callbacks.
 Overall allow roughly **5–10 additional compute days** with
 possible Q6/reporting, not a guarantee. The earlier 143-hour surface-reuse forecast
 and 164-hour pre-pilot bulk forecast are historical, not the active estimate.
@@ -131,7 +132,49 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: direct pressure/energy grid at 65% noble (G5-65)
+### Current step: supervisor-crash validation (C1f); G5-65 production held
+
+G5-65's Python supervisor crashed with `SIGSEGV` at **03:18:31 CEST on October 7**.
+The original `RUNNING` JSON label is stale: there is no active production service.
+All **251 saved batches** passed the cold raw audit. Combined results now contain
+**1,181 complete points, 63 partial points and 4,787 independent batches**;
+178 complete-point precision flags remain. Fifteen interrupted attempts and all
+old runtime evidence are preserved; their outputs are not promoted to results.
+The underlying native crash is **not diagnosed**. Kernel excerpts provided by the
+user show a fault in Python's evaluation loop and repeated thermal throttling
+near the crash. Neither proves causality; no native backtrace is available.
+Current idle package temperature was 41°C (reported high 85°C, critical 105°C).
+An additive frozen thermal guard preserves the original C1f plan: start below
+75°C, sample every 0.5 s, and stop at 85°C (or a lower hardware high threshold)
+or any throttle-counter change. Both the scientific diagnostic gate and
+`thermal-status.json` must pass before production can be considered.
+On thermal stop, review cooling and test a lower load before another launch;
+the existing 15-worker time estimates would then need revision.
+
+C1f tests crash containment with a deliberate fault in a dedicated child,
+three threaded re-audits of all 251 saved batches, and 15 isolated exact
+50-ion low-energy replays. Its **750 histories are diagnostics**, never new
+independent production samples. Faulthandler captures native-fault traces;
+an exit finalizer changes stale `RUNNING` to `NEEDS_ATTENTION` after abnormal exit.
+Passing this gate supports the execution change, not proof of the original cause.
+
+Allow **3–8 minutes**, capped at 15 minutes, with at most 15 cores,
+24/32 GiB soft/hard RAM and zero scan swap. Stop for review before the versioned
+continuation of the **1,009 remaining batches** (3.3 h model / 5.5 h planning).
+The continuation must retain original inputs/seeds and charge **20,320 seconds**
+of original elapsed time plus conservative cleanup reserve, plus actual C1f
+wall time, against the original 24-hour cumulative budget.
+
+```bash
+bash scripts/supervisor_crash_gate_thermal.sh status
+bash scripts/supervisor_crash_gate_thermal.sh logs
+bash scripts/supervisor_crash_gate_thermal.sh stop
+```
+
+Gate report: `runs/supervisor_crash_gate/index.html`. Send `continue` at
+`REVIEW_REQUIRED`; report `NEEDS_ATTENTION` if seen. No automatic production restart.
+
+### Preserved G5-65 scientific design (currently interrupted)
 
 The completed mixture scan passed its cold raw-data audit on October 4:
 **576 complete points, 2,304 independent batches, 115,200 histories**, including
