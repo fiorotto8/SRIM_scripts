@@ -3,10 +3,10 @@
   "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
   "current_stage_id": "C1g",
-  "production_release": "HELD_after_G5-65R_85C_guard_stop_C1g_reduced_load_thermal_validation_scheduled_for_next_callback",
+  "production_release": "C1g_only_user_amended_15core_95C_trip_100C_ceiling_validation_manual_callback_before_production",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "G5-65R_controlled_thermal_stop_251accepted_1009remaining_C1g_scheduled",
+    "status": "G5-65R_preserved_C1g_user_amended_95C_guard_validation_preparing",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -494,18 +494,21 @@
     },
     {
       "id": "C1g",
-      "title": "Reduced-concurrency sustained-load thermal and exact-replay gate",
-      "status": "scheduled_for_next_callback_not_launched",
+      "title": "User-amended15-core sustained-load gate with95C trip and100C ceiling",
+      "status": "released_for_detached_15core_95C_validation_only",
+      "release_validation": "37targetedtests passed in45.816s:11new95Cthermal/ownedprocess-stop/gateplan tests,10originalguard,5schedule,11completion-monitor. Testspermit85-94C butreject95C,retainnewthrottlingandcritical-sensorchecks,refusebroad/wrongcgroups,skipguardianandforeignPIDs,verifyhot-stoptriggerandbudget,all15exact1MeVinputsandpreviousinterruptedartifacts. Shellsyntax/compilation/whitespacechecks pass. NoactiveSRIMservice,39GiBavailableRAM. Frozenplan andhashverificationbeforelaunch;only30minC1g,noautomaticproduction.",
+      "superseded_unlaunched_design": "Eightworkers/400diagnostichistories/85Ctrip was onlyscheduled,neverfrozenorlaunched. Userexplicitly requestedcontinuation andacceptance oftemperaturesabove85C at15cores,with100Cupperlimit. Replaceonlythisunlaunchedgate;allolderfrozenrunsremainunchanged.",
       "depends_on": ["G5-65R"],
-      "run": "runs/reduced_load_thermal_gate",
+      "run": "runs/thermal_95_gate",
+      "launcher": "scripts/thermal_95_gate.sh",
       "expected_compute_hours": [0.16667, 0.33334],
       "expected_active_work_hours": [0.25, 0.75],
       "cap_hours": 0.5,
-      "planned_workers": 8,
-      "planned_diagnostic_histories": 400,
-      "planned_references": ["Ar_C_e1000_n65_p3_b0", "Ar_F_e1000_n65_p3_b0", "Kr_C_e1000_n65_p3_b0", "Kr_F_e1000_n65_p3_b0", "Xe_C_e1000_n65_p3_b0", "Xe_F_e1000_n65_p3_b0", "Ar_C_e1000_n65_p2.5_b0", "Kr_C_e1000_n65_p2.5_b0"],
-      "scope": "Prepareandfreeze onnextcallback only. Eight exact50-ion diagnosticreplays ofaccepted1MeVAr/Kr/XeC/F batches,measuredreference204-485s each. Max8cores/CPUQuota800%,24/32GiB RAM,zeroscan swap. Testsingle-thread numericlibrary environment and1sworkerstartupstagger beforeimports/dispatch,withunchanged scientificinput/seed/solver. Observe startupandsustainedTRIMload using0.5sthermaltrace;startbelow75C,stopat85C/lowerhardwarehighlimit oranynewthrottling. No OS/BIOS/power/fan changes. All400historiesdiagnostic,noindependentproductionpromotion. 10-20minplanning/30mincap;chargeactualwalltimepluscleanupagainstoriginal24hbudget starting20457.658s. Do not assume8workers safe untilmeasured.",
-      "exit_gate": "All8exactreplays/raw/input/completion/noreset/source gates andcomplete thermaltrace pass,zero newthrottling,resourcecaps respected. Report temperatureheadroom,time/memory percase andobservedconcurrency;freeze newremainingproduction forecast andversionedcontinuation onlyaftercallback. Anythermalfailure holdsforcooling/loadreview;do notraise threshold orblindlyretry. OriginalSIGSEVcause remainsunproven."
+      "planned_workers": 15,
+      "planned_diagnostic_histories": 750,
+      "planned_selection": "Allaccepted1MeVC/Fb0replays at2.5and3atm inAr/Kr/Xe,plusC at2atm ineachfamily:15exact50-ionbatches.",
+      "scope": "Fifteen exact50-iondiagnosticreplays,measuredreference204-561s each. Max15cores/CPUQuota1500%,24/32GiBRAM,zeroscan swap. Single-thread numericlibrary environment and1sworkerstartupstagger,unchangedscientificinput/seed/solver. User100Cceiling:95Csoftwaretriporlowercritical-minus5,0.2ssampling,startbelow75C;stoponnewhardwarethrottlingorlosttelemetry. Onthermalstop SIGSTOPthenSIGKILL onlyotherprocesses inthisverifiedservicecgroup;preservepartialruntimeevidence,avoidgracefulhot-workloaddrain. Softwarecannotguaranteezeroovershoot. IntelUltra7265 officialmaximum105C andhostcritical105C,hardwarehigh85C isreportednotusedasnewtrip. NoOS/BIOS/power/fan/protectionchanges. All750historiesdiagnostic,noindependentpromotion.10-20minplanning/30mincap;chargeactualwalltimepluscleanupagainstoriginal24hbudget starting20457.658s.",
+      "exit_gate": "All15exactreplays/raw/input/completion/noreset/source gates andcomplete thermaltrace pass,zero newthrottling,resourcecaps respected.15activeworkersobserved. Reporttemperatureheadroom,time/memory percase andconcurrency. Freeze productionforecast andversionedcontinuation onlyaftercallback. Anythermal/native/workerfailure holdswithnoautomaticretry orfurthercutoffincrease. OriginalSIGSEVcause remainsunproven;shorttestnotlong-runreliabilityproof."
     },
     {
       "id": "Q6",
@@ -579,6 +582,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-07",
+      "stage": "C1g",
+      "decision": "User explicitly amendedthermalrequirement:15cores mayexceed85C,importantnottoexceed100C. Announced95Ctripwith5Cheadroom,0.2ssampling andsoftwareovershootlimitation. IntelofficialUltra7265specmax105Cmatcheshostcritical. Replaceunlaunched8-workerdesignwith15fixed1MeVexactreplays,750diagnostichistories,10-20mincompute/30mincap. Keepnewthrottling/telemetry/nativefaultstops;immediatestoponlyservice-ownedworkers. Noeditsofpriorfrozen85Cgateorproductionattempt. Retain251accepted/1009pending;charge20457.658sinheritedplusnewgatewalltime underoriginal24h. Productionwaitsfornextcallback."
+    },
     {
       "date": "2026-10-07",
       "stage": "C1g",
