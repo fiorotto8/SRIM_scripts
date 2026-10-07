@@ -332,6 +332,9 @@ def main():
                 status='HELD_new_hardware_throttling_at94C_sampled_peak_user_load_choice_required',
                 inherited_cumulative_hours=spent95/3600, guard_error=stop95['guard_error'])
     capped_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_capped/plan.json'
+    temperature_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_temperature/plan.json'
+    if temperature_plan.exists():
+        capped_plan=temperature_plan
     if capped_plan.exists():
         capped=json.loads(capped_plan.read_text())
         reset_gate.verify_hashes(capped['input_sha256'])
@@ -340,7 +343,7 @@ def main():
         capped_status=capped_plan.parent/'status.json'
         live=json.loads(capped_status.read_text()) if capped_status.exists() else {'status':'PREPARED'}
         next(row for row in rows if row['id']=='G5-65').update(
-            status='G5-65R2_production_only_'+live['status'],
+            status=capped['stage']+'_production_only_'+live['status'],
             model_hours=round(pending['model_hours'],2),planning_hours=round(pending['planning_hours'],2),
             phase_model_hours=pending['phase_model_hours'],
             longest_batch_hours=round(pending['longest_estimated_batch_hours'],2),
@@ -429,6 +432,10 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 'G5-65R3 supersedesR2 after itscounterstopat90C withno newacceptedbatches: '
+                 'user approved throttle-counter warnings instead ofstops,retaining95Ccutoff,telemetrychecks '
+                 'andhardwareprotections.20727.285s inherited;1009originalproductionbatches remain. '
+                 'Thefollowing R2 andearlier descriptions are historical. '
                  'Only G5-65R2 original1009 pending production batches released with15worker processes, '
                  '1000% aggregate CPU quota/20ms period,95C trip andnew-hardware-throttling stop. '
                  'C1h canceled,not passed; no diagnostic replays. Pending model~5h/planning~8.3h is '

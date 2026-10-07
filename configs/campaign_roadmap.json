@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "G5-65R2",
-  "production_release": "User_requested_production_without_further_load_tests_only_G5-65R2_released_with_lower_CPU_quota_and_95C_guard",
+  "current_stage_id": "G5-65R3",
+  "production_release": "User_approved_throttle_warnings_not_stops_keep95C_stop_production_only_no_load_test",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "G5-65R2_production_only_251retained_1009pending_no_additional_diagnostic_replays",
+    "status": "G5-65R3_production_only_251retained_1009pending_no_additional_diagnostic_replays",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -529,7 +529,8 @@
     {
       "id": "G5-65R2",
       "title": "Production-only continuation with lower aggregate CPU duty",
-      "status": "launched_detached_check_live_status_before_any_next_action",
+      "status": "NEEDS_ATTENTION_throttle_counter_stop_90C_sampled_peak_zero_new_accepted",
+      "stop_review": "Stopped2026-10-07T14:15:43+02:00 after196.581s includingcleanup. Peak90C;counterincrease,notthe95Ccutoff.251acceptedunchanged,1009pending,15partialattemptspreserved. PeakRAM14.745GiB,zeroScanSwap;20727.284959095105sused. User subsequently approved warning-only counterincrements,keepingtemperaturestop;no loadtest.",
       "launch_review": "2026-10-07 14:12 CEST:27offline tests passed (18new/quota/thermal/schedule,9isolated-controller regressions). Full prior-source/raw-input audit passed;119k+ancestral artifacts preserved. Detached systemd unit active,15production children observed withCPUaffinity0-14,CPUQuota10s/1s and20msperiod,32GiBmax andzero swap. Same1009pending cases;251retained. No loadtest ordiagnostic simulation launched. Codecommit1aaad65,not pushed. Use live status,not this historical startup observation,for completion/thermal state.",
       "depends_on": ["G5-65R", "C1g"],
       "run": "runs/noble_cf4_mixture_pressure_65_capped",
@@ -539,6 +540,19 @@
       "inherited_used_seconds": 20530.703796095106,
       "scope": "User explicitly skips further load tests. Run only1009 original pending production batches, retain251 and4536baseline, identical inputs/seeds/model.15workers and<=15core affinity, CPUQuota1000% with20ms period,24/32GiB RAM,zero scan swap,single-thread numerical libraries,1slaunch stagger.95Ctrip/lowercritical-minus5,newhardwarethrottling orlosttelemetry stops ownedworkers immediately. No machine-wide power/firmware changes. No diagnostic replays or automatic nextwave. Timing extrapolated15/10 CPU duty,not measured guarantee; originalSIGSEVcause remains unproven.",
       "exit_gate": "All1260original batches audited once,1449combinedpoints,5796independentbatches,289800histories; unchanged630pressurechecks,precisionflags retained. Full raw/source/input/model/normalcompletion/noreset gates and thermaltrace,cleanserviceexit,zeroOOM. Original24hbudget includes20530.704sinherited andentire guardedrun/cleanup,3hjobcap/3h90sdrain. Stop for callback beforeG5-70; no automatic retry. C1h canceled,not passed; no sampled100C isnot proof ofzero transient excursions."
+    },
+    {
+      "id": "G5-65R3",
+      "title": "Production continuation with throttle warnings and95C stop",
+      "status": "prepared_for_detached_launch",
+      "depends_on": ["G5-65R2"],
+      "run": "runs/noble_cf4_mixture_pressure_65_temperature",
+      "launcher": "scripts/mixture_pressure_65_temperature.sh",
+      "expected_compute_hours": [5.0, 8.3],
+      "cap_hours": 24,
+      "inherited_used_seconds": 20727.284959095105,
+      "scope": "User approved warning-only thermal-throttle counter increases anddirectproduction withoutloadtest. Same1009pending originalcases/inputs/seeds,251retained plus4536baseline;15workers,CPUQuota1000%/20msperiod,24/32GiB,zero scan swap.95C/lowercritical-minus5 cutoff,telemetrychanges/reset andworkerfailures remain stops. Hardware protections andmachinepower/firmware untouched. Warning events/thermaltrace retained. OriginalSIGSEVcauseunproven;no guaranteeofzero brief100Cexcursions. Forecast5-8.3h remainsconditionalunderhardwarethrottling.",
+      "exit_gate": "Same1260originalbatches/1449combinedpoints/5796independentbatches/289800histories,raw/source/input/model/completion/noreset gates,630pressurechecks,precisionflags kept. Entireguardedwallandcleanupchargedtooriginal24hbudget;3hjobcap/3h90sdrain. Reviewfullthermaltrace andwarnings,resourcecaps andcleanexit. Noautomaticretry ornextwave;callbackbeforeG5-70."
     },
     {
       "id": "Q6",
