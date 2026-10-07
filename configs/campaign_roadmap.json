@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "C1g",
-  "production_release": "HELD_C1g95_stopped_on_new_hardware_throttling_at94C_sampled_peak_next_load_choice_required",
+  "current_stage_id": "G5-65R2",
+  "production_release": "User_requested_production_without_further_load_tests_only_G5-65R2_released_with_lower_CPU_quota_and_95C_guard",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "C1g95_hardware_throttling_stop_251accepted_1009pending_all_production_held",
+    "status": "G5-65R2_production_only_251retained_1009pending_no_additional_diagnostic_replays",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -516,7 +516,8 @@
     {
       "id": "C1h",
       "title": "Conditional lower-CPU-duty or hardware-limit validation",
-      "status": "proposed_awaiting_user_direction_not_launched",
+      "status": "canceled_by_user_skip_load_test_not_passed",
+      "superseding_direction": "User: continue without the load test, focus on scans. No C1h simulations will run. G5-65R2 uses reduced CPU quota directly; sustained-load reliability remains unproven, all thermal and scientific gates retained.",
       "depends_on": ["C1g"],
       "run": "runs/thermal_load_budget_gate",
       "expected_compute_hours": [0.25, 0.5],
@@ -524,6 +525,19 @@
       "cap_hours": 0.66667,
       "scope": "Recommendedoptionpendinguserchoice:keep15workerprocesses/15coreaffinity buttestlowercgroupCPUquota,e.g.1000%(10core-equivalentaggregateCPUtime),withshortquotaperiod andsame15exactreplays. Retain95Ctrip/100Cuserceiling,newthrottlestop,32GiB/zeroscanSwap. CPUquota isnot ahardwaretemperatureguarantee;validatebeforeproduction. Planning15-30min/40mincap. Alternative:usercoordinatescoolingorfirmware-enforcedthermal/powerlimit,thenrepeatfixed15workercontrols;nofirmware/OSpowerchangeswithoutdirection. Budgetstarts20530.704s;chargeallnewtestwalltime. Noadditionalproductionorhistoriesuntilchoiceandfrozenplan.",
       "exit_gate": "Chosenloadpassesfixedexactreplays,resource/thermaltrace andnewthrottlinggates;reforecastremaining1009batchesandoriginal24hbudgetbeforeversionedproduction. Software-only sampledtemperaturecannotcertifyabsenceofbrief100Cexcursions. Manualcallback required."
+    },
+    {
+      "id": "G5-65R2",
+      "title": "Production-only continuation with lower aggregate CPU duty",
+      "status": "prepared_for_detached_launch",
+      "depends_on": ["G5-65R", "C1g"],
+      "run": "runs/noble_cf4_mixture_pressure_65_capped",
+      "launcher": "scripts/mixture_pressure_65_capped.sh",
+      "expected_compute_hours": [5.0, 8.3],
+      "cap_hours": 24,
+      "inherited_used_seconds": 20530.703796095106,
+      "scope": "User explicitly skips further load tests. Run only1009 original pending production batches, retain251 and4536baseline, identical inputs/seeds/model.15workers and<=15core affinity, CPUQuota1000% with20ms period,24/32GiB RAM,zero scan swap,single-thread numerical libraries,1slaunch stagger.95Ctrip/lowercritical-minus5,newhardwarethrottling orlosttelemetry stops ownedworkers immediately. No machine-wide power/firmware changes. No diagnostic replays or automatic nextwave. Timing extrapolated15/10 CPU duty,not measured guarantee; originalSIGSEVcause remains unproven.",
+      "exit_gate": "All1260original batches audited once,1449combinedpoints,5796independentbatches,289800histories; unchanged630pressurechecks,precisionflags retained. Full raw/source/input/model/normalcompletion/noreset gates and thermaltrace,cleanserviceexit,zeroOOM. Original24hbudget includes20530.704sinherited andentire guardedrun/cleanup,3hjobcap/3h90sdrain. Stop for callback beforeG5-70; no automatic retry. C1h canceled,not passed; no sampled100C isnot proof ofzero transient excursions."
     },
     {
       "id": "Q6",

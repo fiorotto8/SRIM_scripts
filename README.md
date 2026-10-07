@@ -65,12 +65,24 @@ claim of detector-calibrated quenching.
 | C1f | All 15 exact replays, 753 raw re-audits and fault-containment checks passed; thermal trace audited | 78.1 s actual; peak 83°C, no new throttling | 15 min |
 | G5-65R | Controlled thermal stop at 85°C; 15 attempts preserved, no new accepted batches | 59.6 s including cleanup; 15-worker forecast now conditional | Original 24 h; 5.683 h used |
 | C1g | Reached15workers; stopped on new hardware-throttling events at94°C sampled peak; zero completed replays | 72.3 s including cleanup | 30 min |
-| C1h (proposed) | Keep15workers with lower CPU quota, or validate a user-coordinated cooling/hardware-limit change | 15–30 min compute; user direction required | 40 min |
+| C1h (canceled) | User requested no further load tests; this gate was not run or passed | No simulation | — |
+| G5-65R2 | Production-only continuation:1,009 original batches;15 workers with1000% aggregate CPU quota,95°C trip and hardware-throttling stop | About5–8.3h, extrapolated rather than measured at this quota | Original24h;5.703h already used |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Remaining G5 wave order and planning hours: 65% remainder (5.5), 70% (17.1),
-75% (17.9), 85% (20.0), 90% (20.8), 95% (21.4). Recompute before each wave.
+Current production continuation: `bash scripts/mixture_pressure_65_capped.sh status`
+(`logs` follows output; `stop` stops the owned service). It runs detached and
+stops for review before the next concentration wave. No additional load test
+or diagnostic replay is scheduled. Results/report:
+`runs/noble_cf4_mixture_pressure_65_capped/index.html`.
+The quota allows15 worker processes but only10 core-equivalents of aggregate
+CPU time. The95°C trip gives headroom below the user's100°C ceiling; sampled
+telemetry cannot guarantee absence of brief excursions. Previous failed runs
+remain preserved, and the original Python crash cause is still unproven.
+
+Remaining G5 wave order and planning hours: 65% remainder (8.3), 70% (17.1),
+75% (17.9), 85% (20.0), 90% (20.8), 95% (21.4). Later-wave estimates still assume
+the previous full CPU quota; remeasure on production and recompute before each wave.
 The 95% forecast plus the 3 h 90 s drain currently exceeds 24 h: that wave is
 held for replanning or splitting before release. If split, allow an additional
 0.25–0.75 h active work and 0.5–2 h compute overhead, not included below.
@@ -135,7 +147,12 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current status: hardware-throttling stop; no simulations running
+### Production continuation and preserved thermal-stop evidence
+
+The latest user instruction cancels further load tests. G5-65R2 continues only
+the unfinished production cohort at reduced aggregate CPU duty; use
+`bash scripts/mixture_pressure_65_capped.sh status` for its live state.
+The following C1g stop is historical evidence, not the current launcher.
 
 The corrected C1g launcher reached all15workers, then stopped on **new package
 thermal-throttle events** at12:49:41 CEST on October7. Its highest sampled
@@ -152,13 +169,10 @@ guarantee a fresh hardware measurement each time. The local trace contains
 repeated readings consistent with that limitation. The exact OEM kernel binary
 was not reverse-engineered; the original Python-crash cause remains unproven.
 
-Proposed next step, **not launched**: retain15worker processes but test a lower
-aggregate CPU quota, such as1000% (ten cores' worth of CPU time), with the same
-95°C trip, hardware-throttle stop and exact replays. Allow15–30minutes, capped
-at40minutes. This needs user direction and a new frozen plan; a CPU quota is not
-a hardware temperature guarantee. Alternatively, coordinate a cooling or
-firmware thermal/power limit before another15-worker test. No BIOS/power settings
-have been changed, and hardware-throttling protection has not been disabled.
+The proposed C1h lower-quota load test was **canceled, not passed**. Instead,
+the reduced1000% quota is applied directly to actual production with unchanged
+thermal and scientific acceptance checks. No BIOS/power settings have been
+changed, and hardware-throttling protection has not been disabled.
 
 ### Preserved C1g15-core validation design
 

@@ -331,6 +331,23 @@ def main():
             next(row for row in rows if row['id']=='G5-65').update(
                 status='HELD_new_hardware_throttling_at94C_sampled_peak_user_load_choice_required',
                 inherited_cumulative_hours=spent95/3600, guard_error=stop95['guard_error'])
+    capped_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_capped/plan.json'
+    if capped_plan.exists():
+        capped=json.loads(capped_plan.read_text())
+        reset_gate.verify_hashes(capped['input_sha256'])
+        pending=capped['forecast']
+        crash_review=dict(crash_review,inherited_used_seconds=capped['inherited_used_seconds'])
+        capped_status=capped_plan.parent/'status.json'
+        live=json.loads(capped_status.read_text()) if capped_status.exists() else {'status':'PREPARED'}
+        next(row for row in rows if row['id']=='G5-65').update(
+            status='G5-65R2_production_only_'+live['status'],
+            model_hours=round(pending['model_hours'],2),planning_hours=round(pending['planning_hours'],2),
+            phase_model_hours=pending['phase_model_hours'],
+            longest_batch_hours=round(pending['longest_estimated_batch_hours'],2),
+            inherited_cumulative_hours=capped['inherited_used_seconds']/3600,
+            pending_diagnostic_cap_hours=0,load_test_skipped_by_user=True,
+            cpu_quota_percent=1000,forecast_valid_under_current_thermal_limits=False,
+            guard_error=live.get('guard_error'),completed_continuation_batches=live.get('completed_continuation_batches',0))
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -402,6 +419,7 @@ def main():
     if isolated_plan.exists():sources.append(isolated_plan)
     if thermal95_plan.exists():sources.append(thermal95_plan)
     if thermal95_retry.exists():sources.append(thermal95_retry)
+    if capped_plan.exists():sources.append(capped_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -410,7 +428,13 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='C1g95correctedlauncher reached15workers thenstoppedonnewhardwarethrottling,94Csampledpeak, '
+                 assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 'Only G5-65R2 original1009 pending production batches released with15worker processes, '
+                 '1000% aggregate CPU quota/20ms period,95C trip andnew-hardware-throttling stop. '
+                 'C1h canceled,not passed; no diagnostic replays. Pending model~5h/planning~8.3h is '
+                 '15/10 CPU-duty extrapolation,not measured reduced-quota reliability. Later waves need new forecasts. '
+                 'All following C1g/C1h andearlier release/hold descriptions are historical,not current permission. '
+                 'C1g95correctedlauncher reached15workers thenstoppedonnewhardwarethrottling,94Csampledpeak, '
                  'zero completedreplays,15partialattempts preserved;20530.704scumulativeused. ProductionHELD. '
                  'No sampled100Cdoesnot exclude briefexcursions;upstreamLinux6.17coretempcachesfor~1s. '
                  'NextC1hproposalneedsuserdirection:15workerswithlowerCPUquota orcoordinatedcooling/hardwarelimit, '
