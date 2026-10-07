@@ -63,7 +63,8 @@ claim of detector-calibrated quenching.
 | G5-60 | All 315 new points audited; 1,134 combined points | 7 h 43 min actual | 24 h |
 | G5-65 (interrupted) | Supervisor SIGSEGV; 251 batches audited, 1,009 remaining; original evidence preserved | 5.62 h before crash; remaining 3.33 h model / 5.50 h planning | Original 24 h, including recovery diagnostics |
 | C1f | All 15 exact replays, 753 raw re-audits and fault-containment checks passed; thermal trace audited | 78.1 s actual; peak 83°C, no new throttling | 15 min |
-| G5-65R (current) | Isolated-worker continuation of only the 1,009 missing original batches; guarded temperature/load | 3.33 h model / 5.50 h planning | Original 24 h including 5.666 h inherited |
+| G5-65R | Controlled thermal stop at 85°C; 15 attempts preserved, no new accepted batches | 59.6 s including cleanup; 15-worker forecast now conditional | Original 24 h; 5.683 h used |
+| C1g (next callback) | Eight-worker sustained-load exact-replay thermal test; production held | 10–20 min compute; 15–45 min preparation/review | 30 min |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
@@ -133,7 +134,26 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: guarded G5-65R continuation after the C1f audit
+### Current status: thermal stop; reduced-load test scheduled
+
+**Nothing is running.** G5-65R started at 10:53:34 CEST on October 7 and was
+stopped by the guard at **85°C** at 10:54:33. This was a controlled stop, not
+another Python crash. All 15 new attempts were saved as `STOPPED`; no new batch
+was accepted. The results index still exactly matches the original 251 batches.
+Peak scan RAM was 13.87 GiB with zero scan swap. The full 59.56 seconds including
+service cleanup brings inherited usage to **20,457.658 seconds**.
+
+Next callback: prepare a fixed **eight-worker, eight-replay 1 MeV test** across
+Ar/Kr/Xe C/F recoils, using accepted reference batches that took 204–485 seconds.
+Allow **10–20 minutes compute**, capped at 30 minutes, plus 15–45 minutes of
+preparation/review. Test single-thread numerical-library settings and staggered
+worker startup, retaining the 85°C cutoff and all exact-output/physics checks.
+The 400 histories are diagnostic only. This is scheduled, not launched; eight
+workers must also demonstrate safe temperatures. No automatic restart or raised
+cutoff. The previous 3.3–5.5-hour production estimate assumes 15-worker throughput
+and must be reassessed after this test.
+
+### Preserved G5-65R continuation design and C1f review
 
 G5-65's Python supervisor crashed with `SIGSEGV` at **03:18:31 CEST on October 7**.
 The original run's `RUNNING` JSON label is stale; use the new continuation status below.

@@ -299,6 +299,15 @@ def main():
             status='C1f_reviewed_G5-65R_fixed_cohort_thermal_guarded_continuation',
             inherited_cumulative_hours=isolated['inherited_used_seconds']/3600,
             pending_diagnostic_cap_hours=0, diagnostic_actual_seconds=isolated['recovery_review']['diagnostic_wall_seconds'])
+        isolated_status=isolated_plan.parent/'status.json'
+        if isolated_status.exists() and json.loads(isolated_status.read_text()).get('guard_error'):
+            stopped=json.loads(isolated_status.read_text())
+            budget=json.loads((isolated_plan.parent/'budget.json').read_text())
+            crash_review=dict(crash_review,inherited_used_seconds=budget['used_seconds'])
+            next(row for row in rows if row['id']=='G5-65').update(
+                status='HELD_85C_thermal_stop_C1g_reduced_load_gate_required',
+                forecast_valid_under_current_thermal_limits=False,
+                inherited_cumulative_hours=budget['used_seconds']/3600, guard_error=stopped['guard_error'])
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -376,7 +385,13 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='C1f coldreviewpassed:15exactreplays,753threadedrawaudits,controlledfaultcontainment; '
+                 assumptions='CurrentG5-65Rattempt stoppedat85C withno newacceptedbatches,not anewPythoncrash. '
+                 '251oldbatchesretained,15newattemptsSTOPPED,1009remaining;20457.658susedincludingcleanup. '
+                 'ProductionHELD forC1gfixed8-worker400-history1MeV exactreplay thermaltest,nextcallbackonly: '
+                 '10-20mincompute/30mincap plus15-45minpreparation/review. Noautomaticretry orhighercutoff. '
+                 'All15-workerforecastsbelow areconditionalandmustbereassessed aftermeasuredreducedload. '
+                 'Thefollowing C1fandG5-65Rrelease statementsarepreservedhistoricalcontext,notthecurrentrelease. '
+                 'C1f coldreviewpassed:15exactreplays,753threadedrawaudits,controlledfaultcontainment; '
                  '78.096swholeguardedrun,83Cpeak,no newthrottling. Causeunproven andsustainedloadstability unestablished. '
                  'OnlyG5-65R1009originalbatches arereleasedaftercallback,withisolatedworkers andthermalstopat85C/lowerhardwarelimit '
                  'oranynewthrottling. 20398.096sinheritedchargedtooriginal24hcap. Forecast3.335hmodel/5.502hplanning '

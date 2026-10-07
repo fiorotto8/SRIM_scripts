@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "G5-65R",
-  "production_release": "Only_1009_original_G5-65_batches_after_reviewed_C1f_manual_callback_before_G5-70",
+  "current_stage_id": "C1g",
+  "production_release": "HELD_after_G5-65R_85C_guard_stop_C1g_reduced_load_thermal_validation_scheduled_for_next_callback",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "C1f_passed_cold_audit_isolated_thermal_guarded_G5-65R_released",
+    "status": "G5-65R_controlled_thermal_stop_251accepted_1009remaining_C1g_scheduled",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -479,7 +479,8 @@
     {
       "id": "G5-65R",
       "title": "Isolated-worker continuation of the fixed65%-noble pressure wave",
-      "status": "released_for_detached_guarded_continuation",
+      "status": "NEEDS_ATTENTION_controlled_thermal_stop_no_new_accepted_batches",
+      "stop_review": {"stopped_at": "2026-10-07T10:54:33.995601+02:00", "trigger": "CPU sensor reached85C", "new_python_crash": false, "new_throttle_counter_events": 0, "accepted_original_batches": 251, "accepted_new_batches": 0, "interrupted_new_attempts": 15, "remaining_original_batches": 1009, "guard_wall_seconds": 58.68251436401624, "wall_including_service_cleanup_seconds": 59.56192599999849, "inherited_used_seconds_for_next_step": 20457.657923095107, "memory_peak_gib": 13.867912292480469, "scan_swap_gib": 0, "note": "All15newattempts saved asSTOPPED;acceptedindex exactlyequalsoriginal251rows. NoactiveSRIMservice/processes. 15-worker3.3-5.5hforecast isconditional,not sustainableload certification. Noautomaticretry orcutoffincrease;C1g reducedload beforeproduction."},
       "release_validation": "43targetedtests passed in47.158s:17continuation/review/process/budget/provenance,10thermalguard,5schedule and11completion-monitor. Includes exact1260case/seed preservation,only1009pendinginputpairs,no rerunofaccepted251,thermaltrace mutation rejection,workercrash/auditfailureholds,jobdrainbudget,guardstopandcleanupaccounting,finalizer. One scheduleredgecase caught duringdevelopment andfixedbeforefreeze;fullsuitepassedafterfix. ColdC1faudit passed;original frozen scientificsources untouched. LaunchonlyG5-65R detached,verify15core/24-32GiB/zeroscanSwapandthermalguard; noautomaticG5-70.",
       "depends_on": ["C1f"],
       "run": "runs/noble_cf4_mixture_pressure_65_isolated",
@@ -490,6 +491,21 @@
       "inherited_used_seconds": 20398.095997095108,
       "scope": "Runonly1009outstanding originalbatches,retain251accepted plus4536baseline. Exactoriginal cases/inputs/seeds/geometry/bindings,unchanged630pressure screen andprecisiontargets. Noadditionalindependentpoints beyondoriginalG5 allocation. Single-threaded controller,one isolatedprocess perbatch,15workers,24/32GiBRAM,zeroscan swap;faulthandler andservice-exit finalizer. Ownfresh runtimes,oldfailedattempts preserved. StartCPUbelow75C,stopat85C/lowerhardwarehighlimit oranythrottlecounterchange,0.5ssampling. Noautomaticretry ornextwave. Forecastassumes sustained15-workerthroughput;thermalstop requires cooling/loadreview andnewboundedplan,notraisingcutoff.",
       "exit_gate": "All1260originalbatches accountedonce;1449combinedcompletepoints/5796independentbatches/289800histories. Fullraw/source/input/actualparameter/composition/density/containment/normalcompletion/noreset audits,CSV/PDF and630prespecifiedpressure intervals;precisionflagsretained forfixedQ6. ThermalstatusCOMPLETE,cleanserviceexit andcompleteguardtrace mandatory. Charge20398.096secondsinherited plusentire guardedrun/cleanup tooriginal24hcap;3hbatchcap/3h90sdispatchdrain. Anyworker/thermalfailure stopsdispatch andholds;manualcallback beforeG5-70."
+    },
+    {
+      "id": "C1g",
+      "title": "Reduced-concurrency sustained-load thermal and exact-replay gate",
+      "status": "scheduled_for_next_callback_not_launched",
+      "depends_on": ["G5-65R"],
+      "run": "runs/reduced_load_thermal_gate",
+      "expected_compute_hours": [0.16667, 0.33334],
+      "expected_active_work_hours": [0.25, 0.75],
+      "cap_hours": 0.5,
+      "planned_workers": 8,
+      "planned_diagnostic_histories": 400,
+      "planned_references": ["Ar_C_e1000_n65_p3_b0", "Ar_F_e1000_n65_p3_b0", "Kr_C_e1000_n65_p3_b0", "Kr_F_e1000_n65_p3_b0", "Xe_C_e1000_n65_p3_b0", "Xe_F_e1000_n65_p3_b0", "Ar_C_e1000_n65_p2.5_b0", "Kr_C_e1000_n65_p2.5_b0"],
+      "scope": "Prepareandfreeze onnextcallback only. Eight exact50-ion diagnosticreplays ofaccepted1MeVAr/Kr/XeC/F batches,measuredreference204-485s each. Max8cores/CPUQuota800%,24/32GiB RAM,zeroscan swap. Testsingle-thread numericlibrary environment and1sworkerstartupstagger beforeimports/dispatch,withunchanged scientificinput/seed/solver. Observe startupandsustainedTRIMload using0.5sthermaltrace;startbelow75C,stopat85C/lowerhardwarehighlimit oranynewthrottling. No OS/BIOS/power/fan changes. All400historiesdiagnostic,noindependentproductionpromotion. 10-20minplanning/30mincap;chargeactualwalltimepluscleanupagainstoriginal24hbudget starting20457.658s. Do not assume8workers safe untilmeasured.",
+      "exit_gate": "All8exactreplays/raw/input/completion/noreset/source gates andcomplete thermaltrace pass,zero newthrottling,resourcecaps respected. Report temperatureheadroom,time/memory percase andobservedconcurrency;freeze newremainingproduction forecast andversionedcontinuation onlyaftercallback. Anythermalfailure holdsforcooling/loadreview;do notraise threshold orblindlyretry. OriginalSIGSEVcause remainsunproven."
     },
     {
       "id": "Q6",
@@ -563,6 +579,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-07",
+      "stage": "C1g",
+      "decision": "G5-65R launched10:53:34,stoppedcleanlyat85C10:54:33. No newnativecrash ornewthrottlecounterevents. 15workerattempts preservedSTOPPED,no newacceptedbatches;original251index unchanged. Peak13.868GiB,zeroscanSwap;59.562s includingcleanup charged,used20457.658s. Productionheld. Schedulefixed8-worker400-history1MeV exactreplay thermaltest fornextcallback,10-20mincompute/30mincap withsinglethreadnumericlibraries andstaggeredstartup. Preserve allfrozen sources;noautomaticrerun,nohighercutoff. Reforecast15-workerestimate aftermeasuredreducedload;alllaterwavesheld."
+    },
     {
       "date": "2026-10-07",
       "stage": "G5-65R",
