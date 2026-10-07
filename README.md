@@ -64,7 +64,8 @@ claim of detector-calibrated quenching.
 | G5-65 (interrupted) | Supervisor SIGSEGV; 251 batches audited, 1,009 remaining; original evidence preserved | 5.62 h before crash; remaining 3.33 h model / 5.50 h planning | Original 24 h, including recovery diagnostics |
 | C1f | All 15 exact replays, 753 raw re-audits and fault-containment checks passed; thermal trace audited | 78.1 s actual; peak 83°C, no new throttling | 15 min |
 | G5-65R | Controlled thermal stop at 85°C; 15 attempts preserved, no new accepted batches | 59.6 s including cleanup; 15-worker forecast now conditional | Original 24 h; 5.683 h used |
-| C1g (current) | User-amended15-core exact-replay test; 95°C trip/100°C user ceiling; production held | 10–20 min compute | 30 min |
+| C1g | Reached15workers; stopped on new hardware-throttling events at94°C sampled peak; zero completed replays | 72.3 s including cleanup | 30 min |
+| C1h (proposed) | Keep15workers with lower CPU quota, or validate a user-coordinated cooling/hardware-limit change | 15–30 min compute; user direction required | 40 min |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
@@ -134,7 +135,32 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step:15-core validation with the user-amended thermal policy
+### Current status: hardware-throttling stop; no simulations running
+
+The corrected C1g launcher reached all15workers, then stopped on **new package
+thermal-throttle events** at12:49:41 CEST on October7. Its highest sampled
+temperature was **94°C**; the95°C software threshold was not the trigger.
+All196service-owned child processes were stopped promptly. Fifteen partial
+case/runtime directories are preserved, but **no replay completed and no new
+production result was accepted**. The accepted251batches remain unchanged.
+Peak scan RAM15.03GiB, zero scan swap; inherited budget usage is now20,530.704s.
+
+No sample showed100°C, but brief excursions cannot be ruled out.
+[Upstream Linux6.17 coretemp](https://github.com/torvalds/linux/blob/v6.17/drivers/hwmon/coretemp.c)
+caches temperatures for roughly one second: reading the file every0.2s does not
+guarantee a fresh hardware measurement each time. The local trace contains
+repeated readings consistent with that limitation. The exact OEM kernel binary
+was not reverse-engineered; the original Python-crash cause remains unproven.
+
+Proposed next step, **not launched**: retain15worker processes but test a lower
+aggregate CPU quota, such as1000% (ten cores' worth of CPU time), with the same
+95°C trip, hardware-throttle stop and exact replays. Allow15–30minutes, capped
+at40minutes. This needs user direction and a new frozen plan; a CPU quota is not
+a hardware temperature guarantee. Alternatively, coordinate a cooling or
+firmware thermal/power limit before another15-worker test. No BIOS/power settings
+have been changed, and hardware-throttling protection has not been disabled.
+
+### Preserved C1g15-core validation design
 
 The preserved G5-65R attempt started at 10:53:34 CEST on October 7 and was
 stopped by the guard at **85°C** at 10:54:33. This was a controlled stop, not

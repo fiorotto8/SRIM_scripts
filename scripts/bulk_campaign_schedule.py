@@ -323,6 +323,14 @@ def main():
         next(row for row in rows if row['id']=='G5-65').update(
             status='HELD_for_C1g95_working_directory_recovery_same_fixed_gate',
             inherited_cumulative_hours=recovery95['inherited_used_seconds']/3600)
+        thermal95_status=thermal95_retry.parent/'status.json'
+        if thermal95_status.exists() and json.loads(thermal95_status.read_text()).get('guard_error'):
+            stop95=json.loads(thermal95_status.read_text())
+            spent95=json.loads((thermal95_retry.parent/'budget.json').read_text())['used_seconds']
+            crash_review=dict(crash_review,inherited_used_seconds=spent95)
+            next(row for row in rows if row['id']=='G5-65').update(
+                status='HELD_new_hardware_throttling_at94C_sampled_peak_user_load_choice_required',
+                inherited_cumulative_hours=spent95/3600, guard_error=stop95['guard_error'])
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -402,7 +410,12 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='C1g95initiallaunch failedbeforeanysimulation becausegit wasoutside repo. '
+                 assumptions='C1g95correctedlauncher reached15workers thenstoppedonnewhardwarethrottling,94Csampledpeak, '
+                 'zero completedreplays,15partialattempts preserved;20530.704scumulativeused. ProductionHELD. '
+                 'No sampled100Cdoesnot exclude briefexcursions;upstreamLinux6.17coretempcachesfor~1s. '
+                 'NextC1hproposalneedsuserdirection:15workerswithlowerCPUquota orcoordinatedcooling/hardwarelimit, '
+                 '15-30mincompute/40mincap,notlaunched. Followingreleaseplansarehistorical,notcurrentpermission. '
+                 'C1g95initiallaunch failedbeforeanysimulation becausegit wasoutside repo. '
                  'Versionedrecovery setsexplicitWorkingDirectory,retainsallfixedcasesandlimits; '
                  '0.776scleanupincluded,newinherited20458.434s. No temperaturefailureornewphysicsresults. '
                  'UseramendedC1g:15-core validation with95Ctrip/100Cuserceiling,0.2ssampling, '
