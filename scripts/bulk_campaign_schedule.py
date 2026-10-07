@@ -335,6 +335,9 @@ def main():
     temperature_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_temperature/plan.json'
     if temperature_plan.exists():
         capped_plan=temperature_plan
+    ten_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_ten/plan.json'
+    if ten_plan.exists():
+        capped_plan=ten_plan
     if capped_plan.exists():
         capped=json.loads(capped_plan.read_text())
         reset_gate.verify_hashes(capped['input_sha256'])
@@ -432,6 +435,10 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 'G5-65R4 nowusesexactly10workers andno softwaretemperature cutoff atuserrequest; '
+                 'hardwareprotections unchanged,temperature/throttling logged,21102.680sinherited. '
+                 'Currentforecast uses10-worker scheduling;laterwaveestimates needreforecastfor10workers. '
+                 'Following R3/R2 cutoffpolicies are historical,not active. '
                  'G5-65R3 supersedesR2 after itscounterstopat90C withno newacceptedbatches: '
                  'user approved throttle-counter warnings instead ofstops,retaining95Ccutoff,telemetrychecks '
                  'andhardwareprotections.20727.285s inherited;1009originalproductionbatches remain. '

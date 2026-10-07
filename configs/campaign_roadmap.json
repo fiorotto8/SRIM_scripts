@@ -2,11 +2,11 @@
   "schema_version": 1,
   "updated_on": "2026-10-07",
   "mode": "manual_continue_gates_no_automatic_launches",
-  "current_stage_id": "G5-65R3",
-  "production_release": "User_approved_throttle_warnings_not_stops_keep95C_stop_production_only_no_load_test",
+  "current_stage_id": "G5-65R4",
+  "production_release": "User_requested_only10workers_no_softwaretemperature_cutoff_hardware_protections_unchanged_no_load_test",
   "bulk_model_transition": {
     "model_id": "noble-cf4-bulk-trim5-eps1e9-v1",
-    "status": "G5-65R3_production_only_251retained_1009pending_no_additional_diagnostic_replays",
+    "status": "G5-65R4_production_only_251retained_1009pending_no_additional_diagnostic_replays",
     "surface_points_reused": 0,
     "paired_diagnostic_histories_reused": 0,
     "baseline_rebuild_points": 243,
@@ -61,6 +61,8 @@
     "scope_note": "Working full-scan target, not the old 100-energy default. No detector-calibrated quenching claim; no Garfield physics comparison. Any change to geometry/model requires a new model identity and explicit review before pooling or reuse."
   },
   "resources": {
+    "current_and_future_worker_limit": 10,
+    "latest_user_policy": "Only10workers;no softwaretemperature cutoff. Older15coremax below ishistorical ceiling,notpermissionfor15workers. Hardware thermal protections stayenabled; no loadtests. Reforecastfuturewavesat10workers.",
     "max_workers_and_cores": 15,
     "memory_high_gib": 24,
     "memory_max_gib": 32,
@@ -544,7 +546,8 @@
     {
       "id": "G5-65R3",
       "title": "Production continuation with throttle warnings and95C stop",
-      "status": "launched_detached_check_live_status_before_next_action",
+      "status": "NEEDS_ATTENTION_temperature96C_stop_zero_new_accepted",
+      "stop_review": "2026-10-07T14:38:49+02:00:95Ccutofftriggered at96C sampledreading.375.394716swithcleanup;21102.679675095103sinherited.251acceptedunchanged,1009pending,15partialattemptspreserved,15.753GiBpeakRAM,zeroscanSwap. Throttlingwasloggedaswarningscorrectly;no newacceptedbatches.",
       "launch_review": "2026-10-07:26offline tests passed,includingcounterwarnings,95Ccutoff,telemetryintegrity,warningtrace,fullcoldcohort/input/hash/budgetaudit andisolatedworker regressions. Codecommit7c4bace,notpushed. Detachedservice observedRUNNING/pressure_production with15productionchildren and15TRIMprocesses,affinity0-14,CPUQuota1000%/20msperiod,32GiBmax,zeroSwap. Startup sampledpeak84C;thisisnot a sustainedtemperatureguarantee. No loadtest ordiagnostic simulations. Checklive statusfor currentstate.",
       "depends_on": ["G5-65R2"],
       "run": "runs/noble_cf4_mixture_pressure_65_temperature",
@@ -554,6 +557,19 @@
       "inherited_used_seconds": 20727.284959095105,
       "scope": "User approved warning-only thermal-throttle counter increases anddirectproduction withoutloadtest. Same1009pending originalcases/inputs/seeds,251retained plus4536baseline;15workers,CPUQuota1000%/20msperiod,24/32GiB,zero scan swap.95C/lowercritical-minus5 cutoff,telemetrychanges/reset andworkerfailures remain stops. Hardware protections andmachinepower/firmware untouched. Warning events/thermaltrace retained. OriginalSIGSEVcauseunproven;no guaranteeofzero brief100Cexcursions. Forecast5-8.3h remainsconditionalunderhardwarethrottling.",
       "exit_gate": "Same1260originalbatches/1449combinedpoints/5796independentbatches/289800histories,raw/source/input/model/completion/noreset gates,630pressurechecks,precisionflags kept. Entireguardedwallandcleanupchargedtooriginal24hbudget;3hjobcap/3h90sdrain. Reviewfullthermaltrace andwarnings,resourcecaps andcleanexit. Noautomaticretry ornextwave;callbackbeforeG5-70."
+    },
+    {
+      "id": "G5-65R4",
+      "title": "Ten-worker production with telemetry-only temperature monitoring",
+      "status": "prepared_for_detached_launch",
+      "depends_on": ["G5-65R3"],
+      "run": "runs/noble_cf4_mixture_pressure_65_ten",
+      "launcher": "scripts/mixture_pressure_65_ten.sh",
+      "expected_compute_hours": [5.0, 8.3],
+      "cap_hours": 24,
+      "inherited_used_seconds": 21102.679675095103,
+      "scope": "Explicituserrequest:only10workers,do notcaptemperature.10processes/10CPUaffinity,1000%quota,24/32GiB,zeroscanSwap. No softwarestartup/runtime temperaturecutoff;temperatureandthrottling logged,hardwarecontrols unchanged. No guaranteeofstayingbelow100C. Telemetryloss/reset,workerfailure,OOMandbudgetremainstops. Same1009pending productioncases/inputs/seeds plus251retainedand4536baseline. No loadtest,diagnosticreplay,automaticretry ornextwave. Reforecastwith10workerlongest-firstcosts;actualthermal-throttledthroughputunmeasured.",
+      "exit_gate": "All1260originalbatches accountedonce;1449combinedpoints/5796independentbatches/289800histories. Fullraw/input/source/model/completion/noreset gates,630pressurechecks,precisionflags retained. Thermaltrace/warningsreviewed withoutsoftwaremaximumtemperature gate. Original24hbudgetincludes21102.680sinheritedandwholeguardedwall/cleanup,3hjobcap/3h90sdrain. StopforcallbackbeforeG5-70;nextwavesmustuseatmost10workersunlessuseramends."
     },
     {
       "id": "Q6",

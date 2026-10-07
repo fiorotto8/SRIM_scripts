@@ -67,22 +67,23 @@ claim of detector-calibrated quenching.
 | C1g | Reached15workers; stopped on new hardware-throttling events at94°C sampled peak; zero completed replays | 72.3 s including cleanup | 30 min |
 | C1h (canceled) | User requested no further load tests; this gate was not run or passed | No simulation | — |
 | G5-65R2 | Production-only continuation:1,009 original batches;15 workers with1000% aggregate CPU quota,95°C trip and hardware-throttling stop | About5–8.3h, extrapolated rather than measured at this quota | Original24h;5.703h already used |
-| G5-65R3 (current) | R2 stopped on throttle counters at90°C sampled peak, no new accepted batches. User approved throttle warnings instead;95°C stop retained, no load test | About5–8.3h, conditional on throughput | Original24h;5.758h inherited |
+| G5-65R3 (stopped) | Temperature reached96°C andtriggered the95°C stop; no new accepted batches | 6min15s includingcleanup | 5.862h cumulative used |
+| G5-65R4 (current) | User requested10workers andno softwaretemperature cutoff. Hardware protections unchanged;production only,no loadtest | About5–8.3h, conditional on throughput | Original24h;5.862h inherited |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Current production continuation: `bash scripts/mixture_pressure_65_temperature.sh status`
+Current production continuation: `bash scripts/mixture_pressure_65_ten.sh status`
 (`logs` follows output; `stop` stops the owned service). It runs detached and
 stops for review before the next concentration wave. No additional load test
 or diagnostic replay is scheduled. Results/report:
-`runs/noble_cf4_mixture_pressure_65_temperature/index.html`.
-Thermal-throttle counter increases now produce warnings (`throttle-warnings.jsonl`)
-instead of terminating production, as approved by the user after R2 stopped.
-The95°C temperature stop, telemetry integrity checks andhardware thermal protections
-remain active. No new load test is scheduled; the1,009 pending batches are unchanged.
-The quota allows15 worker processes but only10 core-equivalents of aggregate
-CPU time. The95°C trip gives headroom below the user's100°C ceiling; sampled
-telemetry cannot guarantee absence of brief excursions. Previous failed runs
+`runs/noble_cf4_mixture_pressure_65_ten/index.html`.
+There are exactly10 worker processes, restricted to10 CPUs, with1000% aggregate
+CPU quota. Per the latest user instruction, neither startup nor runtime has a
+software temperature cutoff. Temperature andthrottling are logged, with warnings
+in `throttle-warnings.jsonl`. Hardware thermal protections are unchanged.
+This does not guarantee temperatures below100°C. Telemetry integrity, RAM/swap,
+runtime-budget andscientific acceptance checks remain active. No load test is
+scheduled; the1,009 pending batches are unchanged. Previous failed runs
 remain preserved, and the original Python crash cause is still unproven.
 
 Remaining G5 wave order and planning hours: 65% remainder (8.3), 70% (17.1),
@@ -154,9 +155,9 @@ now use four-batch P2b means rather than single P2a observations.
 
 ### Production continuation and preserved thermal-stop evidence
 
-The latest user instruction cancels further load tests. G5-65R3 continues only
+The latest user instruction cancels further load tests. G5-65R4 continues only
 the unfinished production cohort at reduced aggregate CPU duty; use
-`bash scripts/mixture_pressure_65_temperature.sh status` for its live state.
+`bash scripts/mixture_pressure_65_ten.sh status` for its live state.
 The following C1g stop is historical evidence, not the current launcher.
 
 The corrected C1g launcher reached all15workers, then stopped on **new package
@@ -174,7 +175,8 @@ guarantee a fresh hardware measurement each time. The local trace contains
 repeated readings consistent with that limitation. The exact OEM kernel binary
 was not reverse-engineered; the original Python-crash cause remains unproven.
 
-The proposed C1h lower-quota load test was **canceled, not passed**. Instead,
+The following R2/R3 policy is historical; R4 supersedes it with10workers andno
+softwaretemperature cutoff. The proposed C1h lower-quota load test was **canceled, not passed**. Instead,
 the reduced1000% quota is applied directly to actual production. After R2 stopped,
 the user approved throttle-counter warnings rather than stops; the95°C cutoff
 and scientific acceptance checks remain. No BIOS/power settings have been
