@@ -163,12 +163,17 @@ diagnostic: no independent production promotion. After the test, review temperat
 headroom, exact outputs and timings before a new production continuation.
 
 ```bash
-bash scripts/thermal_95_gate.sh status
-bash scripts/thermal_95_gate.sh logs
-bash scripts/thermal_95_gate.sh stop
+bash scripts/thermal_95_gate_retry.sh status
+bash scripts/thermal_95_gate_retry.sh logs
+bash scripts/thermal_95_gate_retry.sh stop
 ```
 
-Report: `runs/thermal_95_gate/index.html`. Send`continue` at`REVIEW_REQUIRED`,
+Report: `runs/thermal_95_gate_retry/index.html`. The initial launcher stopped
+before any simulation because its working directory was not explicit. That
+attempt is preserved; the recovery sets the repository working directory and
+carries its0.776s of elapsed time into the same budget. Physics, replay cohort,
+thermal thresholds and resource limits are unchanged.
+Send`continue` at`REVIEW_REQUIRED`,
 or paste`NEEDS_ATTENTION`. No automatic retry or next production stage.
 
 ### Preserved G5-65R continuation design and C1f review

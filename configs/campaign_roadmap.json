@@ -495,12 +495,14 @@
     {
       "id": "C1g",
       "title": "User-amended15-core sustained-load gate with95C trip and100C ceiling",
-      "status": "released_for_detached_15core_95C_validation_only",
+      "status": "released_working_directory_recovery_same_15core_95C_gate",
+      "startup_recovery_validation": "Three recoverytests passed in95.972s:exactcases/thermalpolicy/resources retained,zero-simulationfailure auditand.776222sbudgetcarry,liveglobals reproducefrozenplanwithoutchangingoldsources,gitcaptureworkswithrepositoryWorkingDirectory. Five schedule tests andshellsyntax/compilation/whitespacechecks passed. Same37-testscientific/thermalguard validation retained. Launchnewrunonly,noautomaticproduction.",
+      "startup_failure": {"failed_run": "runs/thermal_95_gate", "error": "git rev-parse failed outside repository because systemd WorkingDirectory was not explicit", "simulations_started": 0, "peak_temperature_c": 62, "elapsed_including_cleanup_seconds": 0.776222, "inherited_used_seconds_after_failure": 20458.434145095107, "correction": "Versioned recovery launcher sets WorkingDirectory to repository; oldsource,plan,status/logs preserved. Same15cases/inputs/95Cthermalpolicy and30mincap."},
       "release_validation": "37targetedtests passed in45.816s:11new95Cthermal/ownedprocess-stop/gateplan tests,10originalguard,5schedule,11completion-monitor. Testspermit85-94C butreject95C,retainnewthrottlingandcritical-sensorchecks,refusebroad/wrongcgroups,skipguardianandforeignPIDs,verifyhot-stoptriggerandbudget,all15exact1MeVinputsandpreviousinterruptedartifacts. Shellsyntax/compilation/whitespacechecks pass. NoactiveSRIMservice,39GiBavailableRAM. Frozenplan andhashverificationbeforelaunch;only30minC1g,noautomaticproduction.",
       "superseded_unlaunched_design": "Eightworkers/400diagnostichistories/85Ctrip was onlyscheduled,neverfrozenorlaunched. Userexplicitly requestedcontinuation andacceptance oftemperaturesabove85C at15cores,with100Cupperlimit. Replaceonlythisunlaunchedgate;allolderfrozenrunsremainunchanged.",
       "depends_on": ["G5-65R"],
-      "run": "runs/thermal_95_gate",
-      "launcher": "scripts/thermal_95_gate.sh",
+      "run": "runs/thermal_95_gate_retry",
+      "launcher": "scripts/thermal_95_gate_retry.sh",
       "expected_compute_hours": [0.16667, 0.33334],
       "expected_active_work_hours": [0.25, 0.75],
       "cap_hours": 0.5,
@@ -582,6 +584,11 @@
     "Final plots, tables, CSV/ROOT exports and reproduction instructions are available; limitations distinguish statistical precision from model accuracy and detector quenching."
   ],
   "review_history": [
+    {
+      "date": "2026-10-07",
+      "stage": "C1g",
+      "decision": "Initial95Cgate stoppedbeforeanysimulation becausegit commitcapture ranoutside repo intransientsystemdservice. Peak62C,no workersstarted,zero thermalsamples. Preservefrozenattempt andadd explicitWorkingDirectory innewrecoverylauncher/run. Carry0.776222s includingcleanup;newinherited20458.434145s. Nochanges to15fixedcases,physics,thermal95Ctrip/100Cceiling,resourcesor30mincap. Agent-diagnosedstartupcorrection,notblindautomaticphysicsretry."
+    },
     {
       "date": "2026-10-07",
       "stage": "C1g",

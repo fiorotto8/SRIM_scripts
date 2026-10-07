@@ -315,6 +315,14 @@ def main():
         next(row for row in rows if row['id']=='G5-65').update(
             status='HELD_for_user_amended_C1g_15core_95C_trip_validation',
             pending_diagnostic_cap_hours=.5, thermal_user_ceiling_c=100, thermal_trip_c=95)
+    thermal95_retry=ROOT/'runs/thermal_95_gate_retry/plan.json'
+    if thermal95_retry.exists():
+        recovery95=json.loads(thermal95_retry.read_text())
+        reset_gate.verify_hashes(recovery95['input_sha256'])
+        crash_review=dict(crash_review,inherited_used_seconds=recovery95['inherited_used_seconds'])
+        next(row for row in rows if row['id']=='G5-65').update(
+            status='HELD_for_C1g95_working_directory_recovery_same_fixed_gate',
+            inherited_cumulative_hours=recovery95['inherited_used_seconds']/3600)
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -385,6 +393,7 @@ def main():
     if crash_plan.exists():sources.append(crash_plan)
     if isolated_plan.exists():sources.append(isolated_plan)
     if thermal95_plan.exists():sources.append(thermal95_plan)
+    if thermal95_retry.exists():sources.append(thermal95_retry)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -393,7 +402,10 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='UseramendedC1g:15-core validation with95Ctrip/100Cuserceiling,0.2ssampling, '
+                 assumptions='C1g95initiallaunch failedbeforeanysimulation becausegit wasoutside repo. '
+                 'Versionedrecovery setsexplicitWorkingDirectory,retainsallfixedcasesandlimits; '
+                 '0.776scleanupincluded,newinherited20458.434s. No temperaturefailureornewphysicsresults. '
+                 'UseramendedC1g:15-core validation with95Ctrip/100Cuserceiling,0.2ssampling, '
                  'single-threadnumericlibraries and1sstaggeredstartup.15exact1MeVreplays/750diagnostichistories, '
                  '10-20mincompute/30mincap. Supersedesunlaunched8-workerdesign. Hardwareprotectionsunchanged; '
                  'no guaranteeofzero transients. Manualreviewbeforeproduction. Following8-workerplanningstatements arehistorical. '
