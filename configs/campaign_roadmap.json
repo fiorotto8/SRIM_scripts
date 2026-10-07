@@ -561,7 +561,8 @@
     {
       "id": "G5-65R4",
       "title": "Ten-worker production with telemetry-only temperature monitoring",
-      "status": "prepared_for_detached_launch",
+      "status": "launched_detached_check_live_status_before_next_action",
+      "launch_review": "2026-10-07:20offline tests passed including10-worker forecast,exactcohort/budget/hashreview andmockguardcontinuing aboveoldcutoff withoutchanginghardware. Codecommit72cd9a9,notpushed. Liveproduction confirmed10childworkers/10TRIMprocesses,affinity0-9,1000%CPUquota,32GiBmax,zeroscanSwap. Startup temperature98C observed andlogged,notlimited bysoftware asrequested. No loadtest. Checklive statusforongoingstate;temperature mayexceedprevious100Cpreference.",
       "depends_on": ["G5-65R3"],
       "run": "runs/noble_cf4_mixture_pressure_65_ten",
       "launcher": "scripts/mixture_pressure_65_ten.sh",
