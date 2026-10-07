@@ -290,6 +290,15 @@ def main():
             retained_original_cases=251,remaining_original_cases=1009,
             inherited_cumulative_hours=crash_review['inherited_used_seconds']/3600,
             pending_diagnostic_cap_hours=.25)
+    isolated_plan=ROOT/'runs/noble_cf4_mixture_pressure_65_isolated/plan.json'
+    if isolated_plan.exists():
+        isolated=json.loads(isolated_plan.read_text())
+        reset_gate.verify_hashes(isolated['input_sha256'])
+        crash_review=dict(crash_review, inherited_used_seconds=isolated['inherited_used_seconds'])
+        next(row for row in rows if row['id']=='G5-65').update(
+            status='C1f_reviewed_G5-65R_fixed_cohort_thermal_guarded_continuation',
+            inherited_cumulative_hours=isolated['inherited_used_seconds']/3600,
+            pending_diagnostic_cap_hours=0, diagnostic_actual_seconds=isolated['recovery_review']['diagnostic_wall_seconds'])
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -340,6 +349,7 @@ def main():
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
     environment_diagnostics=roadmap.get('bulk_model_transition',{}).get('additional_c1d_diagnostic_histories',0)
     environment_diagnostics+=roadmap.get('bulk_model_transition',{}).get('additional_c1e_diagnostic_histories',0)
+    environment_diagnostics+=roadmap.get('bulk_model_transition',{}).get('additional_c1f_diagnostic_histories',0)
     totals['post_upgrade_diagnostic_histories_additional']=environment_diagnostics
     totals['diagnostic_histories_additional']+=environment_diagnostics
     status=ROOT/current['run']/'status.json'
@@ -357,6 +367,7 @@ def main():
     if g5_plan.exists():sources.append(g5_plan)
     if g65_plan.exists():sources.append(g65_plan)
     if crash_plan.exists():sources.append(crash_plan)
+    if isolated_plan.exists():sources.append(isolated_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -365,7 +376,13 @@ def main():
     summary=dict(generated_at=datetime.now().astimezone().isoformat(),model_id=pilot.MODEL,
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
-                 assumptions='After theG5-65 SIGSEGV audit,251additional batches areaccepted:1181completepoints,63partialpoints, '
+                 assumptions='C1f coldreviewpassed:15exactreplays,753threadedrawaudits,controlledfaultcontainment; '
+                 '78.096swholeguardedrun,83Cpeak,no newthrottling. Causeunproven andsustainedloadstability unestablished. '
+                 'OnlyG5-65R1009originalbatches arereleasedaftercallback,withisolatedworkers andthermalstopat85C/lowerhardwarelimit '
+                 'oranynewthrottling. 20398.096sinheritedchargedtooriginal24hcap. Forecast3.335hmodel/5.502hplanning '
+                 'assumes15workers;thermalstop requiresload/coolingreview andpossible reforecast. '
+                 'Below arehistoricalsnapshots,notadditionalproductionreleases. '
+                 'After theG5-65 SIGSEGV audit,251additional batches areaccepted:1181completepoints,63partialpoints, '
                  '4787independentbatches and178completepointprecisionflags. ProductionisheldforC1f,notautomaticallyresumed. '
                  'RemainingG5-65 estimate3.335hmodel/5.502hplanning excludesC1f3-8min(15mincap); '
                  '20320soriginalelapsed+terminationreserve plusdiagnosticwalltime countagainstoriginal24h. '

@@ -62,7 +62,8 @@ claim of detector-calibrated quenching.
 | P4 | All 243 new pressure/energy points audited; 819 combined points | 6 h 7 min actual | 24 h |
 | G5-60 | All 315 new points audited; 1,134 combined points | 7 h 43 min actual | 24 h |
 | G5-65 (interrupted) | Supervisor SIGSEGV; 251 batches audited, 1,009 remaining; original evidence preserved | 5.62 h before crash; remaining 3.33 h model / 5.50 h planning | Original 24 h, including recovery diagnostics |
-| C1f (current) | Saved-output stress, child-crash containment and 15 exact diagnostic replays; production held | 3–8 min compute | 15 min |
+| C1f | All 15 exact replays, 753 raw re-audits and fault-containment checks passed; thermal trace audited | 78.1 s actual; peak 83°C, no new throttling | 15 min |
+| G5-65R (current) | Isolated-worker continuation of only the 1,009 missing original batches; guarded temperature/load | 3.33 h model / 5.50 h planning | Original 24 h including 5.666 h inherited |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
@@ -132,10 +133,10 @@ These are runtime predictions, not interpolated physics results. Recalibrate
 using new mixture timings at the next review. The eighteen pressure anchors
 now use four-batch P2b means rather than single P2a observations.
 
-### Current step: supervisor-crash validation (C1f); G5-65 production held
+### Current step: guarded G5-65R continuation after the C1f audit
 
 G5-65's Python supervisor crashed with `SIGSEGV` at **03:18:31 CEST on October 7**.
-The original `RUNNING` JSON label is stale: there is no active production service.
+The original run's `RUNNING` JSON label is stale; use the new continuation status below.
 All **251 saved batches** passed the cold raw audit. Combined results now contain
 **1,181 complete points, 63 partial points and 4,787 independent batches**;
 178 complete-point precision flags remain. Fifteen interrupted attempts and all
@@ -144,35 +145,42 @@ The underlying native crash is **not diagnosed**. Kernel excerpts provided by th
 user show a fault in Python's evaluation loop and repeated thermal throttling
 near the crash. Neither proves causality; no native backtrace is available.
 Current idle package temperature was 41°C (reported high 85°C, critical 105°C).
-An additive frozen thermal guard preserves the original C1f plan: start below
+The thermal policy is retained for the continuation: start below
 75°C, sample every 0.5 s, and stop at 85°C (or a lower hardware high threshold)
-or any throttle-counter change. Both the scientific diagnostic gate and
-`thermal-status.json` must pass before production can be considered.
+or any throttle-counter change. Both the scientific completion and
+`thermal-status.json` must pass before a completed wave can be accepted.
 On thermal stop, review cooling and test a lower load before another launch;
 the existing 15-worker time estimates would then need revision.
 
-C1f tests crash containment with a deliberate fault in a dedicated child,
-three threaded re-audits of all 251 saved batches, and 15 isolated exact
-50-ion low-energy replays. Its **750 histories are diagnostics**, never new
-independent production samples. Faulthandler captures native-fault traces;
-an exit finalizer changes stale `RUNNING` to `NEEDS_ATTENTION` after abnormal exit.
-Passing this gate supports the execution change, not proof of the original cause.
+C1f passed all 15 byte-exact 50-ion replays, 753 threaded raw-data re-audits,
+and controlled child-crash detection/containment. The full guarded run took
+**78.1 seconds**, peaked at **83°C**, and recorded no new throttling or scan swap.
+Its **750 histories are diagnostics**, never independent production samples.
+This supports the execution change; it proves neither the original crash cause
+nor sustained-load stability. All original evidence and frozen sources remain intact.
 
-Allow **3–8 minutes**, capped at 15 minutes, with at most 15 cores,
-24/32 GiB soft/hard RAM and zero scan swap. Stop for review before the versioned
-continuation of the **1,009 remaining batches** (3.3 h model / 5.5 h planning).
-The continuation must retain original inputs/seeds and charge **20,320 seconds**
-of original elapsed time plus conservative cleanup reserve, plus actual C1f
-wall time, against the original 24-hour cumulative budget.
+G5-65R runs only the **1,009 outstanding original batches**, retaining 251 accepted
+batches with unchanged inputs, seeds, physics and precision/pressure tests. One
+dedicated process per batch replaces threaded worker execution; a separate thermal
+guard monitors the controller. Faulthandler and an exit finalizer preserve fault
+evidence and prevent stale `RUNNING` after abnormal exit. No automatic retry.
+
+Allow **3.3 hours modelled / 5.5 hours with contingency**, subject to thermal limits.
+At most 15 cores, 24/32 GiB soft/hard RAM, zero scan swap. **20,398.096 seconds**
+of prior production, conservative cleanup reserve and C1f runtime are already charged
+to the original 24-hour cap. The full continuation and cleanup remain charged to it.
+Stop for manual review before G5-70; no next-wave or precision-top-up auto-launch.
 
 ```bash
-bash scripts/supervisor_crash_gate_thermal.sh status
-bash scripts/supervisor_crash_gate_thermal.sh logs
-bash scripts/supervisor_crash_gate_thermal.sh stop
+bash scripts/mixture_pressure_65_isolated.sh status
+bash scripts/mixture_pressure_65_isolated.sh logs
+bash scripts/mixture_pressure_65_isolated.sh stop
 ```
 
-Gate report: `runs/supervisor_crash_gate/index.html`. Send `continue` at
-`REVIEW_REQUIRED`; report `NEEDS_ATTENTION` if seen. No automatic production restart.
+Live report: `runs/noble_cf4_mixture_pressure_65_isolated/index.html`.
+Audited diagnostic: `runs/supervisor_crash_gate/index.html`. Send `continue` at
+`REVIEW_REQUIRED`; report `NEEDS_ATTENTION` if seen. A thermal stop requires
+cooling/load review, not raising the cutoff or blindly restarting.
 
 ### Preserved G5-65 scientific design (currently interrupted)
 
