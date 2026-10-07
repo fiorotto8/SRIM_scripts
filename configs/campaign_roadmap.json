@@ -544,7 +544,8 @@
     {
       "id": "G5-65R3",
       "title": "Production continuation with throttle warnings and95C stop",
-      "status": "prepared_for_detached_launch",
+      "status": "launched_detached_check_live_status_before_next_action",
+      "launch_review": "2026-10-07:26offline tests passed,includingcounterwarnings,95Ccutoff,telemetryintegrity,warningtrace,fullcoldcohort/input/hash/budgetaudit andisolatedworker regressions. Codecommit7c4bace,notpushed. Detachedservice observedRUNNING/pressure_production with15productionchildren and15TRIMprocesses,affinity0-14,CPUQuota1000%/20msperiod,32GiBmax,zeroSwap. Startup sampledpeak84C;thisisnot a sustainedtemperatureguarantee. No loadtest ordiagnostic simulations. Checklive statusfor currentstate.",
       "depends_on": ["G5-65R2"],
       "run": "runs/noble_cf4_mixture_pressure_65_temperature",
       "launcher": "scripts/mixture_pressure_65_temperature.sh",
