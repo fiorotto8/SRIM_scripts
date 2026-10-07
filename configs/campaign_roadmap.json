@@ -529,7 +529,8 @@
     {
       "id": "G5-65R2",
       "title": "Production-only continuation with lower aggregate CPU duty",
-      "status": "prepared_for_detached_launch",
+      "status": "launched_detached_check_live_status_before_any_next_action",
+      "launch_review": "2026-10-07 14:12 CEST:27offline tests passed (18new/quota/thermal/schedule,9isolated-controller regressions). Full prior-source/raw-input audit passed;119k+ancestral artifacts preserved. Detached systemd unit active,15production children observed withCPUaffinity0-14,CPUQuota10s/1s and20msperiod,32GiBmax andzero swap. Same1009pending cases;251retained. No loadtest ordiagnostic simulation launched. Codecommit1aaad65,not pushed. Use live status,not this historical startup observation,for completion/thermal state.",
       "depends_on": ["G5-65R", "C1g"],
       "run": "runs/noble_cf4_mixture_pressure_65_capped",
       "launcher": "scripts/mixture_pressure_65_capped.sh",
