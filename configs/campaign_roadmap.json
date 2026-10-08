@@ -578,7 +578,8 @@
     {
       "id": "G5-70A",
       "title": "70% noble pressure wave A:0.5/1.5/2atm",
-      "status": "prepared_for_detached_launch",
+      "status": "launched_detached_low_pressure_gate_passed_check_live_status",
+      "launch_review": "2026-10-08:22distinct targetedoffline tests passed (21suite plusphase-failure controllercheck;five scheduletests rerun). Full65%colddataset/provenance/thermalreviewpassed. Codecommit2ae5b8d,nopush. Detached70Astarted,all27low-energyproductionbatchesacceptedandhigh_pressure_gateentered. CPUaffinity0-9,1000%quota,32GiBmax,zeroscanSwap,nosoftwaretemperaturecutoff. No loadtest;756fixedproductionbatches only. Reviewbefore70B;live statusis authoritative.",
       "depends_on": ["G5-65R4"],
       "run": "runs/noble_cf4_mixture_pressure_70a",
       "launcher": "scripts/mixture_pressure_70a.sh",

@@ -374,6 +374,11 @@ def main():
             split.append(dict(template,id=name,points=points,batches=batches,histories=50*batches,
                               model_hours=round(model,2),planning_hours=round(planning,2),cap_hours=24,
                               workers=10,fits_24h_with_drain=planning+3.025<=24,
+                              phase_model_hours=(stage70['forecast']['phase_model_hours'] if name.endswith('A') else
+                                  dict(low_pressure_gate=.010576322117916056,high_pressure_gate=1.2463151194609026,
+                                       pressure_production=4.941107111838685)),
+                              longest_batch_hours=(stage70['forecast']['longest_estimated_batch_hours'] if name.endswith('A') else 1.2463151194609026),
+                              forecast_basis='ten_workers_measured_60_65_80_pressure_factors_split70_percent_wave',
                               status='frozen_production_only' if name.endswith('A') else 'held_for70A_review_reforecast'))
         rows[position:position]=split
         for row in rows:
