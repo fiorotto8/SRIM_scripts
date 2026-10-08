@@ -354,6 +354,31 @@ def main():
             pending_diagnostic_cap_hours=0,load_test_skipped_by_user=True,
             cpu_quota_percent=1000,forecast_valid_under_current_thermal_limits=False,
             guard_error=live.get('guard_error'),completed_continuation_batches=live.get('completed_continuation_batches',0))
+    g70a_plan=ROOT/'runs/noble_cf4_mixture_pressure_70a/plan.json'
+    g65_complete=None
+    if g70a_plan.exists():
+        stage70=json.loads(g70a_plan.read_text());reset_gate.verify_hashes(stage70['input_sha256'])
+        g65_complete=stage70['previous_review']
+        crash_review=dict(crash_review,complete_points=1449,independent_batches=5796,partial_points=0,
+                          inherited_used_seconds=g65_complete['cumulative_wave_hours']*3600)
+        next(row for row in rows if row['id']=='G5-65').update(
+            status='completed_and_cold_reviewed',remaining_original_cases=0,
+            actual_hours=g65_complete['cumulative_wave_hours'],guard_error=None,
+            completed_continuation_batches=1009,retained_original_cases=1260)
+        position=next(i for i,row in enumerate(rows) if row['id']=='G5-70')
+        template=rows.pop(position)
+        split=[]
+        for name,points,batches,model,planning in (
+                ('G5-70A',189,756,stage70['forecast']['model_hours'],stage70['forecast']['planning_hours']),
+                ('G5-70B',126,504,6.197998553417503,9.936997830126256)):
+            split.append(dict(template,id=name,points=points,batches=batches,histories=50*batches,
+                              model_hours=round(model,2),planning_hours=round(planning,2),cap_hours=24,
+                              workers=10,fits_24h_with_drain=planning+3.025<=24,
+                              status='frozen_production_only' if name.endswith('A') else 'held_for70A_review_reforecast'))
+        rows[position:position]=split
+        for row in rows:
+            if row['id'] in ('G5-75','G5-85','G5-90','G5-95'):
+                row.update(status='held_requires10worker_reforecast_and_possible_split',timing_is_historical15worker_estimate=True)
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -361,6 +386,7 @@ def main():
     if mixture_review is not None:future=[row for row in future if row['id']!='M3']
     if p4_review is not None:future=[row for row in future if row['id']!='P4']
     if g60_review is not None:future=[row for row in future if row['id']!='G5-60']
+    if g65_complete is not None:future=[row for row in future if row['id']!='G5-65']
     for row in future:
         if row.get('fits_24h_with_drain') is False:
             row['status']='held_requires_reforecast_or_split_before_release'
@@ -426,6 +452,7 @@ def main():
     if thermal95_plan.exists():sources.append(thermal95_plan)
     if thermal95_retry.exists():sources.append(thermal95_retry)
     if capped_plan.exists():sources.append(capped_plan)
+    if g70a_plan.exists():sources.append(g70a_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -435,6 +462,15 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 '2026-10-08:G5-65coldreviewcomplete,1449points/5796independentbatches/289800histories, '
+                 '1236meetprecisiontargets,213flags;46pressureintervalswithinmargins/584inconclusive/zerooutside. '
+                 'Continuation3.364h,wholewave9.226h;102Cpeak,11.55GiBpeakRAM,zeroswap. '
+                 'Releaseonly70A:189points/756batches,10workers,nosoftwaretemperaturecutoff, '
+                 '10.73hmodel/16.81hplanning;70B126points/504batches6.20/9.94hheldforcallback. '
+                 'Full70%forecast24.69hplusdrainexceeds24h,soprelaunchsplitintotwoboundedstages. '
+                 'Later75/85/90/95estimatesstillhistorical15-workerforecastsandmustbereforecast; '
+                 'remainingtotalisconditional,notacurrent10-workerdeliverypromise. '
+                 'Allfollowing65%release/hold descriptionsarehistorical. '
                  'G5-65R4 nowusesexactly10workers andno softwaretemperature cutoff atuserrequest; '
                  'hardwareprotections unchanged,temperature/throttling logged,21102.680sinherited. '
                  'Currentforecast uses10-worker scheduling;laterwaveestimates needreforecastfor10workers. '
