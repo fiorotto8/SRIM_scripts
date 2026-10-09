@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Readable, descriptive snapshot of the audited bulk data; no simulations."""
 from datetime import datetime
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -35,10 +36,11 @@ def examples(points):
     return rows
 
 
-def render(points,summary,out):
-    if len(points)!=1638 or not all(x['complete'] and x['batches']==4 and x['ions']==200 for x in points):
+def render(points,summary,out,source=SOURCE):
+    if len(points)!=summary.get('complete_points') or not points or not all(x['complete'] and x['batches']==4 and x['ions']==200 for x in points):
         raise ValueError('Expected audited four-batch snapshot')
-    if summary['complete_points']!=1638 or sum(not x['precision_met'] for x in points)!=summary['precision_flags']:
+    if (len({(x['family'],x['ion'],x['energy_kev'],x['noble_percent'],x['pressure_atm']) for x in points})!=len(points)
+            or sum(not x['precision_met'] for x in points)!=summary['precision_flags']):
         raise ValueError('Audit summary mismatch')
     import matplotlib
     matplotlib.use('Agg')
@@ -97,20 +99,26 @@ def render(points,summary,out):
     display=[dict(gas=x['gas'],recoil=x['recoil'],displacement_um=f"{x['forward_displacement_um']:.2f} ± {x['displacement_sem_um']:.2f}",
                   ionization_percent=f"{x['ionization_percent']:.2f} ± {x['ionization_sem_percentage_points']:.2f}") for x in ex]
     text='<html><meta charset="utf-8"><title>Preliminary SRIM results</title><style>body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 20px;line-height:1.6}td,th{padding:8px;border:1px solid #ddd}table{border-collapse:collapse}</style><h1>Useful preliminary results — 9 October 2026</h1>'
-    text+='<p>Audited snapshot: 1,638/3,024 points (54.2%), 6,552 independent batches, 327,600 ion histories. 1,399 points meet estimated 5% range / 2% ionization relative SEM targets; 239 remain flagged.</p>'
+    text+=f"<p>Audited snapshot: {len(points):,}/3,024 points ({100*len(points)/3024:.1f}%), {summary['independent_batches']:,} independent batches, {summary['histories']:,} ion histories. {summary['points_meeting_precision']:,} points meet estimated 5% range / 2% ionization relative SEM targets; {summary['precision_flags']} remain flagged.</p>"
     text+='<p><a href="preliminary_results.pdf">Four-page comparison PDF</a> · <a href="points.csv">All points and SEM (CSV)</a> · <a href="precision_flags.csv">Precision flags</a></p>'
     text+='<h2>10 keV own-noble recoils at 1 atm, 80/20 noble/CF4</h2><p>Mean ± SEM across four independent 50-ion batches. Different gases here also use different recoil species; this is not a controlled identical-projectile comparison.</p>'+table(display,list(display[0]))
     text+='<h2>Mixture trend at 10 keV, 1 atm</h2><p>From 60% to 95% noble, simulated ionization fraction decreases: Ar 28.7% → 25.7%, Kr 22.6% → 16.1%, Xe 19.9% → 12.1%. These are descriptive endpoint comparisons, not a claim that every adjacent step is significant. The PDF also compares identical C/F projectiles.</p>'
-    text+='<h2>Scope and limitations</h2><p>Range means forward endpoint-minus-start displacement, not total track length. SRIM ionization fraction is not detector-calibrated quenching. SEM covers batch sampling uncertainty, not SRIM/model/systematic uncertainty. All 8 mixtures are complete at 1 atm; 60/65/80% noble have all six pressures, while 70% currently has 0.5/1/1.5/2 atm. No interpolated or surface-injection results are pooled. Most pressure confidence intervals remain inconclusive; no equivalence claim. All 239 flags stay visible for fixed Q6 follow-up.</p>'
-    text+='<img src="energy_overview.png" style="max-width:100%"><p><a href="../noble_cf4_mixture_pressure_70a/review/index.html">Full 70A audit</a></p>'
+    coverage=[]
+    for noble in sorted({x['noble_percent'] for x in points}):
+        pressures=sorted({x['pressure_atm'] for x in points if x['noble_percent']==noble})
+        coverage.append(f"{noble:g}% noble: {', '.join(f'{q:g}' for q in pressures)} atm")
+    text+='<h2>Scope and limitations</h2><p>Range means forward endpoint-minus-start displacement, not total track length. SRIM ionization fraction is not detector-calibrated quenching. SEM covers batch sampling uncertainty, not SRIM/model/systematic uncertainty. No interpolated or surface-injection results are pooled. Most pressure confidence intervals remain inconclusive; no equivalence claim. All precision flags stay visible for fixed Q6 follow-up.</p><p>Completed coverage: '+'; '.join(coverage)+'.</p>'
+    text+=f'<img src="energy_overview.png" style="max-width:100%"><p><a href="../{source.name}/review/index.html">Full source-stage audit</a></p>'
     atomic_text(out/'index.html',text)
     write_json(out/'provenance.json',dict(generated_at=datetime.now().astimezone().isoformat(),audit_summary=summary,
         input_sha256={str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in
-                      (SOURCE/'points.json',SOURCE/'review/summary.json',Path(__file__))}))
+                      (source/'points.json',source/'review/summary.json',Path(__file__))}))
     return ex
 
 
 if __name__=='__main__':
-    points=json.loads((SOURCE/'points.json').read_text());summary=json.loads((SOURCE/'review/summary.json').read_text())
-    if summary['status']!='AUDITED_READY_FOR_G5_70B':raise ValueError('Cold audit required first')
-    print(json.dumps(render(points,summary,OUT),indent=2))
+    parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,default=SOURCE);parser.add_argument('--out',type=Path,default=OUT)
+    args=parser.parse_args()
+    points=json.loads((args.source/'points.json').read_text());summary=json.loads((args.source/'review/summary.json').read_text())
+    if summary['status'] not in ('AUDITED_READY_FOR_G5_70B','AUDITED_READY_FOR_G5_75'):raise ValueError('Cold audit required first')
+    print(json.dumps(render(points,summary,args.out,args.source),indent=2))
