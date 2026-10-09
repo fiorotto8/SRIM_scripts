@@ -595,7 +595,8 @@
     {
       "id": "G5-70B",
       "title": "70% noble pressure wave B:2.5/3atm",
-      "status": "prepared_for_detached_launch",
+      "status": "running_detached_review_required_after_completion",
+      "launch_review": "2026-10-09: code commit 5f2fc9e, not pushed. 24 distinct targeted offline tests passed; full 70A cold audit passed. Detached service started at 11:33 CEST. At 11:36 CEST all 18 low-energy production batches accepted, high_pressure_gate running, 18/504 complete. Ten-worker limit, CPUQuota1000%, no software temperature cutoff, hardware protections unchanged, no load test. Current RAM6.394GiB, peak7.672GiB, zero scan swap. Preliminary scientific report and four-page PDF published for 1638 completed points. Startup observations are historical; live status is authoritative. No automatic 75% launch.",
       "depends_on": ["G5-70A"],
       "run": "runs/noble_cf4_mixture_pressure_70b",
       "launcher": "scripts/mixture_pressure_70b.sh",
