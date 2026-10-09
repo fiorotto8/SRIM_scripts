@@ -69,27 +69,41 @@ claim of detector-calibrated quenching.
 | G5-65R2 | Production-only continuation:1,009 original batches;15 workers with1000% aggregate CPU quota,95°C trip and hardware-throttling stop | About5–8.3h, extrapolated rather than measured at this quota | Original24h;5.703h already used |
 | G5-65R3 (stopped) | Temperature reached96°C andtriggered the95°C stop; no new accepted batches | 6min15s includingcleanup | 5.862h cumulative used |
 | G5-65R4 (complete) | All1,009remainingbatches audited;1,449combinedpoints,5,796independentbatches | 3h22min continuation;9.226h entirewave | Original24h |
-| G5-70A (current) | Ar/Kr/Xe70/CF4-30,0.5/1.5/2atm:189points,756productionbatches | 10.73h model /16.81h planning | 24h |
-| G5-70B (planned) | Remaining2.5/3atm:126points,504batches;heldfor70Areview | 6.20h model /9.94h planning | Separate24hstage |
+| G5-70A (complete) | All756batches cold-audited;1,638combinedpoints,6,552independentbatches | 8h25min actual | 24h |
+| G5-70B (current) | Remaining2.5/3atm:126points,504batches | 6.20h model /9.94h planning | Separate24hstage |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Current production stage: `bash scripts/mixture_pressure_70a.sh status`
+Current production stage: `bash scripts/mixture_pressure_70b.sh status`
 (`logs` follows output; `stop` stops the owned service). It runs detached and
 stops for review before the next concentration wave. No additional load test
 or diagnostic replay is scheduled. Results/report:
-`runs/noble_cf4_mixture_pressure_70a/index.html`.
+`runs/noble_cf4_mixture_pressure_70b/index.html`.
 There are exactly10 worker processes, restricted to10 CPUs, with1000% aggregate
 CPU quota. Per the latest user instruction, neither startup nor runtime has a
 software temperature cutoff. Temperature andthrottling are logged, with warnings
 in `throttle-warnings.jsonl`. Hardware thermal protections are unchanged.
 This does not guarantee temperatures below100°C. Telemetry integrity, RAM/swap,
 runtime-budget andscientific acceptance checks remain active. No load test is
-scheduled. The70A low/high-energy acceptance gates use batches already included
-in its756productionbatches, not extra diagnostics. Previous failed runs
+scheduled. The70B low/high-energy acceptance gates use batches already included
+in its504productionbatches, not extra diagnostics. Previous failed runs
 remain preserved, and the original Python crash cause is still unproven.
 
-The October8 cold review confirms **1,449points /5,796independentbatches /
+The October9 cold review confirms **1,638points /6,552independentbatches /
+327,600histories**, or54.2%of theinitialgrid. **1,399meetbothprecisiontargets;
+239remain flagged** forfixedQ6.70Acompleted in8h25min with10.95GiBpeakRAM,
+zero scan swap and102°Csampledpeak. Its378pressureintervals (using630familycorrection)
+give32withinworkingmargins,346inconclusive andnoneoutside;not equivalence.
+
+Startwiththe [preliminary scientific report](runs/noble_cf4_preliminary_20261009/index.html):
+four-page comparisonPDF,1,638-pointCSV,examplevalueswithSEM,andprecisionflags.
+It compares energydependence,mixtureconcentrations andpressure trends without
+claiming detector-calibrated quenching. At10keV,1atm,80/20noble/CF4,meanforward
+displacements forown-noble recoils areAr18.99±0.57µm,Kr10.76±0.24µm,Xe8.83±0.34µm;
+simulatedionizationfractions are27.48±0.06%,19.64±0.14%,16.60±0.14% (batchSEM).
+Differentnoble recoil species arebeingcompared;thePDF alsohasidenticalC/Fprojectiles.
+
+The earlier October8 cold review confirmed **1,449points /5,796independentbatches /
 289,800histories**. **1,236points meet both precision targets;213 remain flagged**
 forfixedQ6. The65%pressure screen has46intervals withinworkingmargins,
 584inconclusive andnoneoutside; this doesnot establish equivalence.
@@ -169,9 +183,9 @@ now use four-batch P2b means rather than single P2a observations.
 
 ### Production continuation and preserved thermal-stop evidence
 
-The latest user instruction cancels further load tests. G5-65R4 iscomplete;
-G5-70A is the nextproductionstage. Use
-`bash scripts/mixture_pressure_70a.sh status` for its live state.
+The latest user instruction cancels further load tests. G5-70A iscomplete;
+G5-70B is the nextproductionstage. Use
+`bash scripts/mixture_pressure_70b.sh status` for its live state.
 The following C1g stop is historical evidence, not the current launcher.
 
 The corrected C1g launcher reached all15workers, then stopped on **new package

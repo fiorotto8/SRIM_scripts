@@ -384,6 +384,19 @@ def main():
         for row in rows:
             if row['id'] in ('G5-75','G5-85','G5-90','G5-95'):
                 row.update(status='held_requires10worker_reforecast_and_possible_split',timing_is_historical15worker_estimate=True)
+    g70b_plan=ROOT/'runs/noble_cf4_mixture_pressure_70b/plan.json'
+    g70a_complete=None
+    if g70b_plan.exists():
+        stage70b=json.loads(g70b_plan.read_text());reset_gate.verify_hashes(stage70b['input_sha256'])
+        g70a_complete=stage70b['previous_review']
+        next(row for row in rows if row['id']=='G5-70A').update(
+            status='completed_and_cold_reviewed',actual_hours=g70a_complete['cumulative_wave_hours'])
+        next(row for row in rows if row['id']=='G5-70B').update(
+            status='frozen_production_only',model_hours=round(stage70b['forecast']['model_hours'],2),
+            planning_hours=round(stage70b['forecast']['planning_hours'],2),
+            phase_model_hours=stage70b['forecast']['phase_model_hours'],
+            longest_batch_hours=stage70b['forecast']['longest_estimated_batch_hours'],
+            forecast_basis='prior_pressure_model_with_floored_at_one_measured70A_residual_correction')
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -392,6 +405,7 @@ def main():
     if p4_review is not None:future=[row for row in future if row['id']!='P4']
     if g60_review is not None:future=[row for row in future if row['id']!='G5-60']
     if g65_complete is not None:future=[row for row in future if row['id']!='G5-65']
+    if g70a_complete is not None:future=[row for row in future if row['id']!='G5-70A']
     for row in future:
         if row.get('fits_24h_with_drain') is False:
             row['status']='held_requires_reforecast_or_split_before_release'
@@ -418,6 +432,8 @@ def main():
     if crash_review is not None:
         accepted_points=crash_review['complete_points']; accepted_batches=crash_review['independent_batches']
         partial_points=crash_review['partial_points']
+    if g70a_complete is not None:
+        accepted_points=g70a_complete['complete_points'];accepted_batches=g70a_complete['independent_batches'];partial_points=0
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -430,6 +446,7 @@ def main():
                                                      (p4_review['actual_hours'] if p4_review is not None else 0)+
                                                      (g60_review['actual_hours'] if g60_review is not None else 0)+
                                                      (crash_review['inherited_used_seconds']/3600 if crash_review is not None else 0)+
+                                                     (g70a_complete['cumulative_wave_hours'] if g70a_complete is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -458,6 +475,7 @@ def main():
     if thermal95_retry.exists():sources.append(thermal95_retry)
     if capped_plan.exists():sources.append(capped_plan)
     if g70a_plan.exists():sources.append(g70a_plan)
+    if g70b_plan.exists():sources.append(g70b_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -467,6 +485,12 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 '2026-10-09:70Acoldreviewpassed756batches,1638completepoints/6552independentbatches/327600histories, '
+                 '1399meetbothSEMtargets,239flags.8.422765hactual;10.95GiBpeakRAM,zeroswap,102Csampledpeak. '
+                 'Releaseonly70B504batchesat2.5/3atm,10workers,nosoftwaretemperaturecutoff,no loadtest. '
+                 'Measured70Atimingresiduals donotraiseconservativeforecast:6.198hmodel/9.937hplanning. '
+                 'PreliminaryscientificPDF/CSVpublishedinruns/noble_cf4_preliminary_20261009. '
+                 'Allfollowing70Aandearlier release/hold descriptionsarehistorical. '
                  '2026-10-08:G5-65coldreviewcomplete,1449points/5796independentbatches/289800histories, '
                  '1236meetprecisiontargets,213flags;46pressureintervalswithinmargins/584inconclusive/zerooutside. '
                  'Continuation3.364h,wholewave9.226h;102Cpeak,11.55GiBpeakRAM,zeroswap. '
