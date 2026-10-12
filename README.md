@@ -71,35 +71,36 @@ claim of detector-calibrated quenching.
 | G5-65R4 (complete) | All1,009remainingbatches audited;1,449combinedpoints,5,796independentbatches | 3h22min continuation;9.226h entirewave | Original24h |
 | G5-70A (complete) | All756batches cold-audited;1,638combinedpoints,6,552independentbatches | 8h25min actual | 24h |
 | G5-70B (complete) | All 504 batches cold-audited; 1,764 combined points, 7,056 independent batches | 3h06min actual | 24h |
-| G5-75A (current) | 75/25 noble/CF4 at 0.5/1.5/2 atm: 189 points, 756 batches | 11.24h model / 17.57h planning | 24h |
-| G5-75B (held) | Remaining 2.5/3 atm: 126 points, 504 batches; review after 75A | 6.49h model / 10.37h planning | Separate 24h stage |
+| G5-75A (complete) | All 756 batches cold-audited; 1,953 combined points, 7,812 independent batches | 8h45min actual | 24h |
+| G5-75B (current) | Remaining 2.5/3 atm: 126 points, 504 batches | 6.49h model / 10.37h planning | Separate 24h stage |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Current production stage: `bash scripts/mixture_pressure_75a.sh status`
+Current production stage: `bash scripts/mixture_pressure_75b.sh status`
 (`logs` follows output; `stop` stops the owned service). It runs detached and
 stops for review before the next concentration wave. No additional load test
 or diagnostic replay is scheduled. Results/report:
-`runs/noble_cf4_mixture_pressure_75a/index.html`.
+`runs/noble_cf4_mixture_pressure_75b/index.html`.
 There are exactly10 worker processes, restricted to10 CPUs, with1000% aggregate
 CPU quota. Per the latest user instruction, neither startup nor runtime has a
 software temperature cutoff. Temperature andthrottling are logged, with warnings
 in `throttle-warnings.jsonl`. Hardware thermal protections are unchanged.
 This does not guarantee temperatures below100°C. Telemetry integrity, RAM/swap,
 runtime-budget andscientific acceptance checks remain active. No load test is
-scheduled. The 75A low/high-energy acceptance gates use batches already included
-in its 756 production batches, not extra diagnostics. Previous failed runs
+scheduled. The 75B low/high-energy acceptance gates use batches already included
+in its 504 production batches, not extra diagnostics. Previous failed runs
 remain preserved, and the original Python crash cause is still unproven.
 
-The latest October 9 cold review confirms **1,764 points / 7,056 independent batches /
-352,800 histories**, or 58.3% of the initial grid. **1,508 meet both precision targets;
-256 remain flagged** for fixed Q6. 70B completed in 3h06min with 7.67 GiB peak RAM,
-zero scan swap and 102°C sampled peak. Its full 630 pressure intervals give
-48 within working margins, 582 inconclusive and none outside; not equivalence.
+The October 12 cold review confirms **1,953 points / 7,812 independent batches /
+390,600 histories**, or 64.6% of the initial grid. **1,667 meet both precision targets;
+286 remain flagged** for fixed Q6. 75A completed on October 9 at 23:35 CEST,
+in 8h45min with 13.00 GiB peak RAM, zero scan swap and 102°C sampled peak.
+Its 378 pressure intervals retain the full 630-comparison correction:
+28 within working margins, 350 inconclusive and none outside; not equivalence.
 
-Start with the [updated preliminary scientific report](runs/noble_cf4_preliminary_20261009_70b/index.html):
-four-page comparison PDF, 1,764-point CSV, example values with SEM, and precision flags.
-The earlier 70A report remains preserved in `runs/noble_cf4_preliminary_20261009`.
+Start with the [updated preliminary scientific report](runs/noble_cf4_preliminary_20261012_75a/index.html):
+four-page comparison PDF, 1,953-point CSV, example values with SEM, and precision flags.
+Earlier 70A/70B report snapshots remain preserved in their original run folders.
 It compares energydependence,mixtureconcentrations andpressure trends without
 claiming detector-calibrated quenching. At10keV,1atm,80/20noble/CF4,meanforward
 displacements forown-noble recoils areAr18.99±0.57µm,Kr10.76±0.24µm,Xe8.83±0.34µm;
@@ -118,7 +119,8 @@ The full 70% wave is complete: 8h25min for 70A plus 3h06min for 70B.
 The full 75% wave forecasts 25.82h before the 3h90s drain reserve, so it is split
 before launch into 75A (17.57h planning) and 75B (10.37h planning), each with its
 own 24h cap and manual review. This does not reset any previous stage budget.
-Remaining G5 order: 75A, 75B, 85%, 90%, 95%. Old 15-worker planning estimates for
+75A is now complete; its measured timings leave the 75B estimate unchanged.
+Remaining G5 order: 75B, 85%, 90%, 95%. Old 15-worker planning estimates for
 85% (20.0), 90% (20.8), 95% (21.4) are historical. They still assume
 the previous full CPU quota; remeasure on production and recompute before each wave.
 The 95% forecast plus the 3 h 90 s drain currently exceeds 24 h: that wave is
@@ -187,9 +189,9 @@ now use four-batch P2b means rather than single P2a observations.
 
 ### Production continuation and preserved thermal-stop evidence
 
-The latest user instruction cancels further load tests. G5-70B is complete;
-G5-75A is the current production stage. Use
-`bash scripts/mixture_pressure_75a.sh status` for its live state.
+The latest user instruction cancels further load tests. G5-75A is complete;
+G5-75B is the current production stage. Use
+`bash scripts/mixture_pressure_75b.sh status` for its live state.
 The following C1g stop is historical evidence, not the current launcher.
 
 The corrected C1g launcher reached all15workers, then stopped on **new package

@@ -98,7 +98,7 @@ def render(points,summary,out,source=SOURCE):
         atomic_text(out/(name+'.csv'),csv_text(rows,sorted({k for x in rows for k in x})))
     display=[dict(gas=x['gas'],recoil=x['recoil'],displacement_um=f"{x['forward_displacement_um']:.2f} ± {x['displacement_sem_um']:.2f}",
                   ionization_percent=f"{x['ionization_percent']:.2f} ± {x['ionization_sem_percentage_points']:.2f}") for x in ex]
-    text='<html><meta charset="utf-8"><title>Preliminary SRIM results</title><style>body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 20px;line-height:1.6}td,th{padding:8px;border:1px solid #ddd}table{border-collapse:collapse}</style><h1>Useful preliminary results — 9 October 2026</h1>'
+    text='<html><meta charset="utf-8"><title>Preliminary SRIM results</title><style>body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 20px;line-height:1.6}td,th{padding:8px;border:1px solid #ddd}table{border-collapse:collapse}</style><h1>Useful preliminary results — audited snapshot</h1>'
     text+=f"<p>Audited snapshot: {len(points):,}/3,024 points ({100*len(points)/3024:.1f}%), {summary['independent_batches']:,} independent batches, {summary['histories']:,} ion histories. {summary['points_meeting_precision']:,} points meet estimated 5% range / 2% ionization relative SEM targets; {summary['precision_flags']} remain flagged.</p>"
     text+='<p><a href="preliminary_results.pdf">Four-page comparison PDF</a> · <a href="points.csv">All points and SEM (CSV)</a> · <a href="precision_flags.csv">Precision flags</a></p>'
     text+='<h2>10 keV own-noble recoils at 1 atm, 80/20 noble/CF4</h2><p>Mean ± SEM across four independent 50-ion batches. Different gases here also use different recoil species; this is not a controlled identical-projectile comparison.</p>'+table(display,list(display[0]))
@@ -120,5 +120,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,default=SOURCE);parser.add_argument('--out',type=Path,default=OUT)
     args=parser.parse_args()
     points=json.loads((args.source/'points.json').read_text());summary=json.loads((args.source/'review/summary.json').read_text())
-    if summary['status'] not in ('AUDITED_READY_FOR_G5_70B','AUDITED_READY_FOR_G5_75'):raise ValueError('Cold audit required first')
+    if summary['status'] not in ('AUDITED_READY_FOR_G5_70B','AUDITED_READY_FOR_G5_75','AUDITED_READY_FOR_G5_75B'):raise ValueError('Cold audit required first')
     print(json.dumps(render(points,summary,args.out,args.source),indent=2))
