@@ -432,6 +432,28 @@ def main():
             phase_model_hours=stage75b['forecast']['phase_model_hours'],
             longest_batch_hours=stage75b['forecast']['longest_estimated_batch_hours'],
             forecast_basis='prior_pressure_model_with_floored_at_one_measured75A_residual_correction')
+    g85a_plan=ROOT/'runs/noble_cf4_mixture_pressure_85a/plan.json'
+    g75b_complete=None
+    if g85a_plan.exists():
+        stage85a=json.loads(g85a_plan.read_text());reset_gate.verify_hashes(stage85a['input_sha256'])
+        g75b_complete=stage85a['previous_review']
+        next(row for row in rows if row['id']=='G5-75B').update(
+            status='completed_and_cold_reviewed',actual_hours=g75b_complete['cumulative_wave_hours'])
+        position=next(i for i,row in enumerate(rows) if row['id']=='G5-85')
+        template=rows.pop(position);split=[]
+        for name,points,batches,model,planning,longest,phases in (
+                ('G5-85A',189,756,stage85a['forecast']['model_hours'],stage85a['forecast']['planning_hours'],
+                 stage85a['forecast']['longest_estimated_batch_hours'],stage85a['forecast']['phase_model_hours']),
+                ('G5-85B',126,504,7.260178450142988,11.530267675214482,1.4570220864038892,
+                 dict(low_pressure_gate=.010797500503471408,high_pressure_gate=1.4570220864038892,pressure_production=5.792358863235627))):
+            split.append(dict(template,id=name,points=points,batches=batches,histories=50*batches,
+                              model_hours=round(model,2),planning_hours=round(planning,2),cap_hours=24,
+                              workers=10,fits_24h_with_drain=planning+3.025<=24,
+                              phase_model_hours=phases,longest_batch_hours=longest,
+                              timing_is_historical15worker_estimate=False,
+                              forecast_basis='ten_workers_measured_60_65_70_75_80_pressure_factors_split85_percent_wave',
+                              status='frozen_production_only' if name.endswith('A') else 'held_for85A_review_reforecast'))
+        rows[position:position]=split
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -443,6 +465,7 @@ def main():
     if g70a_complete is not None:future=[row for row in future if row['id']!='G5-70A']
     if g70b_complete is not None:future=[row for row in future if row['id']!='G5-70B']
     if g75a_complete is not None:future=[row for row in future if row['id']!='G5-75A']
+    if g75b_complete is not None:future=[row for row in future if row['id']!='G5-75B']
     for row in future:
         if row.get('fits_24h_with_drain') is False:
             row['status']='held_requires_reforecast_or_split_before_release'
@@ -475,6 +498,8 @@ def main():
         accepted_points=g70b_complete['complete_points'];accepted_batches=g70b_complete['independent_batches'];partial_points=0
     if g75a_complete is not None:
         accepted_points=g75a_complete['complete_points'];accepted_batches=g75a_complete['independent_batches'];partial_points=0
+    if g75b_complete is not None:
+        accepted_points=g75b_complete['complete_points'];accepted_batches=g75b_complete['independent_batches'];partial_points=0
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -490,6 +515,7 @@ def main():
                                                      (g70a_complete['cumulative_wave_hours'] if g70a_complete is not None else 0)+
                                                      (g70b_complete['cumulative_wave_hours'] if g70b_complete is not None else 0)+
                                                      (g75a_complete['cumulative_wave_hours'] if g75a_complete is not None else 0)+
+                                                     (g75b_complete['cumulative_wave_hours'] if g75b_complete is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -521,6 +547,7 @@ def main():
     if g70b_plan.exists():sources.append(g70b_plan)
     if g75a_plan.exists():sources.append(g75a_plan)
     if g75b_plan.exists():sources.append(g75b_plan)
+    if g85a_plan.exists():sources.append(g85a_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -530,6 +557,12 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 '2026-10-13:75B cold review passed,2079points/8316batches/415800histories,1777meetprecision/302flags. '
+                 'Actual75B3.276415h,peak104C,12.291GiB,zero scan swap;630pressureintervals:44within,586inconclusive,noneoutside. '
+                 'Releaseonly85A756batches,10workers,no softwaretemperaturecutoff,no loadtest;12.572hmodel/19.568hplanning. '
+                 'Full85%28.810hplanningexceeds24h:prelaunchsplit85Aand85B(7.260hmodel/11.530hplanning),manualreviewbeforeB. '
+                 'Updatedreport:runs/noble_cf4_preliminary_20261013_75b/index.html. '
+                 'Following85Aandearlierdescriptionsarehistorical;90/95stillrequire10workerreforecast. '
                  '2026-10-12:75A cold review passed,1953points/7812batches/390600histories,1667meetprecision/286flags. '
                  'Actual75A8.745747h,peak102C,13.003GiB,zero scan swap;378pressureintervals:28within,350inconclusive,noneoutside. '
                  'Releaseonly75B504batchesat2.5/3atm,10workers,no softwaretemperaturecutoff,no loadtest. '
