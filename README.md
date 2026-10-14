@@ -74,34 +74,36 @@ claim of detector-calibrated quenching.
 | G5-75A (complete) | All 756 batches cold-audited; 1,953 combined points, 7,812 independent batches | 8h45min actual | 24h |
 | G5-75B (complete) | All 504 batches cold-audited; 2,079 combined points, 8,316 independent batches | 3h17min actual | 24h |
 | G5-85A (complete) | All 756 batches cold-audited; 2,268 combined points, 9,072 independent batches | 9h59min actual | 24h |
-| G5-85B (current) | Remaining 2.5/3 atm: 126 points, 504 batches | 7.26h model / 11.53h planning | Separate 24h stage |
+| G5-85B (complete) | All 504 batches cold-audited; 2,394 combined points, 9,576 independent batches | 3h39min actual | 24h |
+| G5-90A (current) | 90/10 noble/CF4 at 0.5/1.5/2 atm: 189 points, 756 batches | 13.12h model / 20.38h planning | 24h |
+| G5-90B (held) | Remaining 2.5/3 atm: 126 points, 504 batches; review after 90A | 7.57h model / 12.00h planning | Separate 24h stage |
 | Q6 | Fixed precision follow-ups and independently selected feature confirmations | Reserve 6–110 h if needed; skip if no follow-up remains | 24 h per wave |
 | A7 | Final raw-data/model/uncertainty audit, plots, CSV/ROOT and reproducibility release | 2–4 h active work, 0.5–2 h report computation | No new transport simulations |
 
-Current production stage: `bash scripts/mixture_pressure_85b.sh status`
+Current production stage: `bash scripts/mixture_pressure_90a.sh status`
 (`logs` follows output; `stop` stops the owned service). It runs detached and
 stops for review before the next concentration wave. No additional load test
 or diagnostic replay is scheduled. Results/report:
-`runs/noble_cf4_mixture_pressure_85b/index.html`.
+`runs/noble_cf4_mixture_pressure_90a/index.html`.
 There are exactly10 worker processes, restricted to10 CPUs, with1000% aggregate
 CPU quota. Per the latest user instruction, neither startup nor runtime has a
 software temperature cutoff. Temperature andthrottling are logged, with warnings
 in `throttle-warnings.jsonl`. Hardware thermal protections are unchanged.
 This does not guarantee temperatures below100°C. Telemetry integrity, RAM/swap,
 runtime-budget andscientific acceptance checks remain active. No load test is
-scheduled. The 85B low/high-energy acceptance gates use batches already included
-in its 504 production batches, not extra diagnostics. Previous failed runs
+scheduled. The 90A low/high-energy acceptance gates use batches already included
+in its 756 production batches, not extra diagnostics. Previous failed runs
 remain preserved, and the original Python crash cause is still unproven.
 
-The October 14 cold review confirms **2,268 points / 9,072 independent batches /
-453,600 histories**, or 75% of the initial grid. **1,932 meet both precision targets;
-336 remain flagged** for fixed Q6. 85A completed on October 14 at 02:15 CEST,
-in 9h59min with 12.61 GiB peak RAM, zero scan swap and 105°C sampled peak.
-Its 378 pressure intervals retain the full 630-comparison correction:
-22 within working margins, 356 inconclusive and none outside; not equivalence.
+The latest October 14 cold review confirms **2,394 points / 9,576 independent batches /
+478,800 histories**, or 79.2% of the initial grid. **2,036 meet both precision targets;
+358 remain flagged** for fixed Q6. 85B completed on October 14 at 10:35 CEST,
+in 3h39min with 11.51 GiB peak RAM, zero scan swap and 102°C sampled peak.
+Its full 630 pressure intervals give 36 within working margins,
+594 inconclusive and none outside; not equivalence.
 
-Start with the [updated preliminary scientific report](runs/noble_cf4_preliminary_20261014_85a/index.html):
-four-page comparison PDF, 2,268-point CSV, example values with SEM, and precision flags.
+Start with the [updated preliminary scientific report](runs/noble_cf4_preliminary_20261014_85b/index.html):
+four-page comparison PDF, 2,394-point CSV, example values with SEM, and precision flags.
 Earlier report snapshots remain preserved in their original run folders.
 It compares energydependence,mixtureconcentrations andpressure trends without
 claiming detector-calibrated quenching. At10keV,1atm,80/20noble/CF4,meanforward
@@ -117,13 +119,13 @@ The ten-worker continuation peaked at102°C withhardwarethrottling logged,
 11.55GiBpeakRAM andzero scan swap. See
 [`65% audit and downloadable results`](runs/noble_cf4_mixture_pressure_65_ten/review/index.html).
 
-The full 70% and 75% waves are complete; 75A took 8h45min and 75B took 3h17min.
-The full 85% wave forecasts 28.81h before the 3h90s drain reserve, so it is split
-before launch into 85A (19.57h planning) and 85B (11.53h planning), each with its
-own 24h cap and manual review. This does not reset any previous stage budget.
-85A is now complete; its measured timings leave the 85B estimate unchanged.
-Remaining G5 order: 85B, 90%, 95%. Old 15-worker planning estimates for
-90% (20.8), 95% (21.4) are historical. They still assume
+All 60/65/70/75/80/85% mixtures now have their full pressure grids. 85A took
+9h59min and 85B took 3h39min. The full 90% wave forecasts 30.01h before the
+3h90s drain reserve, so it is split before launch into 90A (20.38h planning)
+and 90B (12.00h planning), each with its own 24h cap and manual review.
+This does not reset any previous stage budget.
+Remaining G5 order: 90A, 90B, 95%. The old 15-worker planning estimate for
+95% (21.4h) is historical. It still assumes
 the previous full CPU quota; remeasure on production and recompute before each wave.
 The 95% forecast plus the 3 h 90 s drain currently exceeds 24 h: that wave is
 held for replanning or splitting before release. If split, allow an additional
@@ -191,9 +193,9 @@ now use four-batch P2b means rather than single P2a observations.
 
 ### Production continuation and preserved thermal-stop evidence
 
-The latest user instruction cancels further load tests. G5-85A is complete;
-G5-85B is the current production stage. Use
-`bash scripts/mixture_pressure_85b.sh status` for its live state.
+The latest user instruction cancels further load tests. G5-85B is complete;
+G5-90A is the current production stage. Use
+`bash scripts/mixture_pressure_90a.sh status` for its live state.
 The following C1g stop is historical evidence, not the current launcher.
 
 The corrected C1g launcher reached all15workers, then stopped on **new package
