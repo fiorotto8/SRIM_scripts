@@ -454,6 +454,19 @@ def main():
                               forecast_basis='ten_workers_measured_60_65_70_75_80_pressure_factors_split85_percent_wave',
                               status='frozen_production_only' if name.endswith('A') else 'held_for85A_review_reforecast'))
         rows[position:position]=split
+    g85b_plan=ROOT/'runs/noble_cf4_mixture_pressure_85b/plan.json'
+    g85a_complete=None
+    if g85b_plan.exists():
+        stage85b=json.loads(g85b_plan.read_text());reset_gate.verify_hashes(stage85b['input_sha256'])
+        g85a_complete=stage85b['previous_review']
+        next(row for row in rows if row['id']=='G5-85A').update(
+            status='completed_and_cold_reviewed',actual_hours=g85a_complete['cumulative_wave_hours'])
+        next(row for row in rows if row['id']=='G5-85B').update(
+            status='frozen_production_only',model_hours=round(stage85b['forecast']['model_hours'],2),
+            planning_hours=round(stage85b['forecast']['planning_hours'],2),
+            phase_model_hours=stage85b['forecast']['phase_model_hours'],
+            longest_batch_hours=stage85b['forecast']['longest_estimated_batch_hours'],
+            forecast_basis='prior_pressure_model_with_floored_at_one_measured85A_residual_correction')
     rows[1].update(status='completed_and_reviewed',actual_hours=baseline_review['cumulative_baseline_hours'],
                    remaining_original_cases=0,completed_independent_points=243)
     for row in rows:row['fits_cap']=row['planning_hours']<=row['cap_hours']
@@ -466,6 +479,7 @@ def main():
     if g70b_complete is not None:future=[row for row in future if row['id']!='G5-70B']
     if g75a_complete is not None:future=[row for row in future if row['id']!='G5-75A']
     if g75b_complete is not None:future=[row for row in future if row['id']!='G5-75B']
+    if g85a_complete is not None:future=[row for row in future if row['id']!='G5-85A']
     for row in future:
         if row.get('fits_24h_with_drain') is False:
             row['status']='held_requires_reforecast_or_split_before_release'
@@ -500,6 +514,8 @@ def main():
         accepted_points=g75a_complete['complete_points'];accepted_batches=g75a_complete['independent_batches'];partial_points=0
     if g75b_complete is not None:
         accepted_points=g75b_complete['complete_points'];accepted_batches=g75b_complete['independent_batches'];partial_points=0
+    if g85a_complete is not None:
+        accepted_points=g85a_complete['complete_points'];accepted_batches=g85a_complete['independent_batches'];partial_points=0
     totals.update(accepted_points=accepted_points,partial_points=partial_points,
                   accepted_independent_batches=accepted_batches,accepted_histories=50*accepted_batches,
                   remaining_baseline_points=3024-accepted_points,remaining_baseline_batches=12096-accepted_batches,
@@ -516,6 +532,7 @@ def main():
                                                      (g70b_complete['cumulative_wave_hours'] if g70b_complete is not None else 0)+
                                                      (g75a_complete['cumulative_wave_hours'] if g75a_complete is not None else 0)+
                                                      (g75b_complete['cumulative_wave_hours'] if g75b_complete is not None else 0)+
+                                                     (g85a_complete['cumulative_wave_hours'] if g85a_complete is not None else 0)+
                                                      sum(row['planning_hours'] for row in future),2),
                   baseline_planning_hours=round(sum(row['planning_hours'] for row in rows),2))
     current=next(s for s in roadmap['stages'] if s['id']==roadmap['current_stage_id'])
@@ -548,6 +565,7 @@ def main():
     if g75a_plan.exists():sources.append(g75a_plan)
     if g75b_plan.exists():sources.append(g75b_plan)
     if g85a_plan.exists():sources.append(g85a_plan)
+    if g85b_plan.exists():sources.append(g85b_plan)
     sources.extend(g60_sources)
     sources.extend(p4_sources)
     sources.extend(mixture_sources)
@@ -557,6 +575,12 @@ def main():
                  status='MEASURED_BULK_BASELINE_FORECAST_LATER_STAGES_REVIEW_GATED',totals=totals,stages=rows,
                  current_stage=current['id'],current_status=json.loads(status.read_text()) if status.exists() else None,
                  assumptions='Current user direction: skip further load tests, focus on actual scans. '
+                 '2026-10-14:85A cold review passed,2268points/9072batches/453600histories,1932meetprecision/336flags. '
+                 'Actual85A9.975437h,peak105C,12.608GiB,zero scan swap;378pressureintervals:22within,356inconclusive,noneoutside. '
+                 'Releaseonly85B504batchesat2.5/3atm,10workers,no softwaretemperaturecutoff,no loadtest. '
+                 'Measured85Atimingresiduals donotraiseconservativeforecast:7.260hmodel/11.530hplanning. '
+                 'Updatedreport:runs/noble_cf4_preliminary_20261014_85a/index.html. '
+                 'Following85Aandearlierdescriptionsarehistorical;90/95stillrequire10workerreforecast. '
                  '2026-10-13:75B cold review passed,2079points/8316batches/415800histories,1777meetprecision/302flags. '
                  'Actual75B3.276415h,peak104C,12.291GiB,zero scan swap;630pressureintervals:44within,586inconclusive,noneoutside. '
                  'Releaseonly85A756batches,10workers,no softwaretemperaturecutoff,no loadtest;12.572hmodel/19.568hplanning. '
