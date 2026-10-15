@@ -691,7 +691,8 @@
     {
       "id": "G5-90B",
       "title": "90% noble pressure wave B: 2.5/3 atm",
-      "status": "prepared_for_detached_launch",
+      "status": "running_detached_review_required_after_completion",
+      "launch_review": "2026-10-15: code commitea04d80,notpushed.32targetedoffline tests passed;full90A cold audit passed. Detached service started08:35CEST. At08:38CEST10productionbatches accepted,low-energy gate running,2583priorpoints retained. Production child affinity0-9 verified,10workerlimit,1000%quota/20ms,32GiBMemoryMax,zeroscanSwap. No softwaretemperaturecutoff,hardwareprotectionsunchanged,no loadtest. Updated2583-pointreport/PDF/CSV andschedule verified. Live status supersedes these startup observations;noautomatic95%launch.",
       "depends_on": ["G5-90A"],
       "run": "runs/noble_cf4_mixture_pressure_90b",
       "launcher": "scripts/mixture_pressure_90b.sh",
