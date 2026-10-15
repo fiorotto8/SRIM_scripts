@@ -120,5 +120,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,default=SOURCE);parser.add_argument('--out',type=Path,default=OUT)
     args=parser.parse_args()
     points=json.loads((args.source/'points.json').read_text());summary=json.loads((args.source/'review/summary.json').read_text())
-    if summary['status'] not in ('AUDITED_READY_FOR_G5_70B','AUDITED_READY_FOR_G5_75','AUDITED_READY_FOR_G5_75B','AUDITED_READY_FOR_G5_85','AUDITED_READY_FOR_G5_85B','AUDITED_READY_FOR_G5_90'):raise ValueError('Cold audit required first')
+    if summary['status'] not in ('AUDITED_READY_FOR_G5_70B','AUDITED_READY_FOR_G5_75','AUDITED_READY_FOR_G5_75B','AUDITED_READY_FOR_G5_85','AUDITED_READY_FOR_G5_85B','AUDITED_READY_FOR_G5_90','AUDITED_READY_FOR_G5_90B'):raise ValueError('Cold audit required first')
     print(json.dumps(render(points,summary,args.out,args.source),indent=2))
