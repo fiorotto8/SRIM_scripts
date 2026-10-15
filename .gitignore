@@ -16,6 +16,7 @@
 !/pysrim_runner.py
 !/fix_srim_no_admin.ps1
 !/fix_srim_no_admin.bat
+!/scan.bat
 !/srim-root.txt
 !/configs/
 !/configs/*.toml
@@ -27,6 +28,7 @@
 !/scripts/*.sh
 !/scripts/*.py
 !/scripts/start_cygno_study.ps1
+!/scripts/control_cygno_study.ps1
 
 # Generated scan state and local Python caches remain untracked.
 runs/

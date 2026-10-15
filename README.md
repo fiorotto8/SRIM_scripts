@@ -195,6 +195,13 @@ numerical results and validation; report rendering is deferred to the WSL
 analysis command below. `simulations_complete_report_pending` means the
 numerical campaign passed and the report still needs rendering.
 
+For everyday Windows control, double-click **`scan.bat`** in the repository
+folder and choose **1 Stop**, **2 Resume**, or **3 Status**. Stop lets each
+worker save its current batch; wait for the recorded state to become `stopped`
+before shutting down. Resume reuses completed batches and the previous native
+Python, with eight workers. The same actions work from a command prompt as
+`scan.bat stop`, `scan.bat resume`, and `scan.bat status`.
+
 To request a stop after active
 jobs finish, create the marker below. After the campaign has stopped and its
 lock has been released, remove that marker and rerun the same launcher to
