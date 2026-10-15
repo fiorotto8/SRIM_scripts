@@ -7,6 +7,8 @@
 !/.gitattributes
 !/README.md
 !/CONTRIBUTING.md
+!/docs/
+!/docs/*.md
 !/GasDensities.csv
 !/srim_gas_sweep.py
 !/trim_qf_sweep.py

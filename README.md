@@ -157,3 +157,61 @@ W-values, or Fano factors.
 - Add `--no-plots` if Matplotlib is not installed.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and Git file conventions.
+
+## CYGNO He/CF4 study at 900 mbar
+
+The dedicated [study configuration](configs/cygno_hecf4_900mbar.toml) uses the
+active CSV temperature of 293 K. The ideal-gas baseline density is
+0.001389194959 g/cm3; the elemental atomic fractions are He = 3/13,
+C = 2/13, and F = 8/13. These differ from the 60/40 molecular fractions.
+The second medium contains 1000 ppm H2O and 1000 ppm O2 by final molar fraction,
+with the remaining gas retaining the 60/40 He/CF4 ratio.
+The [methodology notes](docs/cygno_srim_methodology.md) document the repository
+workflow, primary CYGNO/SRIM sources, energy accounting, and charge calibration.
+
+The [study driver](scripts/cygno_study.py) reuses the existing installation,
+input writers, parsers, and raw-archive helpers. It runs all five explicit
+isotopic projectiles (H-1, He-4, C-12, F-19, O-16) in both media. Bulk starting
+positions use TRIM.DAT mode 5 with full secondary cascades. Private runtime
+copies protect the installed SRIM tree and previous results. The native
+[supervisor](scripts/cygno_native_run.py) checks the completed history count
+before acknowledging the mode-5 completion dialog automatically.
+
+In this checkout, WSL Python supplies orchestration and the available analysis
+packages; the actual calculations use native Windows SRIM executables, without
+Wine or PySRIM. Inspect the plan, then launch the detached campaign:
+
+```bash
+python3 scripts/cygno_study.py plan
+./scripts/start_cygno_study.sh
+python3 scripts/cygno_study.py status
+```
+
+The launcher prints the PID and timestamped log. To request a stop after active
+jobs finish, create the marker below. After the campaign has stopped and its
+lock has been released, remove that marker and rerun the same launcher to
+resume completed jobs without overwriting them.
+
+```bash
+touch runs/cygno_hecf4_900mbar_20261015/.stop-requested
+```
+
+Results, raw archives, frozen source/configuration snapshots, and the report
+are written under `runs/cygno_hecf4_900mbar_20261015/`. Regenerate the numerical
+tables and report from completed batches with:
+
+```bash
+python3 scripts/cygno_study.py report
+```
+
+The campaign starts with 28 logarithmic energies from 0.1 to 3000 keVnr and
+three independent 100-history batches per species, energy, and medium. It
+then refines the grid and adds paired batches where the QF/range precision
+targets are unmet, up to nine batches. Separate runs test cascade thresholds
+and primary-path sampling. Missing points, low-energy conservation failures,
+and unresolved convergence remain explicit in the output.
+
+The QF is the integrated IONIZ primary-plus-secondary electronic-energy
+fraction. Its electron-equivalent energy is an SRIM surrogate; physical charge
+quenching requires recoil-specific calibration. RANGE_3D gives endpoints;
+EXYZ gives sampled primary paths, with exact total cascade length left unknown.
