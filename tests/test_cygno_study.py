@@ -6,6 +6,7 @@ import csv
 import json
 import math
 import os
+import statistics
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -306,6 +307,136 @@ class InterruptedAnalysisTests(unittest.TestCase):
             self.assertEqual(comparison[0]["impurity_equivalence_resolved"], "False")
             self.assertFalse(validation["passed"])
             self.assertEqual(validation["status"], "incomplete")
+
+
+class JointLateralUncertaintyTests(unittest.TestCase):
+    def test_joint_delete_one_uncertainty_matches_explicit_recomputed_samples(self):
+        y = [0.0, 0.7, 2.4, -1.1, 3.8]
+        z = [0.0, -0.2, 2.8, -1.4, 3.0]
+        expected_sd = math.sqrt((statistics.variance(y) + statistics.variance(z)) / 2)
+        deleted = [math.sqrt((statistics.variance(y[:index] + y[index + 1:])
+                              + statistics.variance(z[:index] + z[index + 1:])) / 2)
+                   for index in range(len(y))]
+        center = statistics.fmean(deleted)
+        expected_sem = math.sqrt((len(y) - 1) / len(y)
+                                 * sum((value - center) ** 2 for value in deleted))
+        sd, sem = study.lateral_sd_and_jackknife(y, z)
+        self.assertAlmostEqual(sd, expected_sd, places=13)
+        self.assertAlmostEqual(sem, expected_sem, places=13)
+
+    def test_combined_dispersion_and_joint_uncertainty_are_rotation_invariant(self):
+        y = [-1.7, 0.3, 4.8, 1.2, -0.6]
+        z = [0.4, -2.5, 3.4, 0.7, 2.1]
+        angle = 0.731
+        rotated_y = [math.cos(angle) * a - math.sin(angle) * b for a, b in zip(y, z)]
+        rotated_z = [math.sin(angle) * a + math.cos(angle) * b for a, b in zip(y, z)]
+        original = study.lateral_sd_and_jackknife(y, z)
+        rotated = study.lateral_sd_and_jackknife(rotated_y, rotated_z)
+        self.assertAlmostEqual(original[0], rotated[0], places=13)
+        self.assertAlmostEqual(original[1], rotated[1], places=13)
+
+    def test_small_samples_preserve_unknown_uncertainty_and_coordinate_pairing(self):
+        self.assertEqual(study.lateral_sd_and_jackknife([], []), (None, None))
+        self.assertEqual(study.lateral_sd_and_jackknife([1.0], [2.0]), (None, None))
+        sd, sem = study.lateral_sd_and_jackknife([1.0, 3.0], [-1.0, 3.0])
+        self.assertAlmostEqual(sd, math.sqrt(5))
+        self.assertIsNone(sem)
+        with self.assertRaisesRegex(ValueError, "paired endpoints"):
+            study.lateral_sd_and_jackknife([1.0, 2.0], [3.0])
+
+
+class EnergyChannelSummaryTests(unittest.TestCase):
+    def analyse_channels(self, missing=False):
+        config = deepcopy(study.load_configuration(CONFIG))
+        config["study"]["species"] = ["H"]
+        config["grid"]["energy_points"] = 2
+        records = [{"ion_id": index, "projected_displacement_mm": value,
+                    "lateral_y_mm": 0.0, "lateral_z_mm": 0.0,
+                    "endpoint_displacement_3d_mm": value}
+                   for index, value in enumerate((0.9, 1.1), 1)]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "batches").mkdir()
+            (output / "provenance").mkdir()
+            (output / "metadata.json").write_text("{}", encoding="utf-8")
+            (output / "provenance" / "source_installation.json").write_text(
+                json.dumps({"fingerprint": {}, "control": {}}), encoding="utf-8")
+            for repeat in range(3):
+                binding = 0.1 * (repeat + 1)
+                pre_binding_residual = 0.5 * (repeat + 1)
+                residual = pre_binding_residual - binding
+                budget = {"primary_electronic_energy_kev": 3.0 + repeat,
+                          "secondary_electronic_energy_kev": 2.0 - repeat,
+                          "phonon_energy_kev": 4.5 - 0.5 * repeat,
+                          "remaining_energy_kev": 5.0,
+                          "binding_energy_sink_kev": binding,
+                          "exclusive_energy_budget_residual_kev": pre_binding_residual,
+                          "exclusive_energy_budget_with_binding_residual_kev": residual,
+                          "exclusive_energy_budget_with_binding_residual_fraction": residual / 10,
+                          "recoil_transfer_diagnostic_columns_kev": [3.0 + 0.3 * repeat, 1.0 + 0.2 * repeat]}
+                if missing:
+                    for field in ("binding_energy_sink_kev", "exclusive_energy_budget_residual_kev",
+                                  "exclusive_energy_budget_with_binding_residual_kev",
+                                  "exclusive_energy_budget_with_binding_residual_fraction", "phonon_energy_kev"):
+                        budget[field] = None
+                    # Preserve one available native column, while refusing to
+                    # compute the other column from only a subset of batches.
+                    if repeat == 2:
+                        budget["recoil_transfer_diagnostic_columns_kev"][1] = None
+                batch = {"job": {"stage": "production", "medium": "baseline", "species": "H",
+                                  "repeat": repeat, "energy_kevnr": 10.0, "n_ions": 2,
+                                  "job_id": f"channels-{repeat}", "seed": repeat + 100},
+                         "qf": 0.5, "eee_kev": 5.0,
+                         "endpoints": {"records": records, "projected_range_mm": 1.0},
+                         "paths": None, "budget": budget, "clipped": False,
+                         "backscattered": 0, "transmitted": 0}
+                (output / "batches" / f"{repeat}.json").write_text(json.dumps(batch), encoding="utf-8")
+            with mock.patch.object(study.core, "source_fingerprint", return_value={}), \
+                 mock.patch.object(study.core, "source_control_fingerprint", return_value={}):
+                validation = study.analyse(output, config, output / "unused-source")
+            with (output / "summary.csv").open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+        self.assertEqual(len(rows), 1)
+        return rows[0], validation
+
+    def test_channel_and_independent_residual_sems_preserve_batch_covariance(self):
+        row, _ = self.analyse_channels()
+        expected = {
+            "primary_ionization_kev": (4.0, 1 / math.sqrt(3)),
+            "secondary_ionization_kev": (1.0, 1 / math.sqrt(3)),
+            "phonon_kev": (4.0, 0.5 / math.sqrt(3)),
+            "remaining_energy_kev": (5.0, 0.0),
+            "binding_energy_sink_kev": (0.2, 0.1 / math.sqrt(3)),
+            "exclusive_energy_budget_residual_kev": (1.0, 0.5 / math.sqrt(3)),
+            "exclusive_energy_budget_with_binding_residual_kev": (0.8, 0.4 / math.sqrt(3)),
+            "recoil_transfer_diagnostic_column_1_kev": (3.3, 0.3 / math.sqrt(3)),
+            "recoil_transfer_diagnostic_column_2_kev": (1.2, 0.2 / math.sqrt(3)),
+        }
+        for field, (mean, sem) in expected.items():
+            with self.subTest(channel=field):
+                self.assertAlmostEqual(float(row[field + "_mean"]), mean)
+                self.assertAlmostEqual(float(row[field + "_sem"]), sem)
+        self.assertAlmostEqual(float(row["eee_srim_kev_sem"]), 0)
+        self.assertEqual(float(row["lateral_straggling_mm_sem"]), 0)
+        self.assertEqual(row["recoil_transfer_diagnostic_column_count"], "2")
+        self.assertIn("excluded from terminal energy sum", row["recoil_transfer_diagnostic_interpretation"])
+        # The primary/secondary variations cancel, rather than adding in
+        # quadrature; neither recoil-transfer column enters this residual.
+        self.assertAlmostEqual(float(row["energy_closure_fraction_mean"]), 0.92)
+        self.assertAlmostEqual(float(row["energy_closure_fraction_sem"]), 0.04 / math.sqrt(3))
+
+    def test_unknown_channels_and_incomplete_native_columns_remain_null(self):
+        row, validation = self.analyse_channels(missing=True)
+        for field in ("phonon_kev", "binding_energy_sink_kev", "exclusive_energy_budget_residual_kev",
+                      "exclusive_energy_budget_with_binding_residual_kev", "recoil_transfer_diagnostic_column_2_kev",
+                      "energy_closure_fraction"):
+            with self.subTest(channel=field):
+                self.assertEqual(row[field + "_mean"], "")
+                self.assertEqual(row[field + "_sem"], "")
+        self.assertAlmostEqual(float(row["recoil_transfer_diagnostic_column_1_kev_mean"]), 3.3)
+        self.assertEqual(row["energy_budget_valid"], "False")
+        self.assertEqual(row["energy_budget_relative_residual_max_abs"], "")
+        self.assertFalse(validation["passed"])
 
 
 if __name__ == "__main__":

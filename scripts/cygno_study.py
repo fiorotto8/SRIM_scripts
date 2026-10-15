@@ -333,8 +333,29 @@ def sd_and_jackknife(values):
     center=statistics.fmean(leave)
     return sd,math.sqrt((n-1)/n*math.fsum((x-center)**2 for x in leave))
 
+def lateral_sd_and_jackknife(y,z):
+    """Combined transverse dispersion, deleting each paired endpoint jointly."""
+    if len(y)!=len(z):raise ValueError('Lateral coordinates must contain paired endpoints')
+    n=len(y)
+    if n<2:return None,None
+    mean_y=statistics.fmean(y);mean_z=statistics.fmean(z)
+    deviations=[(a-mean_y)**2+(b-mean_z)**2 for a,b in zip(y,z)]
+    sse=math.fsum(deviations)
+    sd=math.sqrt(sse/(2*(n-1)))
+    if n<3:return sd,None
+    leave=[math.sqrt(max(0.,sse-n/(n-1)*value)/(2*(n-2))) for value in deviations]
+    center=statistics.fmean(leave)
+    return sd,math.sqrt((n-1)/n*math.fsum((value-center)**2 for value in leave))
+
 def analyse(out,cfg,source):
     batches=[json.loads(path.read_text()) for path in sorted((out/'batches').glob('*.json'))]
+    def finite_number(value):
+        return isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value)
+    def complete_statistics(values):
+        return mean_sem(values) if values and all(finite_number(value) for value in values) else (None,None)
+    def valid_closure(batch):
+        residual=batch['budget'].get('exclusive_energy_budget_with_binding_residual_fraction')
+        return finite_number(residual) and abs(residual)<=cfg['validation']['maximum_energy_budget_relative_residual']
     stopping_tables={}
     for medium in ['baseline','contaminated']:
         for species in cfg['study']['species']:
@@ -358,19 +379,39 @@ def analyse(out,cfg,source):
            'qf_mean':q,'qf_sem':qs,'n_ions_total':len(endpoints),'n_batches':len(values),
            'projected_range_mm_mean':summary['mean'],'projected_range_mm_sem':summary['sem'],
            'longitudinal_straggling_mm':summary['sample_sd'],
-           'lateral_straggling_mm':math.sqrt((statistics.variance(y)+statistics.variance(z))/2) if len(y)>1 else None,
            'endpoint_radius_mm_mean':statistics.fmean(r['endpoint_displacement_3d_mm'] for r in endpoints),
            'primary_sampled_path_mm_mean':path_summary['mean'],'primary_sampled_path_mm_sem':path_summary['sem'],
            'actual_primary_track_length_mm':None,'total_cascade_track_length_mm':None,
-           'primary_ionization_kev_mean':statistics.fmean(b['budget']['primary_electronic_energy_kev'] for b in values),
-           'secondary_ionization_kev_mean':statistics.fmean(b['budget']['secondary_electronic_energy_kev'] for b in values),
-           'phonon_kev_mean':statistics.fmean(b['budget']['phonon_energy_kev'] for b in values),'remaining_energy_kev_mean':energy-ee,'energy_closure_fraction_mean':statistics.fmean(1-b['budget']['exclusive_energy_budget_with_binding_residual_fraction'] for b in values),
            'clipped':any(b['clipped'] for b in values),'statistical_converged':False,
-           'energy_budget_valid':all(abs(b['budget']['exclusive_energy_budget_with_binding_residual_fraction'])<=cfg['validation']['maximum_energy_budget_relative_residual'] for b in values),
-           'energy_budget_relative_residual_max_abs':max(abs(b['budget']['exclusive_energy_budget_with_binding_residual_fraction']) for b in values),
+           'energy_budget_valid':all(valid_closure(b) for b in values),
            'physical_charge_qf':None,'physical_charge_eee_kev':None,'direct_simulation':True}
+        for label,key in [
+            ('primary_ionization_kev','primary_electronic_energy_kev'),
+            ('secondary_ionization_kev','secondary_electronic_energy_kev'),
+            ('phonon_kev','phonon_energy_kev'),
+            ('binding_energy_sink_kev','binding_energy_sink_kev'),
+            ('exclusive_energy_budget_residual_kev','exclusive_energy_budget_residual_kev'),
+            ('exclusive_energy_budget_with_binding_residual_kev','exclusive_energy_budget_with_binding_residual_kev')]:
+            row[label+'_mean'],row[label+'_sem']=complete_statistics([b['budget'].get(key) for b in values])
+        row['remaining_energy_kev_mean'],row['remaining_energy_kev_sem']=complete_statistics([energy-b['eee_kev'] for b in values])
+        closure_fractions=[b['budget'].get('exclusive_energy_budget_with_binding_residual_fraction') for b in values]
+        closure_values=[1-value if finite_number(value) else None for value in closure_fractions]
+        row['energy_closure_fraction_mean'],row['energy_closure_fraction_sem']=complete_statistics(closure_values)
+        row['energy_budget_relative_residual_max_abs']=max(map(abs,closure_fractions)) if all(finite_number(value) for value in closure_fractions) else None
+        transfers=[b['budget'].get('recoil_transfer_diagnostic_columns_kev') for b in values]
+        row['recoil_transfer_diagnostic_column_count']=max((len(columns) for columns in transfers if isinstance(columns,list)),default=0)
+        target_orders=[b.get('effective_settings',{}).get('target_element_order_z') for b in values]
+        order=target_orders[0] if target_orders and all(value==target_orders[0] for value in target_orders) else None
+        row['recoil_transfer_diagnostic_target_z_order']=json.dumps(order) if isinstance(order,list) and len(order)+1==row['recoil_transfer_diagnostic_column_count'] else None
+        for column in range(row['recoil_transfer_diagnostic_column_count']):
+            column_values=[columns[column] if isinstance(columns,list) and column<len(columns) else None for columns in transfers]
+            label=f'recoil_transfer_diagnostic_column_{column+1}_kev'
+            row[label+'_mean'],row[label+'_sem']=complete_statistics(column_values)
+        row['recoil_transfer_diagnostic_interpretation']='Native energy-column order (1-based): first is energy from primary ions; remaining columns are energy absorbed by target elements in target_z_order. Intermediate transfer, excluded from terminal energy sum; columns are not summed'
+        row['energy_channel_uncertainty_method']='SEM across independent batch means; closure residuals summarized per batch to retain channel covariance; missing channel values remain null'
         row['statistical_converged']=bool(len(values)>=cfg['simulation']['independent_batches'] and qs is not None and q>0 and qs/q<=cfg['validation']['maximum_qf_relative_sem'] and summary['mean']>0 and summary['sem'] is not None and summary['sem']/summary['mean']<=cfg['validation']['maximum_range_relative_sem'])
         row['longitudinal_straggling_mm_sem']=sd_and_jackknife(projections)[1]
+        row['lateral_straggling_mm'],row['lateral_straggling_mm_sem']=lateral_sd_and_jackknife(y,z)
         row['lateral_y_straggling_mm'],row['lateral_y_straggling_mm_sem']=sd_and_jackknife(y)
         row['lateral_z_straggling_mm'],row['lateral_z_straggling_mm_sem']=sd_and_jackknife(z)
         row['straggling_uncertainty_method']='delete-one endpoint jackknife; sample dispersion separate from mean SEM'
@@ -442,9 +483,16 @@ def analyse(out,cfg,source):
     check('total_3d_track_length',False,'EXYZ provides sampled primary paths; total primary/cascade path length not established','limitation')
     in_domain=[b for b in batches if b['eee_kev']>=cfg['grid']['requested_eee_min_kev']]
     low_energy=[b for b in batches if b['eee_kev']<cfg['grid']['requested_eee_min_kev']]
-    check('terminal_energy_closure_requested_domain',bool(in_domain) and all(abs(b['budget']['exclusive_energy_budget_with_binding_residual_fraction'])<=cfg['validation']['maximum_energy_budget_relative_residual'] for b in in_domain),'Require 1% IONIZ+PHONON+binding energy closure where SRIM electronic surrogate is at least0.25keV; raw excursions retained')
-    check('low_energy_control_budget',all(abs(b['budget']['exclusive_energy_budget_with_binding_residual_fraction'])<=cfg['validation']['maximum_energy_budget_relative_residual'] for b in low_energy),'Supplementary low-energy control points below requested0.25keV surrogate can show SRIM cutoff/transport overshoot; energy_budget_valid flags these rows','warning')
-    from cygno_study_validation import analyse_systematics,verify_archives
+    check('terminal_energy_closure_requested_domain',bool(in_domain) and all(valid_closure(b) for b in in_domain),'Require 1% IONIZ+PHONON+binding energy closure where SRIM electronic surrogate is at least0.25keV; raw excursions retained')
+    check('low_energy_control_budget',all(valid_closure(b) for b in low_energy),'Supplementary low-energy control points below requested0.25keV surrogate can show SRIM cutoff/transport overshoot; energy_budget_valid flags these rows','warning')
+    from cygno_study_validation import analyse_systematics,verify_archives,compare_srmodule_media
+    if (out/'srmodule.csv').exists():
+        import csv
+        with (out/'srmodule.csv').open(newline='',encoding='utf-8') as handle:
+            medium_comparison=compare_srmodule_media(list(csv.DictReader(handle)),cfg['grid']['energy_min_kevnr'],cfg['grid']['energy_max_kevnr'],cfg['validation']['impurity_material_relative_change'])
+        core.atomic_write_json(out/'srmodule_medium_comparison.json',medium_comparison)
+        if medium_comparison['rows']:core.write_csv_atomic(out/'srmodule_medium_comparison.csv',medium_comparison['rows'])
+        checks.extend(medium_comparison['checks'])
     systematic=analyse_systematics(batches,cfg)
     core.atomic_write_json(out/'systematics.json',systematic)
     if systematic['rows']:core.write_csv_atomic(out/'systematics.csv',systematic['rows'])

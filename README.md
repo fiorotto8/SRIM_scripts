@@ -215,3 +215,8 @@ The QF is the integrated IONIZ primary-plus-secondary electronic-energy
 fraction. Its electron-equivalent energy is an SRIM surrogate; physical charge
 quenching requires recoil-specific calibration. RANGE_3D gives endpoints;
 EXYZ gives sampled primary paths, with exact total cascade length left unknown.
+Energy-channel SEMs and straggling uncertainties are retained alongside means.
+The numerical export specifies the event-field units: native absolute X stays
+in Angstrom while displacements and sampled paths use mm. The separate
+`srmodule_medium_comparison` tables compare exact native stopping/range points
+between the two media; they do not establish full-cascade or charge equivalence.

@@ -607,7 +607,11 @@ def integrate_energy_budget(
         "energy_closure_verified": False,
         "unresolved_energy_channels": ["primary escape", "secondary escape", "transport cutoff residual", "binding channels if nonzero"],
         "recoil_transfer_diagnostic_columns_kev": transfer_kev,
-        "recoil_transfer_interpretation": "Intermediate transfer from primary to target recoils; excluded from final-sink sum to avoid double counting",
+        "recoil_transfer_interpretation": (
+            "E2RECOIL columns retain native order: first Energy from IONS; remaining Energy Absorbed by each target element "
+            "(one aggregate recoil column in some outputs). These transfer/absorption diagnostics are excluded from the "
+            "final-sink sum to avoid double counting. The headers do not identify a separate recoil-to-recoil channel."
+        ),
         "ioniz_profile": ioniz, "phonon_profile": phonon, "recoil_transfer_profile": transfer,
         "vacancy_profile": vacancy,
         "qf_interpretation": "SRIM electronic-energy fraction including primary and secondary recoils; physical charge QF requires calibration",

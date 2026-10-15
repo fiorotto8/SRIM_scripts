@@ -27,6 +27,93 @@ def _check(name, passed, detail, severity="failure"):
     return {"check": name, "passed": bool(passed), "severity": "pass" if passed else severity, "detail": detail}
 
 
+def compare_srmodule_media(
+    rows: Sequence[Mapping[str, Any]],
+    energy_min_kevnr: float = 0.1,
+    energy_max_kevnr: float = 3000,
+    material_relative_change: float = 0.02,
+) -> dict[str, Any]:
+    """Compare exact native table points, with no interpolation or TRIM inference.
+
+    Relative change is contaminated/baseline - 1 at the same incident energy.
+    These are deterministic SRModule predictions with no assigned statistical
+    or model uncertainty. A passing 2% screen concerns only the listed stopping
+    and range quantities, never full-cascade QF or physical charge response.
+    """
+    if not all(_finite(value) for value in (energy_min_kevnr, energy_max_kevnr, material_relative_change)):
+        raise ValueError("SRModule comparison bounds and criterion must be finite")
+    if not 0 < energy_min_kevnr <= energy_max_kevnr or material_relative_change < 0:
+        raise ValueError("Invalid SRModule comparison energy bounds or criterion")
+    quantities = ("electronic_stopping_mev_mg_cm2", "nuclear_stopping_mev_mg_cm2",
+                  "electronic_stopping_kev_mm", "nuclear_stopping_kev_mm",
+                  "projected_range_mm", "longitudinal_straggling_mm", "lateral_straggling_mm")
+    required = (quantities[0], quantities[1], *quantities[4:])
+    indexed = {}
+    keys = set()
+    for row in rows:
+        medium = row.get("medium")
+        if medium not in ("baseline", "contaminated") or not _finite(row.get("energy_kevnr")):
+            continue
+        energy = float(row["energy_kevnr"])
+        if not energy_min_kevnr <= energy <= energy_max_kevnr:
+            continue
+        species = str(row["species"])
+        key = (species, energy, medium)
+        if key in indexed:
+            raise ValueError(f"Duplicate native SRModule comparison point {key}")
+        indexed[key] = row
+        keys.add((species, energy))
+    comparisons = []
+    for species, energy in sorted(keys):
+        base = indexed.get((species, energy, "baseline"))
+        wet = indexed.get((species, energy, "contaminated"))
+        comparison = {"species": species, "energy_kevnr": energy,
+            "baseline_present": base is not None, "contaminated_present": wet is not None,
+            "paired_native_point": base is not None and wet is not None,
+            "deterministic_model_uncertainty": None,
+            "method": "Exact native SRModule table points; deterministic stopping/range comparison, not TRIM/QF"}
+        for quantity in quantities:
+            a, b = base.get(quantity) if base else None, wet.get(quantity) if wet else None
+            comparison[quantity + "_relative_change"] = (
+                float(b) / float(a) - 1 if _finite(a) and _finite(b) and float(a) != 0 else None)
+        comparisons.append(comparison)
+    summaries, checks = [], []
+    for species in sorted({row["species"] for row in comparisons}):
+        species_rows = [row for row in comparisons if row["species"] == species]
+        paired = sum(row["paired_native_point"] for row in species_rows)
+        summary = {"species": species, "native_points_in_union": len(species_rows),
+            "paired_native_points": paired,
+            "baseline_native_points": sum(row["baseline_present"] for row in species_rows),
+            "contaminated_native_points": sum(row["contaminated_present"] for row in species_rows),
+            "complete_native_point_pairing": paired == len(species_rows),
+            "material_relative_change_criterion": material_relative_change,
+            "deterministic_model_uncertainty": None,
+            "full_cascade_qf_equivalence": None, "physical_charge_equivalence": None}
+        all_changes = []
+        complete_required = paired == len(species_rows)
+        for quantity in quantities:
+            changes = [row[quantity + "_relative_change"] for row in species_rows
+                       if row[quantity + "_relative_change"] is not None]
+            summary[quantity + "_valid_pairs"] = len(changes)
+            summary[quantity + "_max_abs_relative_change"] = max(map(abs, changes)) if changes else None
+            all_changes.extend(changes)
+            if quantity in required and len(changes) != len(species_rows):
+                complete_required = False
+        within = max(map(abs, all_changes)) <= material_relative_change if all_changes else None
+        summary["all_available_changes_within_criterion"] = within
+        summary["required_quantities_complete"] = complete_required
+        summary["srmodule_screen_passed"] = bool(complete_required and within is True)
+        summaries.append(summary)
+        checks.append(_check("srmodule_impurity_screen_" + species, summary["srmodule_screen_passed"],
+            f"{paired}/{len(species_rows)} native energy pairs; required quantities complete={complete_required}; "
+            f"all available changes within {material_relative_change:.1%}={within}; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+            "warning"))
+    if not comparisons:
+        checks.append(_check("srmodule_impurity_native_pairs", False, "No native SRModule points in requested energy interval"))
+    return {"rows": comparisons, "species_summary": summaries, "checks": checks,
+        "definition": "Relative change = contaminated / baseline - 1 at exact matching native species/energy points; no interpolation; uncertainties unassigned; SRModule stopping/ranges only, not full-cascade QF or detector charge equivalence"}
+
+
 def analyse_systematics(batches: Sequence[Mapping[str, Any]], cfg: Mapping[str, Any]) -> dict[str, Any]:
     """Summarize direct batches without inventing missing samples or errors.
 

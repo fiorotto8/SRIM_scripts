@@ -6,7 +6,7 @@ import tarfile
 import tempfile
 import unittest
 
-from scripts.cygno_study_validation import analyse_systematics, verify_archives
+from scripts.cygno_study_validation import analyse_systematics, compare_srmodule_media, verify_archives
 
 
 CONFIG = {
@@ -77,6 +77,45 @@ class SystematicsTests(unittest.TestCase):
         self.assertTrue(all(row["n_paired_batches"] == 0 for row in comparisons))
         self.assertTrue(all(row["paired_relative_path_change_sem"] is None for row in comparisons))
         self.assertTrue(all(not row["complete"] for row in comparisons))
+
+
+class SRModuleComparisonTests(unittest.TestCase):
+    def row(self, medium, energy, scale=1):
+        return {"medium": medium, "species": "F", "energy_kevnr": energy,
+            "electronic_stopping_mev_mg_cm2": 10 * scale, "nuclear_stopping_mev_mg_cm2": 2 * scale,
+            "electronic_stopping_kev_mm": 20 * scale, "nuclear_stopping_kev_mm": 4 * scale,
+            "projected_range_mm": 3 * scale, "longitudinal_straggling_mm": 0.5 * scale,
+            "lateral_straggling_mm": 0.25 * scale}
+
+    def test_exact_native_ratios_and_deterministic_scope(self):
+        result = compare_srmodule_media([self.row("baseline", 1), self.row("contaminated", 1, 1.01)])
+        self.assertAlmostEqual(result["rows"][0]["projected_range_mm_relative_change"], 0.01)
+        summary = result["species_summary"][0]
+        self.assertEqual(summary["paired_native_points"], 1)
+        self.assertAlmostEqual(summary["electronic_stopping_mev_mg_cm2_max_abs_relative_change"], 0.01)
+        self.assertTrue(summary["srmodule_screen_passed"])
+        self.assertIsNone(summary["deterministic_model_uncertainty"])
+        self.assertIsNone(summary["full_cascade_qf_equivalence"])
+        self.assertIsNone(summary["physical_charge_equivalence"])
+
+    def test_missing_energy_pairs_zero_denominators_and_optional_linear_fields(self):
+        base, wet = self.row("baseline", 1), self.row("contaminated", 1)
+        base["nuclear_stopping_mev_mg_cm2"] = 0
+        del base["electronic_stopping_kev_mm"]
+        result = compare_srmodule_media([base, wet, self.row("baseline", 2), self.row("contaminated", 2.000001), self.row("baseline", 4000)])
+        self.assertEqual(len(result["rows"]), 3)
+        self.assertIsNone(result["rows"][0]["nuclear_stopping_mev_mg_cm2_relative_change"])
+        self.assertIsNone(result["rows"][0]["electronic_stopping_kev_mm_relative_change"])
+        self.assertIsNone(result["rows"][1]["projected_range_mm_relative_change"])
+        self.assertEqual(result["species_summary"][0]["paired_native_points"], 1)
+        self.assertFalse(result["species_summary"][0]["required_quantities_complete"])
+        self.assertFalse(result["species_summary"][0]["srmodule_screen_passed"])
+
+    def test_material_change_and_duplicates_are_not_hidden(self):
+        result = compare_srmodule_media([self.row("baseline", 1), self.row("contaminated", 1, 1.05)])
+        self.assertFalse(result["species_summary"][0]["all_available_changes_within_criterion"])
+        with self.assertRaisesRegex(ValueError, "Duplicate"):
+            compare_srmodule_media([self.row("baseline", 1), self.row("baseline", 1)])
 
 
 def make_archive(root, *, unsafe_name=None, incorrect_manifest=False):

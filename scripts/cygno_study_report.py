@@ -349,6 +349,13 @@ def _curve_figure(summary: list[dict[str, Any]], xkey: str, ykey: str,
     return fig
 
 
+def _event_field_units(fields: list[str]) -> dict[str, str | None]:
+    """Keep native absolute coordinates distinct from converted displacements."""
+    return {field: ("angstrom" if field.endswith("_angstrom") else "mm" if field.endswith("_mm")
+                    else "keV" if field == "energy_kevnr" else "1" if field in {"batch", "ion_id"}
+                    else None) for field in fields}
+
+
 def _event_data(path: Path, problems: list[str]) -> tuple[dict[tuple[str, str, float], dict[str, list[float]]], int, list[str]]:
     result: dict[tuple[str, str, float], dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     if not path.is_file():
@@ -434,11 +441,16 @@ def _energy_figure(summary: list[dict[str, Any]]) -> Any:
             ("Primary electronic", "Secondary electronic", "SRIM phonon bookkeeping")):
         plotted = False
         for (medium, species), rows in _groups(summary):
-            points = sorted((float(row["energy_kevnr"]), float(row[field]) / float(row["energy_kevnr"]))
+            points = sorted((float(row["energy_kevnr"]), float(row[field]) / float(row["energy_kevnr"]), row)
                             for row in rows if _number(row.get("energy_kevnr")) is not None
                             and float(row["energy_kevnr"]) > 0 and _number(row.get(field)) is not None)
             if points:
                 ax.plot([p[0] for p in points], [p[1] for p in points], **_style(medium, species))
+                for energy, fraction, row in points:
+                    sem = _number(row.get(field.removesuffix("_mean") + "_sem"))
+                    if sem is not None and sem >= 0:
+                        ax.errorbar(energy, fraction, yerr=sem / energy, fmt="none",
+                                    color=COLORS.get(species, "#555555"), alpha=0.6, capsize=2, linewidth=0.8)
                 plotted = True
         ax.set(title=title, xlabel="Recoil energy [keVnr]")
         if plotted:
@@ -601,6 +613,17 @@ def build_report(study_dir: Path) -> dict[str, Any]:
                    if (study_dir / "systematics.json").is_file() else None)
     archive_validation = (_load_json(study_dir / "archive_validation.json", None, optional_notes)
                           if (study_dir / "archive_validation.json").is_file() else None)
+    stopping_comparison = (_load_json(study_dir / "srmodule_medium_comparison.json", None, optional_notes)
+                           if (study_dir / "srmodule_medium_comparison.json").is_file() else None)
+    stopping_summary = stopping_comparison.get("species_summary", []) if isinstance(stopping_comparison, dict) else []
+    stopping_note = ("Exact native SRModule energy pairs in the configured recoil-energy interval. "
+                     "Relative changes are contaminated/baseline minus one. Values are deterministic predictions "
+                     "with unassigned model uncertainty and finite printed precision; they do not establish "
+                     "full-cascade QF or physical charge equivalence.")
+    stopping_summary_fields = ["species", "paired_native_points", "electronic_stopping_mev_mg_cm2_max_abs_relative_change",
+                               "nuclear_stopping_mev_mg_cm2_max_abs_relative_change", "projected_range_mm_max_abs_relative_change",
+                               "longitudinal_straggling_mm_max_abs_relative_change", "lateral_straggling_mm_max_abs_relative_change",
+                               "srmodule_screen_passed"]
     provenance_references = _provenance_references(study_dir, optional_notes)
     systematics_rows = systematics_csv if systematics_csv is not None else (
         systematics.get("rows", []) if isinstance(systematics, dict) else [])
@@ -690,6 +713,10 @@ def build_report(study_dir: Path) -> dict[str, Any]:
         numerical_notes = ["The complete numerical tables, configuration, gas fractions, and input hashes are retained in numerical_export.json."]
         for condition in gas_conditions:
             numerical_notes.append("Gas condition: " + "; ".join(f"{key}={_fmt(value)}" for key, value in condition.items()))
+        if stopping_summary:
+            numerical_notes.append("SRModule stopping-medium impurity comparison: " + stopping_note)
+            for row in stopping_summary:
+                numerical_notes.append("; ".join(f"{key}={_fmt(row.get(key))}" for key in stopping_summary_fields))
         if comparison:
             numerical_notes.extend(["Contamination comparisons:", IMPURITY_NOTE])
             for row in comparison[:24]:
@@ -733,6 +760,7 @@ def build_report(study_dir: Path) -> dict[str, Any]:
     markdown = ["# CYGNO gas-recoil SRIM study", f"**Status: {status}.**", *intro[1:],
                 "## Recorded gas conditions", _markdown_table(gas_conditions, gas_fields),
                 "## Numerical summary", _markdown_table(summary, summary_fields),
+                "## SRModule stopping-medium comparison", stopping_note, _markdown_table(stopping_summary, stopping_summary_fields),
                 "## Contamination comparison", IMPURITY_NOTE, _markdown_table(comparison, comparison_fields),
                 "## Validation", _markdown_table(validation_rows, validation_fields),
                 "## Cutoff and trajectory-sampling systematics", SYSTEMATICS_NOTE, systematics_inventory]
@@ -787,6 +815,8 @@ th{{background:#e8eef4}}.source-notes{{white-space:pre-wrap;font-size:14px;backg
 <a href="numerical_export.json">Numerical JSON</a><a href="../events.csv.gz">Event table</a></nav>{sections}
 <h2>Recorded gas conditions</h2>{_html_table(gas_conditions, gas_fields)}
 <h2>Numerical summary</h2>{_html_table(summary, summary_fields)}
+<h2>SRModule stopping-medium comparison</h2><p>{html.escape(stopping_note)}</p>
+{_html_table(stopping_summary, stopping_summary_fields)}
 <h2>Contamination comparison</h2><p>{html.escape(IMPURITY_NOTE)}</p>
 {_html_table(comparison, comparison_fields)}<h2>Validation</h2>{_html_table(validation_rows, validation_fields)}
 <h2>Cutoff and trajectory-sampling systematics</h2><p>{html.escape(SYSTEMATICS_NOTE)}</p>
@@ -798,7 +828,7 @@ th{{background:#e8eef4}}.source-notes{{white-space:pre-wrap;font-size:14px;backg
     paths["html"].write_text(document, encoding="utf-8")
     input_manifest: dict[str, Any] = {}
     for name in ("metadata.json", "srmodule.csv", "summary.csv", "comparison.csv", "validation.json", "events.csv.gz",
-                 "systematics.csv", "systematics.json", "archive_validation.json"):
+                 "systematics.csv", "systematics.json", "archive_validation.json", "srmodule_medium_comparison.csv", "srmodule_medium_comparison.json"):
         path = study_dir / name
         if path.is_file():
             digest = hashlib.sha256()
@@ -822,17 +852,22 @@ th{{background:#e8eef4}}.source-notes{{white-space:pre-wrap;font-size:14px;backg
               "metadata": metadata, "summary": summary, "srmodule": srmodule,
               "srmodule_instantaneous_partitions": stopping_partitions, "comparison": comparison,
               "systematics_csv": systematics_csv, "systematics": systematics,
+              "srmodule_medium_comparison": stopping_comparison,
               "archive_validation": archive_validation, "provenance_references": provenance_references,
               "optional_input_notes": optional_notes,
               "validation": validation, "event_table": {"path": "../events.csv.gz", "rows": event_count,
                                                         "fields": event_fields, "interpretation": EVENT_NOTE,
+                                                        "field_units": _event_field_units(event_fields),
+                                                        "coordinate_note": "Absolute X retains native Angstrom units; displacements and sampled paths use mm. One Angstrom equals 1e-7 mm. Source jitter is unresolved.",
+                                                        "event_identity": ["medium", "species", "energy_kevnr", "batch", "ion_id"],
                                                         "per_event_charge_available": False,
                                                         "per_event_electronic_energy_available": False,
                                                         "per_event_qf_available": False},
               "input_manifest": input_manifest, "figures": figures,
               "methodology": "methodology.md" if methodology else None,
               "units": {"energy_kevnr": "keV nuclear-recoil energy", "eee_srim_kev_mean": "keV electronic energy; energy-only surrogate",
-                        "qf_mean": "dimensionless", "lengths": "mm", "relative_changes": "dimensionless"}}
+                        "qf_mean": "dimensionless", "summary_lengths": "mm", "event_fields": _event_field_units(event_fields),
+                        "relative_changes": "dimensionless"}}
     paths["json"].write_text(json.dumps(_json_value(export), indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     return {**{name: str(path) for name, path in paths.items()}, "status": status,
             "figures": [str(report_dir / figure["png"]) for figure in figures]}
