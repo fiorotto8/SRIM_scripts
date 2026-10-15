@@ -91,7 +91,7 @@ def prepare(out,cfg,config_path,source):
     else:
         core.atomic_write_json(path,metadata)
     provenance=out/'provenance'; provenance.mkdir(exist_ok=True)
-    sources=[config_path,Path(__file__),ROOT/'scripts/cygno_study_physics.py',ROOT/'scripts/cygno_native_run.py',ROOT/'scripts/cygno_study_adaptive.py',ROOT/'scripts/cygno_study_validation.py',ROOT/'scripts/start_cygno_study.sh',ROOT/'scripts/cygno_study_report.py',ROOT/'srim_scan.py',ROOT/'srim_gas_sweep.py',ROOT/'trim_qf_sweep.py',ROOT/'docs/cygno_srim_methodology.md']
+    sources=[config_path,Path(__file__),ROOT/'scripts/cygno_study_physics.py',ROOT/'scripts/cygno_native_run.py',ROOT/'scripts/cygno_study_adaptive.py',ROOT/'scripts/cygno_study_validation.py',ROOT/'scripts/start_cygno_study.sh',ROOT/'scripts/start_cygno_study.ps1',ROOT/'scripts/cygno_study_report.py',ROOT/'srim_scan.py',ROOT/'srim_gas_sweep.py',ROOT/'trim_qf_sweep.py',ROOT/'docs/cygno_srim_methodology.md']
     manifest={path.name:core.sha256_file(path) for path in sources}
     revision=hashlib.sha256(core.canonical_json(manifest).encode()).hexdigest()
     snapshot=provenance/'source_revisions'/revision
@@ -281,8 +281,8 @@ def run_one(job,runtime,out,cfg,metadata,elements):
         'source_revision':metadata.get('execution_source_revision')}
     archive=out/'raw'/job['stage']/f"{job['job_id']}.tar.gz"
     files={'TRIM.IN':runtime/'TRIM.IN','TRIM.dat':runtime/'TRIM.dat','TRIMAUTO':runtime/'TRIMAUTO','TRIM.cfg':runtime/'Data/TRIM.cfg','TDATA.sav':runtime/'SRIM Restore/TDATA.sav','native_process.json':native_log,**outputs}
-    result['raw_archive']=str(archive.relative_to(out))
-    effective['source']=str(archive.relative_to(out))+'::TDATA.sav'
+    result['raw_archive']=archive.relative_to(out).as_posix()
+    effective['source']=archive.relative_to(out).as_posix()+'::TDATA.sav'
     result['raw_sha256']={k:core.sha256_file(v) for k,v in files.items()}
     core.archive_files_atomic(archive,files,{'job':job,'source_depth_angstrom':source_depth,'runtime_s':result['runtime_s'],'sha256':result['raw_sha256'],'source_revision':result['source_revision']})
     core.atomic_write_json(result_path,result)
@@ -522,7 +522,7 @@ def analyse(out,cfg,source):
 def load_batches(out):
     return [json.loads(path.read_text()) for path in sorted((out/'batches').glob('*.json'))]
 
-def campaign(source,out,cfg,metadata,elements,workers):
+def campaign(source,out,cfg,metadata,elements,workers,defer_report=False):
     import cygno_study_adaptive as adaptive
     with study_lock(out):
         if (out/'.stop-requested').exists():raise RuntimeError('Remove .stop-requested to resume the campaign')
@@ -557,10 +557,13 @@ def campaign(source,out,cfg,metadata,elements,workers):
         if (out/'.stop-requested').exists():return False
         if not execute(source,out,cfg,metadata,elements,'systematics',workers):return False
         validation=analyse(out,cfg,source)
-        from cygno_study_report import build_report
-        artifacts=build_report(out)
+        if defer_report:
+            artifacts={'status':'pending','reason':'Report rendering deferred to the configured analysis environment'}
+        else:
+            from cygno_study_report import build_report
+            artifacts=build_report(out)
         core.atomic_write_json(out/'campaign_completion.json',{'validation':validation,'artifacts':artifacts,'completed_at':core.utc_now(),
-           'status':'complete' if validation['passed'] else 'finished_with_unresolved_validation'})
+           'status':('simulations_complete_report_pending' if defer_report else 'complete') if validation['passed'] else 'finished_with_unresolved_validation'})
         return validation['passed']
 
 @contextmanager
@@ -578,14 +581,14 @@ def study_lock(out):
         (directory/'owner.json').unlink(missing_ok=True)
         directory.rmdir()
 
-def run_campaign(source,out,cfg,metadata,elements,workers):
+def run_campaign(source,out,cfg,metadata,elements,workers,defer_report=False):
     """Record terminal state even when a detached campaign fails."""
-    state={'pid':os.getpid(),'host':socket.gethostname(),'status':'running','started_at':core.utc_now(),
+    state={'pid':os.getpid(),'host':socket.gethostname(),'coordinator_platform':os.name,'status':'running','started_at':core.utc_now(),
            'source_revision':metadata.get('execution_source_revision')}
     core.atomic_write_json(out/'campaign_state.json',state)
     try:
-        success=campaign(source,out,cfg,metadata,elements,workers)
-        state['status']='complete' if success else ('stopped' if (out/'.stop-requested').exists() else 'failed')
+        success=campaign(source,out,cfg,metadata,elements,workers,defer_report=defer_report)
+        state['status']=('simulations_complete_report_pending' if defer_report else 'complete') if success else ('stopped' if (out/'.stop-requested').exists() else 'failed')
         return success
     except BaseException as error:
         state.update(status='failed',error_type=type(error).__name__,error=str(error))
@@ -594,6 +597,22 @@ def run_campaign(source,out,cfg,metadata,elements,workers):
         state['finished_at']=core.utc_now()
         core.atomic_write_json(out/'campaign_state.json',state)
 
+def windows_campaign_active(pid,out):
+    """Verify native coordinator identity from Windows, including when queried in WSL."""
+    if not isinstance(pid,int) or isinstance(pid,bool) or pid<=0:return False
+    executable='powershell.exe' if os.name=='nt' else '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
+    command=f'Get-CimInstance Win32_Process -Filter "ProcessId = {pid}" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress'
+    try:
+        result=subprocess.run([executable,'-NoProfile','-Command',command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=15,check=True)
+        value=json.loads(result.stdout.decode('utf-8-sig').strip() or 'null')
+        if not isinstance(value,dict) or value.get('ProcessId')!=pid:return False
+        text=(value.get('CommandLine') or '').lower().replace('/','\\')
+        driver=stopping.to_windows_path(Path(__file__).resolve()).lower().replace('/','\\')
+        directory=stopping.to_windows_path(out.resolve()).lower().replace('/','\\')
+        token=lambda value:bool(re.search(r'(?:^|\s)"?'+re.escape(value)+r'"?(?=\s|$)',text))
+        return token(driver) and token(directory) and token('campaign')
+    except (OSError,subprocess.SubprocessError,ValueError):return False
+
 def study_status(out):
     counts={}
     for path in (out/'batches').glob('*.json'):
@@ -601,7 +620,9 @@ def study_status(out):
     state_path=out/'campaign_state.json'
     state=json.loads(state_path.read_text()) if state_path.exists() else {}
     active=False
-    if state.get('host')==socket.gethostname() and state.get('pid'):
+    if state.get('coordinator_platform')=='nt':
+        active=windows_campaign_active(state.get('pid'),out)
+    elif state.get('host')==socket.gethostname() and state.get('pid'):
         proc=Path(f"/proc/{state['pid']}/cmdline")
         if proc.exists():
             try:
@@ -622,6 +643,7 @@ def main():
     parser.add_argument('--srim-root',type=Path,default=ROOT)
     parser.add_argument('--workers',type=int)
     parser.add_argument('--limit',type=int)
+    parser.add_argument('--defer-report',action='store_true',help='Finish simulations and numerical validation; render the report separately in the analysis environment')
     args=parser.parse_args();cfg=load_configuration(args.config);out=args.run_dir.resolve();source=args.srim_root.resolve()
     if args.command=='status':
         print(json.dumps(study_status(out),indent=2))
@@ -630,7 +652,7 @@ def main():
     if args.workers is not None and args.workers<1:parser.error('--workers must be positive')
     workers=args.workers or cfg['simulation']['workers']
     if args.command=='campaign':
-        return 0 if run_campaign(source,out,cfg,metadata,elements,workers) else 1
+        return 0 if run_campaign(source,out,cfg,metadata,elements,workers,defer_report=args.defer_report) else 1
     if args.command=='plan':
         for condition in metadata['gas_conditions']: print(json.dumps(condition,indent=2))
         print('Production batches:',len(make_jobs(cfg,'production',out)))

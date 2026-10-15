@@ -29,6 +29,64 @@ UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_40h_ubuntu.toml"
 STRICT_UBUNTU_CONFIG = ROOT / "configs" / "noble_cf4_7day_ubuntu.toml"
 
 
+class SourceFingerprintTests(unittest.TestCase):
+    def make_source(self, root):
+        files = {
+            "Data/ATOMDATA": b"atoms\n",
+            "Data/POTCOEF03.DAT": b"potential\n",
+            "Data/SCOEF03.DAT": b"stopping\n",
+            "Data/SNUC03.dat": b"nuclear\n",
+            "SR Module/SRModule.exe": b"module\n",
+            "SR Module/SCOEF03.dat": b"module stopping\n",
+            "SR Module/SNUC03.dat": b"module nuclear\n",
+            "SR Module/VERSION": b"2013 module\n",
+            "TRIM.exe": b"trim executable\n",
+        }
+        for name, content in {**files, "Data/VERSION": b"2013 data\n"}.items():
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        return {
+            **{name: hashlib.sha256(content).hexdigest() for name, content in files.items()},
+            "Data/VERSION:text": "2013 data",
+            "SR Module/VERSION:text": "2013 module",
+        }
+
+    def test_source_fingerprint_matches_persisted_posix_keys_and_hashes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            expected = self.make_source(root)
+            # Literal POSIX keys represent the existing WSL manifest contract.
+            self.assertEqual(srim_scan.source_fingerprint(root), expected)
+
+    def test_control_fingerprint_retains_portable_keys_and_absent_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "SR Module").mkdir()
+            (root / "SR Module/SR.IN").write_bytes(b"module input\n")
+            (root / "TRIM.IN").write_bytes(b"trim input\n")
+            self.assertEqual(srim_scan.source_control_fingerprint(root), {
+                "SR Module/SR.IN": hashlib.sha256(b"module input\n").hexdigest(),
+                "TRIM.IN": hashlib.sha256(b"trim input\n").hexdigest(),
+                "TRIMAUTO": "<absent>",
+            })
+
+    def test_existing_posix_runtime_manifest_is_reused_without_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "source"
+            expected = self.make_source(root)
+            runtime = Path(directory) / "worker"
+            runtime.mkdir()
+            marker = runtime / "runtime_manifest.json"
+            marker.write_text(json.dumps({"source_fingerprint": expected}), encoding="utf-8")
+            marker_before = marker.read_bytes()
+            sentinel = runtime / "TRIM.IN"
+            sentinel.write_bytes(b"existing isolated input\r\n")
+            srim_scan.prepare_runtime(root, runtime, srim_scan.source_fingerprint(root))
+            self.assertEqual(marker.read_bytes(), marker_before)
+            self.assertEqual(sentinel.read_bytes(), b"existing isolated input\r\n")
+
+
 class ScanGridTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

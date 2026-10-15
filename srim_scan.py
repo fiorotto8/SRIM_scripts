@@ -747,10 +747,10 @@ def source_fingerprint(root: Path) -> Dict[str, str]:
     for path in required_source_paths(root):
         if not path.exists():
             raise FileNotFoundError(f"Missing required SRIM file: {path}")
-        values[str(path.relative_to(root))] = sha256_file(path)
+        values[path.relative_to(root).as_posix()] = sha256_file(path)
     for version in (root / "Data" / "VERSION", root / "SR Module" / "VERSION"):
         if version.exists():
-            values[str(version.relative_to(root)) + ":text"] = version.read_text(
+            values[version.relative_to(root).as_posix() + ":text"] = version.read_text(
                 encoding="latin-1", errors="replace"
             ).strip()
     return values
@@ -760,7 +760,7 @@ def source_control_fingerprint(root: Path) -> Dict[str, str]:
     """Hash mutable installed inputs to prove isolated jobs did not touch them."""
     values: Dict[str, str] = {}
     for path in (root / "SR Module" / "SR.IN", root / "TRIM.IN", root / "TRIMAUTO"):
-        key = str(path.relative_to(root))
+        key = path.relative_to(root).as_posix()
         values[key] = sha256_file(path) if path.exists() else "<absent>"
     return values
 

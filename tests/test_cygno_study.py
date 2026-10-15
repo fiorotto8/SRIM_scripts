@@ -7,6 +7,7 @@ import json
 import math
 import os
 import statistics
+import sys
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -229,6 +230,52 @@ class ProjectileAndJobTests(unittest.TestCase):
 
 
 class DetachedCampaignTests(unittest.TestCase):
+    def test_native_coordinator_can_finish_numbers_without_importing_report_dependencies(self):
+        import cygno_study_adaptive as adaptive
+        config = study.load_configuration(CONFIG)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            with mock.patch.object(study, "run_srmodule"), \
+                 mock.patch.object(study, "execute", return_value=True), \
+                 mock.patch.object(study, "analyse", return_value={"passed": True}), \
+                 mock.patch.object(adaptive, "refinement_points", return_value={}), \
+                 mock.patch.object(adaptive, "refinement_diagnostics", return_value={}), \
+                 mock.patch.object(adaptive, "adaptive_repeats", return_value=[]), \
+                 mock.patch.dict(sys.modules, {"cygno_study_report": None}):
+                self.assertTrue(study.run_campaign(output, output, config, {}, {}, 1, defer_report=True))
+            state = json.loads((output / "campaign_state.json").read_text())
+            completion = json.loads((output / "campaign_completion.json").read_text())
+            self.assertEqual(state["status"], "simulations_complete_report_pending")
+            self.assertEqual(completion["status"], "simulations_complete_report_pending")
+            self.assertEqual(completion["artifacts"]["status"], "pending")
+            self.assertFalse((output / ".simulation-lock").exists())
+
+    def test_windows_process_identity_requires_campaign_and_exact_run_directory(self):
+        driver = r"C:\SRIM work\scripts\cygno_study.py"
+        directory = r"C:\SRIM work\runs\study"
+        for command, expected in (
+            (f'python.exe -u "{driver}" campaign --run-dir "{directory}"', True),
+            (f'python.exe -u "{driver}" report --run-dir "{directory}" --config C:\\campaign\\config.toml', False),
+            (f'python.exe -u "{driver}" campaign --run-dir "{directory}_other"', False),
+        ):
+            with self.subTest(command=command):
+                result = SimpleNamespace(stdout=json.dumps({"ProcessId": 1234, "CommandLine": command}).encode())
+                convert = lambda path: driver if path.name == "cygno_study.py" else directory
+                with mock.patch.object(study.subprocess, "run", return_value=result), \
+                     mock.patch.object(study.stopping, "to_windows_path", side_effect=convert):
+                    self.assertEqual(study.windows_campaign_active(1234, Path("unused")), expected)
+
+    def test_status_uses_windows_identity_check_for_native_coordinator(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "campaign_state.json").write_text(json.dumps({
+                "pid": 1234, "host": "ROG", "coordinator_platform": "nt", "status": "running"}))
+            with mock.patch.object(study, "windows_campaign_active", return_value=True) as check:
+                status = study.study_status(output)
+            self.assertTrue(status["campaign_process_active"])
+            self.assertEqual(status["campaign"]["status"], "running")
+            check.assert_called_once_with(1234, output)
+
     def test_failed_detached_campaign_records_terminal_state(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)

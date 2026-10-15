@@ -177,17 +177,25 @@ copies protect the installed SRIM tree and previous results. The native
 [supervisor](scripts/cygno_native_run.py) checks the completed history count
 before acknowledging the mode-5 completion dialog automatically.
 
-In this checkout, WSL Python supplies orchestration and the available analysis
-packages; the actual calculations use native Windows SRIM executables, without
-Wine or PySRIM. Inspect the plan, then launch the detached campaign:
+The coordinator and SRIM calculations run natively on Windows. WSL supplies the
+available analysis and plotting packages. The WSL launcher delegates to the
+Windows launcher, so closing its WSL session does not remove the coordinator's
+connection to Windows. Inspect the plan, then launch the detached campaign:
 
 ```bash
 python3 scripts/cygno_study.py plan
-./scripts/start_cygno_study.sh
+./scripts/start_cygno_study.sh --workers 8
 python3 scripts/cygno_study.py status
 ```
 
-The launcher prints the PID and timestamped log. To request a stop after active
+Alternatively, launch from PowerShell with
+`./scripts/start_cygno_study.ps1 -Workers 8`. The launcher prints the native
+Windows PID and timestamped output/error logs. The native coordinator writes
+numerical results and validation; report rendering is deferred to the WSL
+analysis command below. `simulations_complete_report_pending` means the
+numerical campaign passed and the report still needs rendering.
+
+To request a stop after active
 jobs finish, create the marker below. After the campaign has stopped and its
 lock has been released, remove that marker and rerun the same launcher to
 resume completed jobs without overwriting them.
@@ -207,7 +215,7 @@ python3 scripts/cygno_study.py report
 The campaign starts with 28 logarithmic energies from 0.1 to 3000 keVnr and
 three independent 100-history batches per species, energy, and medium. It
 then refines the grid and adds paired batches where the QF/range precision
-targets are unmet, up to nine batches. Separate runs test cascade thresholds
+targets or in-domain impurity classifications are unmet, up to 30 batches. Separate runs test cascade thresholds
 and primary-path sampling. Missing points, low-energy conservation failures,
 and unresolved convergence remain explicit in the output.
 

@@ -26,6 +26,7 @@
 !/scripts/
 !/scripts/*.sh
 !/scripts/*.py
+!/scripts/start_cygno_study.ps1
 
 # Generated scan state and local Python caches remain untracked.
 runs/
