@@ -40,8 +40,10 @@ CALIBRATION_NOTE = (
 LENGTH_NOTE = (
     "Projected range is the signed displacement along the incident direction; "
     "endpoint radius is the displacement magnitude. The sampled primary path "
-    "joins recorded primary trajectory points. Actual total track length is "
-    "unavailable until trajectory-step convergence is established."
+    "joins recorded primary trajectory points and excludes secondary tracks. "
+    "Complete primary and cascade arc lengths have not been established here. "
+    "Detailed COLLISON output offers additional 3D collision information, whose "
+    "filtering and recoil-history semantics require separate qualification."
 )
 ENERGY_NOTE = (
     "Plotted energy channels are primary electronic energy, secondary electronic energy, "
