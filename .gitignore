@@ -8,7 +8,7 @@
 !/README.md
 !/CONTRIBUTING.md
 !/docs/
-!/docs/*.md
+!/docs/cygno_srim_methodology.md
 !/GasDensities.csv
 !/srim_gas_sweep.py
 !/trim_qf_sweep.py
