@@ -44,7 +44,9 @@ def load_configuration(path):
     s=cfg['study']; sim=cfg['simulation']; grid=cfg['grid']
     assert math.isclose(s['he_mole_fraction_dry']+s['cf4_mole_fraction_dry'],1.)
     assert sim['cascade_type']==5 and sim['independent_batches']>=3
-    assert sim['workers']>=1 and sim['ions_per_batch']>0 and 3<=sim['independent_batches']<=sim['maximum_batches']<=9
+    assert sim['workers']>=1 and sim['ions_per_batch']>0 and 3<=sim['independent_batches']<=sim['maximum_batches']<=30
+    if not math.isclose(cfg['validation']['confidence_level'],.95):
+        raise ValueError('The paired impurity comparisons currently support nominal 95% intervals only')
     assert 200000<=sim['maximum_secondary_recoils']<=10000000
     assert grid['energy_min_kevnr']>0 and grid['energy_max_kevnr']>grid['energy_min_kevnr']
     return cfg
@@ -435,7 +437,8 @@ def analyse(out,cfg,source):
         import csv,io
         stream=io.StringIO();writer=csv.DictWriter(stream,fieldnames=list(events[0]));writer.writeheader();writer.writerows(events)
         with gzip.open(out/'events.csv.gz','wt',encoding='utf-8',newline='') as handle:handle.write(stream.getvalue())
-    comparisons=[]
+    from cygno_study_adaptive import impurity_diagnostic
+    comparisons=[];impurity_rows=[]
     indexed={(r['medium'],r['species'],r['energy_kevnr']):r for r in rows}
     for row in rows:
         if row['medium']!='baseline':continue
@@ -443,17 +446,23 @@ def analyse(out,cfg,source):
         if not wet:continue
         base_batches=groups[('baseline',row['species'],row['energy_kevnr'])]
         wet_batches={b['job']['repeat']:b for b in groups[('contaminated',row['species'],row['energy_kevnr'])]}
-        differences=[wet_batches[b['job']['repeat']]['qf']-b['qf'] for b in base_batches if b['job']['repeat'] in wet_batches]
-        difference,sem=mean_sem(differences)
-        range_differences=[wet_batches[b['job']['repeat']]['endpoints']['projected_range_mm']-b['endpoints']['projected_range_mm'] for b in base_batches if b['job']['repeat'] in wet_batches]
+        impurity=impurity_diagnostic({'baseline':{b['job']['repeat']:b for b in base_batches},'contaminated':wet_batches},cfg)
+        impurity_rows.append({'species':row['species'],'energy_kevnr':row['energy_kevnr'],**impurity})
+        paired_repeats=set(impurity['paired_repeat_indices'])
+        difference,sem=impurity['qf_difference'],impurity['qf_difference_sem']
+        range_differences=[wet_batches[b['job']['repeat']]['endpoints']['projected_range_mm']-b['endpoints']['projected_range_mm'] for b in base_batches if b['job']['repeat'] in paired_repeats]
         range_difference,range_difference_sem=mean_sem(range_differences)
-        t_factor={1:12.706,2:4.303,3:3.182,4:2.776,5:2.571,6:2.447,7:2.365,8:2.306}.get(len(differences)-1,1.96) if len(differences)>1 else None
+        t_factor=impurity['confidence_t_factor']
         comparisons.append({'species':row['species'],'energy_kevnr':row['energy_kevnr'],'qf_difference':difference,'qf_difference_sem':sem,'range_difference_mm':range_difference,'range_difference_mm_sem':range_difference_sem,
             'range_relative_change_sem':range_difference_sem/row['projected_range_mm_mean'] if range_difference_sem is not None and row['projected_range_mm_mean']>0 else None,'confidence_t_factor':t_factor,
-            'qf_relative_change':difference/row['qf_mean'] if difference is not None and row['qf_mean']>0 else None,'range_relative_change':(wet['projected_range_mm_mean']/row['projected_range_mm_mean']-1) if row['projected_range_mm_mean']>0 else None,
-            'uncertainty_method':'paired independent-batch differences; shared seeds across media','n_pairs':len(differences),
-            'impurity_equivalence_resolved':bool(sem is not None and row['qf_mean']>0 and (abs(difference)+t_factor*sem)/row['qf_mean']<cfg['validation']['impurity_material_relative_change'])})
+            'qf_relative_change':impurity['qf_relative_change'],'range_relative_change':(wet['projected_range_mm_mean']/row['projected_range_mm_mean']-1) if row['projected_range_mm_mean']>0 else None,
+            'uncertainty_method':impurity['uncertainty_method'],'n_pairs':impurity['n_pairs'],
+            'impurity_equivalence_resolved':impurity['classification']=='equivalent_within_material_boundary',
+            'impurity_classification':impurity['classification'],'impurity_classification_required':impurity['required'],
+            'impurity_classification_resolved':impurity['resolved'],'impurity_material_relative_change':impurity['material_relative_change'],
+            **{f'impurity_{name}_{key}':value for name,contrast in impurity['contrasts'].items() for key,value in contrast.items()}})
     if comparisons:core.write_csv_atomic(out/'comparison.csv',comparisons)
+    core.atomic_write_json(out/'impurity_diagnostics.json',{'rows':impurity_rows,'confidence_note':'Nominal fixed 95% paired linear-contrast intervals; adaptive repeated checks do not guarantee sequential or simultaneous coverage','updated_at':core.utc_now()})
     planned={job['job_id']:job for job in make_jobs(cfg,'production',out)}
     for name in ['plan_production.json','plan_refinement.json','plan_adaptive.json']:
         path=out/name
@@ -466,6 +475,10 @@ def analyse(out,cfg,source):
         checks.append({'check':name,'passed':bool(passed),'severity':'pass' if passed else severity,'detail':detail})
     check('production_complete',completed==expected,f'{completed}/{expected} full-cascade batches')
     check('statistical_convergence',bool(rows) and converged==len(rows),f'{converged}/{len(rows)} energy/species/medium points meet QF/range SEM targets')
+    required_impurities=[row for row in impurity_rows if row['required']]
+    resolved_impurities=sum(row['resolved'] for row in required_impurities)
+    impurity_band=100*cfg['validation']['impurity_material_relative_change']
+    check('impurity_qf_classification',bool(required_impurities) and resolved_impurities==len(required_impurities),f'{resolved_impurities}/{len(required_impurities)} requested-domain paired QF comparisons resolve the configured {impurity_band:g}% band using nominal fixed 95% contrasts; no sequential or simultaneous coverage guarantee')
     check('ioniz_energy_bounds',all(0<=b['qf']<=1.001 for b in batches),f'{len(batches)} actual batches checked')
     check('containment',not any(b['clipped'] or b['backscattered'] or b['transmitted'] for b in batches),'Bulk source and endpoint/escape checks')
     for medium in ['baseline','contaminated']:

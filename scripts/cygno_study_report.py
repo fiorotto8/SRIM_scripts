@@ -65,7 +65,11 @@ UNCERTAINTY_NOTE = (
 IMPURITY_NOTE = (
     "Relative changes are dimensionless; multiply by 100 for percent. Missing "
     "comparison values are unavailable, not zero. A small mean shift with broad "
-    "uncertainty does not establish equivalence. These comparisons concern SRIM "
+    "uncertainty does not establish equivalence. QF classification uses paired linear contrasts to assess "
+    "the configured relative-change band while retaining baseline uncertainty. "
+    "Their Student-t intervals are nominal pointwise/per-contrast intervals; "
+    "adaptive repeated checks do not guarantee sequential or simultaneous 95% coverage. "
+    "These comparisons concern SRIM "
     "transport and energy loss; impurity-driven electron attachment, charge "
     "collection and optical response are outside this calculation."
 )
@@ -524,8 +528,11 @@ def _impurity_figure(comparison: list[dict[str, Any]]) -> Any:
                 value = float(row[value_field]) * scale
                 error = _number(row.get(error_field))
                 has_error = error is not None and error >= 0
-                resolved = (has_error and _boolean(row.get("impurity_equivalence_resolved")) is True
-                            if value_field == "qf_difference" else has_error)
+                classification_resolved = (row.get("impurity_classification") in (
+                    "equivalent_within_material_boundary", "material_increase", "material_decrease")
+                    if "impurity_classification" in row
+                    else _boolean(row.get("impurity_equivalence_resolved")) is True)
+                resolved = has_error and (classification_resolved if value_field == "qf_difference" else True)
                 color = COLORS.get(species, "#555555")
                 ax.errorbar(energy, value, yerr=error * scale if has_error else None,
                             fmt="o", markersize=4, markerfacecolor=color if resolved else "none",
@@ -539,7 +546,7 @@ def _impurity_figure(comparison: list[dict[str, Any]]) -> Any:
         else:
             _empty(ax, "No paired contamination comparison available")
         _finish_axes(ax)
-    fig.supxlabel("Error bars: supplied ±1 SEM. Hollow QF markers: equivalence unresolved.\n"
+    fig.supxlabel("Error bars: supplied ±1 SEM. Hollow QF markers: classification unresolved or unavailable.\n"
                   "Hollow range markers: uncertainty unavailable; the plotted shift is not proof of a negligible effect.",
                   fontsize=8)
     return fig
@@ -617,6 +624,8 @@ def build_report(study_dir: Path) -> dict[str, Any]:
                           if (study_dir / "archive_validation.json").is_file() else None)
     stopping_comparison = (_load_json(study_dir / "srmodule_medium_comparison.json", None, optional_notes)
                            if (study_dir / "srmodule_medium_comparison.json").is_file() else None)
+    impurity_diagnostics = (_load_json(study_dir / "impurity_diagnostics.json", None, optional_notes)
+                            if (study_dir / "impurity_diagnostics.json").is_file() else None)
     stopping_summary = stopping_comparison.get("species_summary", []) if isinstance(stopping_comparison, dict) else []
     stopping_note = ("Exact native SRModule energy pairs in the configured recoil-energy interval. "
                      "Relative changes are contaminated/baseline minus one. Values are deterministic predictions "
@@ -635,7 +644,7 @@ def build_report(study_dir: Path) -> dict[str, Any]:
     systematics_rows = [row for row in systematics_rows if isinstance(row, dict)]
     systematics_checks = _validation_entries(systematics)
     archive_checks = _validation_entries(archive_validation)
-    optional_files = [name for name in ("systematics.csv", "systematics.json", "archive_validation.json")
+    optional_files = [name for name in ("systematics.csv", "systematics.json", "archive_validation.json", "impurity_diagnostics.json")
                       if (study_dir / name).is_file()]
     systematics_inventory = (
         f"Supplied systematics rows: {len(systematics_rows)}; recorded systematics checks: {len(systematics_checks)}. "
@@ -710,7 +719,7 @@ def build_report(study_dir: Path) -> dict[str, Any]:
         save_figure(_impurity_figure(comparison), "impurity_comparison",
                     "Contamination comparison with recorded uncertainty",
                     IMPURITY_NOTE + " QF bars show paired-batch ±1 SEM, not a 95% confidence interval. "
-                    "Hollow QF markers identify unresolved equivalence against the configured criterion. "
+                    "Hollow QF markers identify unresolved or unavailable classification against the configured criterion. "
                     "Range uncertainties are drawn only when explicitly supplied.")
         numerical_notes = ["The complete numerical tables, configuration, gas fractions, and input hashes are retained in numerical_export.json."]
         for condition in gas_conditions:
@@ -751,7 +760,7 @@ def build_report(study_dir: Path) -> dict[str, Any]:
             ])
 
     comparison_fields = [field for field in ("medium", "species", "energy_kevnr", "qf_relative_change",
-                         "qf_difference", "qf_difference_sem", "range_relative_change", "n_pairs", "impurity_equivalence_resolved")
+                         "qf_difference", "qf_difference_sem", "range_relative_change", "n_pairs", "impurity_classification")
                          if any(field in row for row in comparison)]
     summary_fields = ["medium", "species", "energy_kevnr", "qf_mean", "qf_sem", "eee_srim_kev_mean",
                       "projected_range_mm_mean", "n_ions_total", "n_batches", "clipped", "statistical_converged"]
@@ -830,7 +839,7 @@ th{{background:#e8eef4}}.source-notes{{white-space:pre-wrap;font-size:14px;backg
     paths["html"].write_text(document, encoding="utf-8")
     input_manifest: dict[str, Any] = {}
     for name in ("metadata.json", "srmodule.csv", "summary.csv", "comparison.csv", "validation.json", "events.csv.gz",
-                 "systematics.csv", "systematics.json", "archive_validation.json", "srmodule_medium_comparison.csv", "srmodule_medium_comparison.json"):
+                 "systematics.csv", "systematics.json", "archive_validation.json", "srmodule_medium_comparison.csv", "srmodule_medium_comparison.json", "impurity_diagnostics.json"):
         path = study_dir / name
         if path.is_file():
             digest = hashlib.sha256()
@@ -855,6 +864,7 @@ th{{background:#e8eef4}}.source-notes{{white-space:pre-wrap;font-size:14px;backg
               "srmodule_instantaneous_partitions": stopping_partitions, "comparison": comparison,
               "systematics_csv": systematics_csv, "systematics": systematics,
               "srmodule_medium_comparison": stopping_comparison,
+              "impurity_diagnostics": impurity_diagnostics,
               "archive_validation": archive_validation, "provenance_references": provenance_references,
               "optional_input_notes": optional_notes,
               "validation": validation, "event_table": {"path": "../events.csv.gz", "rows": event_count,

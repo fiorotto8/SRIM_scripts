@@ -305,6 +305,13 @@ class InterruptedAnalysisTests(unittest.TestCase):
                           "confidence_t_factor"):
                 self.assertEqual(comparison[0][field], "", msg=field)
             self.assertEqual(comparison[0]["impurity_equivalence_resolved"], "False")
+            self.assertEqual(comparison[0]["impurity_classification"], "inconclusive")
+            self.assertEqual(comparison[0]["impurity_classification_required"], "True")
+            diagnostics = json.loads((output / "impurity_diagnostics.json").read_text())
+            self.assertEqual(diagnostics["rows"][0]["n_pairs"], 0)
+            impurity_check = next(row for row in validation["checks"]
+                                  if row["check"] == "impurity_qf_classification")
+            self.assertFalse(impurity_check["passed"])
             self.assertFalse(validation["passed"])
             self.assertEqual(validation["status"], "incomplete")
 

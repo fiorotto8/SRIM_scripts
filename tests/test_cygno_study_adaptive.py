@@ -9,6 +9,9 @@ from scripts.cygno_study_adaptive import (
     convergence_diagnostics,
     refinement_diagnostics,
     refinement_points,
+    impurity_diagnostic,
+    student_t_95_factor,
+    student_t_95,
 )
 
 
@@ -30,7 +33,7 @@ def pilot(energy, ee, *, species="He", medium="baseline", repeat=0, cascade=5):
 
 def production(repeat, medium, *, qf=0.5, positions=(0.99, 1.01), species="He", energy=10):
     return {"job": {"stage": "production", "medium": medium, "species": species,
-                    "energy_kevnr": energy, "repeat": repeat, "n_ions": len(positions)},
+                    "energy_kevnr": energy, "repeat": repeat, "n_ions": len(positions), "seed": 10000 + repeat},
             "qf": qf, "endpoints": {"records": [
                 {"projected_displacement_mm": value} for value in positions]}}
 
@@ -39,6 +42,19 @@ def complete_point(qf_values=(0.5, 0.5, 0.5), positions=(0.99, 1.01)):
     return [production(repeat, medium, qf=qf, positions=positions)
             for repeat, qf in enumerate(qf_values)
             for medium in ("baseline", "contaminated")]
+
+
+def impurity_config():
+    config = deepcopy(CONFIG)
+    config["simulation"]["maximum_batches"] = 30
+    config["validation"].update(confidence_level=0.95, impurity_material_relative_change=0.02)
+    config["grid"] = {"requested_eee_min_kev": 0.25, "requested_eee_max_kev": 1000}
+    return config
+
+
+def media_map(batches):
+    return {medium: {batch["job"]["repeat"]: batch for batch in batches if batch["job"]["medium"] == medium}
+            for medium in ("baseline", "contaminated")}
 
 
 class RefinementTests(unittest.TestCase):
@@ -99,6 +115,19 @@ class RefinementTests(unittest.TestCase):
 
 
 class AdaptiveRepeatTests(unittest.TestCase):
+    def test_configured_thirty_batch_budget_extends_past_nine_then_preserves_exhaustion(self):
+        config = deepcopy(CONFIG)
+        config["simulation"]["maximum_batches"] = 30
+        batches = [production(repeat, medium, qf=0.3 if repeat % 2 else 0.7)
+                   for repeat in range(9) for medium in ("baseline", "contaminated")]
+        proposed = adaptive_repeats(batches, config)
+        self.assertEqual({row["repeat"] for row in proposed}, {9})
+        self.assertTrue(all(row["n_ions"] == 100 for row in proposed))
+        batches.extend(production(repeat, medium, qf=0.3 if repeat % 2 else 0.7)
+                       for repeat in range(9, 30) for medium in ("baseline", "contaminated"))
+        self.assertEqual(adaptive_repeats(batches, config), [])
+        self.assertTrue(convergence_diagnostics(batches, config)[0]["exhausted"])
+
     def test_three_precise_batches_require_no_extra_events(self):
         batches = complete_point()
         self.assertEqual(adaptive_repeats(batches, CONFIG), [])
@@ -187,6 +216,109 @@ class AdaptiveRepeatTests(unittest.TestCase):
 
     def test_pilot_batches_do_not_supply_production_convergence(self):
         self.assertEqual(adaptive_repeats([pilot(10, 5)], CONFIG), [])
+
+
+class PairedImpurityTests(unittest.TestCase):
+    def test_critical_values_cover_all_supported_batch_counts_and_validate_df(self):
+        self.assertEqual(student_t_95_factor(1), 12.706)
+        self.assertEqual(student_t_95_factor(2), 4.303)
+        self.assertEqual(student_t_95_factor(9), 2.262)
+        self.assertEqual(student_t_95_factor(29), 2.045)
+        values = [student_t_95_factor(df) for df in range(1, 30)]
+        self.assertTrue(all(left > right for left, right in zip(values, values[1:])))
+        self.assertIs(student_t_95, student_t_95_factor)
+        for invalid in (0, 30, 2.5, True):
+            with self.assertRaises(ValueError):
+                student_t_95_factor(invalid)
+
+    def test_equivalence_and_both_material_effect_directions_resolve_without_extra_jobs(self):
+        config = impurity_config()
+        for ratio, expected in ((1, "equivalent_within_material_boundary"),
+                                (1.03, "material_increase"), (0.97, "material_decrease")):
+            with self.subTest(ratio=ratio):
+                batches = complete_point(qf_values=(0.49, 0.5, 0.51))
+                for batch in batches:
+                    if batch["job"]["medium"] == "contaminated":
+                        batch["qf"] *= ratio
+                diagnostic = impurity_diagnostic(media_map(batches), config)
+                self.assertEqual(diagnostic["classification"], expected)
+                self.assertTrue(diagnostic["required"])
+                self.assertTrue(diagnostic["resolved"])
+                self.assertEqual(diagnostic["n_pairs"], 3)
+                self.assertEqual(adaptive_repeats(batches, config), [])
+                self.assertFalse(diagnostic["sequential_coverage_guarantee"])
+                self.assertFalse(diagnostic["simultaneous_coverage_guarantee"])
+
+    def test_overlapping_contrast_ci_adds_paired_statistics_despite_precise_individual_qf(self):
+        config = impurity_config()
+        batches = complete_point(qf_values=(0.49, 0.5, 0.51))
+        for batch in batches:
+            if batch["job"]["medium"] == "contaminated":
+                batch["qf"] += (-0.004, 0.001, 0.006)[batch["job"]["repeat"]]
+        diagnostic = convergence_diagnostics(batches, config)[0]
+        self.assertTrue(diagnostic["precision_converged"])
+        self.assertEqual(diagnostic["impurity"]["classification"], "inconclusive")
+        self.assertFalse(diagnostic["converged"])
+        proposed = adaptive_repeats(batches, config)
+        self.assertEqual([(row["medium"], row["repeat"]) for row in proposed], [("baseline", 3), ("contaminated", 3)])
+        self.assertIn("impurity_qf_classification_unresolved", proposed[0]["planning_flags"])
+        batches.append(production(3, "baseline"))
+        self.assertEqual([(row["medium"], row["repeat"]) for row in adaptive_repeats(batches, config)], [("contaminated", 3)])
+
+    def test_linear_contrasts_include_variable_baseline_uncertainty(self):
+        config = impurity_config()
+        batches = complete_point(qf_values=(0.1, 0.5, 0.9))
+        for batch in batches:
+            if batch["job"]["medium"] == "contaminated":
+                batch["qf"] = 1.019 * batch["qf"]
+        diagnostic = impurity_diagnostic(media_map(batches), config)
+        lower = diagnostic["contrasts"]["lower_material_boundary"]
+        upper = diagnostic["contrasts"]["upper_material_boundary"]
+        self.assertGreater(lower["sem"], 0)
+        self.assertGreater(upper["sem"], 0)
+        self.assertEqual(diagnostic["classification"], "inconclusive")
+
+    def test_requested_domain_is_union_of_both_media_and_sticky_paired_prefixes(self):
+        config = impurity_config()
+        batches = complete_point()
+        for batch in batches:
+            batch["eee_kev"] = 0.249 if batch["job"]["medium"] == "baseline" else 0.251
+        self.assertTrue(impurity_diagnostic(media_map(batches), config)["required"])
+        # Later means move below the boundary; the earlier eligible paired prefix survives.
+        for medium in ("baseline", "contaminated"):
+            batch = production(3, medium)
+            batch["eee_kev"] = 0.20
+            batches.append(batch)
+        diagnostic = impurity_diagnostic(media_map(batches), config)
+        self.assertFalse(diagnostic["current_domain_eligible"])
+        self.assertTrue(diagnostic["sticky_domain_eligible"])
+        self.assertEqual(diagnostic["first_eligible_prefix_pairs"], 3)
+        self.assertTrue(diagnostic["required"])
+
+    def test_controls_still_require_range_precision_and_seed_pairing_is_checked(self):
+        config = impurity_config()
+        batches = complete_point(positions=(0, 2))
+        for batch in batches:
+            batch["eee_kev"] = 0.1
+        self.assertEqual(len(adaptive_repeats(batches, config)), 2)
+        self.assertFalse(convergence_diagnostics(batches, config)[0]["impurity"]["required"])
+        batches = complete_point()
+        batches[1]["job"]["seed"] = 999
+        diagnostic = impurity_diagnostic(media_map(batches), config)
+        self.assertEqual(diagnostic["n_pairs"], 2)
+        self.assertFalse(diagnostic["resolved"])
+        self.assertIn("paired_seed_missing_or_mismatched", diagnostic["flags"])
+        self.assertEqual({row["repeat"] for row in adaptive_repeats(batches, config)}, {3})
+
+    def test_unsupported_confidence_and_budget_are_explicit_errors(self):
+        config = impurity_config()
+        config["validation"]["confidence_level"] = 0.9
+        with self.assertRaisesRegex(ValueError, "confidence_level"):
+            adaptive_repeats(complete_point(), config)
+        config = impurity_config()
+        config["simulation"]["maximum_batches"] = 31
+        with self.assertRaisesRegex(ValueError, "30"):
+            adaptive_repeats(complete_point(), config)
 
 
 if __name__ == "__main__":
