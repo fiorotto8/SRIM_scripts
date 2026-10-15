@@ -4,6 +4,10 @@ The `windows` branch is the native-Windows version of this repository. Its
 primary input is `GasDensities.csv`; it launches the SRIM-2013 Windows
 executables directly and does not require Docker, Wine, WSL, or PySRIM.
 
+Ubuntu/PySRIM development remains on the
+[`main` branch](https://github.com/fiorotto8/SRIM_scripts/tree/main). Keep this
+checkout on `windows` for the native Windows CSV workflow.
+
 Two entry points cover the original CSV workflow:
 
 - `srim_gas_sweep.py` runs SRModule stopping/range calculations and writes a
@@ -151,3 +155,5 @@ W-values, or Fano factors.
 - If a previous run was interrupted, end stray `TRIM.exe` or `SRModule.exe`
   processes in Task Manager before retrying with fresh work/output paths.
 - Add `--no-plots` if Matplotlib is not installed.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and Git file conventions.

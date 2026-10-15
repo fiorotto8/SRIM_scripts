@@ -4,7 +4,9 @@
 *
 
 !/.gitignore
+!/.gitattributes
 !/README.md
+!/CONTRIBUTING.md
 !/GasDensities.csv
 !/srim_gas_sweep.py
 !/trim_qf_sweep.py
@@ -27,3 +29,5 @@
 runs/
 __pycache__/
 *.pyc
+.venv/
+.pytest_cache/

@@ -1,0 +1,15 @@
+# Keep source and shell scripts usable across Windows, WSL, and Linux.
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.sh text eol=lf
+*.toml text eol=lf
+*.ps1 text eol=lf
+srim-root.txt text eol=lf
+
+# Windows command files use native line endings on checkout.
+*.bat text eol=crlf
+
+# Preserve native Windows CSV line endings while storing normalized text in Git.
+*.csv text eol=crlf
