@@ -1,0 +1,32 @@
+# A small input-generation example, not a calibrated silicon damage model.
+# Energies are keV; widths are angstrom; density is g/cm^3; atom masses are u.
+[project]
+name = "helium in silicon"
+energies_kev = [100.0]
+
+[ion]
+symbol = "He"
+mass_u = 4.0026
+
+[target]
+name = "silicon"
+phase = "solid"
+density_g_cm3 = 2.329
+width_angstrom = 100000.0
+
+[[target.elements]]
+symbol = "Si"
+z = 14
+mass_u = 28.085
+stoich = 1.0
+displacement_energy_ev = 15.0
+lattice_binding_energy_ev = 2.0
+surface_binding_energy_ev = 4.7
+
+[trim]
+ions = 10
+calculation = 2
+random_seed = 12345
+timeout_s = 600
+angle_deg = 0.0
+save_3d_ranges = true

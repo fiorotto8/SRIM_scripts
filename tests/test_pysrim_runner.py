@@ -119,6 +119,20 @@ class PySRIMRunnerTests(unittest.TestCase):
         self.assertTrue(probe["yaml_loader_compatibility"])
         self.assertTrue(Path(probe["module_file"]).is_file())
 
+    def test_single_layer_preserves_explicit_solid_phase_and_legacy_gas_default(self):
+        api = pysrim_runner.import_pysrim()
+        spec = {
+            "density_g_cm3": 2.329, "target_width_angstrom": 100000,
+            "elements": [{"symbol": "Si", "z": 14, "mass_u": 28.085, "stoich": 1,
+                          "displacement_energy_ev": 15, "lattice_binding_energy_ev": 2,
+                          "surface_binding_energy_ev": 4.7}],
+        }
+        self.assertEqual(pysrim_runner.target_layer(api, dict(spec, phase=0)).phase, 0)
+        self.assertEqual(pysrim_runner.target_layer(api, spec).phase, 1)
+        spec["elements"][0]["z"] = 13
+        with self.assertRaisesRegex(ValueError, "Atomic number"):
+            pysrim_runner.target_layer(api, spec)
+
     def test_write_only_preserves_scan_physics_controls(self):
         with tempfile.TemporaryDirectory() as directory:
             runtime = Path(directory)

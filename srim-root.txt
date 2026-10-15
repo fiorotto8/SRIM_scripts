@@ -1,5 +1,0 @@
-# Windows Python:
-C:\SRIM-2013
-#
-# WSL users may also write the Linux-mounted path instead:
-# /mnt/c/SRIM-2013

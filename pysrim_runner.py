@@ -2,8 +2,8 @@
 """Process-isolated adapter for fiorotto8/pysrim on Linux/Wine.
 
 PySRIM changes the process working directory while writing inputs and running
-SRIM.  The scan therefore invokes this adapter in a separate process for every
-job; the main process can safely run several private SRIM worker directories.
+SRIM. Callers invoke this adapter in a separate process for every job and
+provide a private SRIM runtime directory.
 """
 
 from __future__ import annotations
@@ -195,6 +195,8 @@ def target_layer(api: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
     element_data = []
     for item in spec["elements"]:
         element = Element(str(item["symbol"]), mass=float(item["mass_u"]))
+        if element.atomic_number != int(item["z"]):
+            raise ValueError(f"Atomic number does not match target symbol {item['symbol']}")
         element_data.append(
             (
                 int(item["z"]),
@@ -212,8 +214,8 @@ def target_layer(api: Mapping[str, Any], spec: Mapping[str, Any]) -> Any:
         {element: properties for _, element, properties in element_data},
         density=float(spec["density_g_cm3"]),
         width=float(spec.get("target_width_angstrom", 1.0)),
-        phase=1,
-        name=str(spec.get("layer_name", "noble CF4 gas"))[:32],
+        phase=int(spec.get("phase", 1)),
+        name=str(spec.get("layer_name", "target layer"))[:32],
     )
 
 
@@ -270,7 +272,7 @@ def execute_spec(spec: Mapping[str, Any], write_only: bool = False) -> None:
         else:
             configure_recoil_capacity(runtime)
             # Keep PySRIM's input generation, but supervise the executable.
-            # srim_scan independently parses and validates all required outputs.
+            # Callers inspect the raw output files for their application.
             monitored_trim_run(trim, runtime, spec)
     elif mode == "srmodule":
         sr = api["SR"](

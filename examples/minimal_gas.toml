@@ -1,0 +1,41 @@
+# Specify density directly for your gas conditions. Near-zero binding energies
+# are an explicit illustrative modeling choice, not a validated gas model.
+[project]
+name = "carbon in methane"
+energies_kev = [10.0, 100.0]
+
+[ion]
+symbol = "C"
+mass_u = 12.011
+
+[target]
+name = "methane"
+phase = "gas"
+density_g_cm3 = 0.000667
+width_angstrom = 100000000.0
+
+[[target.elements]]
+symbol = "C"
+z = 6
+mass_u = 12.011
+stoich = 1.0
+displacement_energy_ev = 21.0
+lattice_binding_energy_ev = 0.000000001
+surface_binding_energy_ev = 0.000000001
+
+[[target.elements]]
+symbol = "H"
+z = 1
+mass_u = 1.008
+stoich = 4.0
+displacement_energy_ev = 21.0
+lattice_binding_energy_ev = 0.000000001
+surface_binding_energy_ev = 0.000000001
+
+[trim]
+ions = 10
+calculation = 2
+random_seed = 23456
+timeout_s = 600
+angle_deg = 0.0
+save_3d_ranges = true

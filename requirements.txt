@@ -1,0 +1,4 @@
+# Runtime and input/output support; PySRIM itself is installed from the sibling checkout.
+numpy>=1.10
+PyYAML>=6
+Pillow>=9

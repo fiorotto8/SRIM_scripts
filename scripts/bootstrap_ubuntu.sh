@@ -34,15 +34,21 @@ if [ "$install_system" -eq 1 ]; then
     fi
     $elevate dpkg --add-architecture i386
     $elevate apt-get update
-    $elevate apt-get install -y git python3 python3-venv python3-pip unzip xvfb wine wine32:i386 winetricks x11-utils
+    $elevate apt-get install -y git python3 python3-venv python3-pip unzip xvfb xauth wine wine32:i386 winetricks x11-utils
 fi
 
-for program in git python3 unzip wine wineserver xvfb-run winetricks xwininfo; do
+for program in git python3 unzip wine wineserver xvfb-run Xvfb xauth winetricks xwininfo; do
     if ! command -v "$program" >/dev/null 2>&1; then
         echo "missing $program; rerun with --install-system-deps" >&2
         exit 1
     fi
 done
+
+python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else "Python 3.11+ is required for project TOML files.")'
+# Wine requires an absolute prefix, including when a custom relative path is supplied.
+pysrim_root=$(realpath -m -- "$pysrim_root")
+srim_root=$(realpath -m -- "$srim_root")
+wine_prefix=$(realpath -m -- "$wine_prefix")
 
 if [ ! -f "$pysrim_root/srim/__init__.py" ] || [ ! -f "$pysrim_root/assets/srim.2013.zip" ]; then
     echo "expected fiorotto8/pysrim at $pysrim_root" >&2
@@ -80,7 +86,7 @@ fi
 
 python3 -m venv "$scan_root/.venv"
 "$scan_root/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
-"$scan_root/.venv/bin/python" -m pip install -e "$pysrim_root" matplotlib 'uproot==5.7.6' 'scipy==1.18.1'
+"$scan_root/.venv/bin/python" -m pip install -e "$pysrim_root" -r "$scan_root/requirements.txt"
 
 if [ ! -f "$wine_prefix/system.reg" ]; then
     mkdir -p "$(dirname -- "$wine_prefix")"
@@ -105,7 +111,9 @@ if [ ! -f "$wine_prefix/.srim-components-ok" ]; then
     touch "$wine_prefix/.srim-components-ok"
 fi
 
-"$scan_root/.venv/bin/python" "$scan_root/srim_scan.py" preflight \
-    --config "$scan_root/configs/noble_cf4_40h_ubuntu.toml" --skip-canary
+"$scan_root/.venv/bin/python" "$scan_root/pysrim_runner.py" --probe
 
-echo "Ubuntu environment prepared. Run scripts/run_ubuntu_preflight.sh next."
+echo "Linux environment prepared. Set these paths for your project:"
+printf 'export SRIM_ROOT=%q\n' "$srim_root"
+printf 'export WINEPREFIX=%q\n' "$wine_prefix"
+echo "Inspect the minimal example with: .venv/bin/python srim_project.py plan --config examples/minimal_silicon.toml"

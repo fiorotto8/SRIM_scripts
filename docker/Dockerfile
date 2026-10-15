@@ -15,13 +15,16 @@ RUN dpkg --add-architecture i386 \
         wine \
         wine32:i386 \
         winetricks \
+        xauth \
         x11-utils \
         xvfb \
     && rm -rf /var/lib/apt/lists/*
 
+COPY requirements.txt /tmp/srim-requirements.txt
+
 RUN python3 -m venv /opt/srim-venv \
     && /opt/srim-venv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && /opt/srim-venv/bin/python -m pip install --no-cache-dir matplotlib numpy pyyaml 'uproot==5.7.6' 'scipy==1.18.1'
+    && /opt/srim-venv/bin/python -m pip install --no-cache-dir -r /tmp/srim-requirements.txt
 
 COPY docker/entrypoint.sh /usr/local/bin/srim-entrypoint
 

@@ -1,33 +1,24 @@
-# This repository is intentionally a thin wrapper around a local SRIM-2013
-# installation. Keep automation/configuration files only; exclude SRIM itself
-# and generated run artifacts.
-*
-
-!/.gitignore
-!/.dockerignore
-!/README.md
-!/compose.yaml
-!/GasDensities.csv
-!/srim_gas_sweep.py
-!/trim_qf_sweep.py
-!/srim_scan.py
-!/pysrim_runner.py
-!/fix_srim_no_admin.ps1
-!/fix_srim_no_admin.bat
-!/srim-root.txt
-!/configs/
-!/configs/*.toml
-!/docker/
-!/docker/*
-!/examples/
-!/examples/*.csv
-!/tests/
-!/tests/*.py
-!/scripts/
-!/scripts/*.sh
-!/scripts/*.py
-
-# Generated scan state and local Python caches remain untracked.
-runs/
+# Local environments, configuration, and generated project data.
+.venv/
+venv/
+.env
+.env.*
+!.env.example
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+runs/
+results/
+plots/
+work/
+.wine*/
+srim-2013/
+*.log
+.vscode/
+.idea/
+.DS_Store

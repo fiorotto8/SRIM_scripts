@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    image: srim-scan:local
+    image: srim-linux:local
     user: "${SRIM_DOCKER_UID:-1000}:${SRIM_DOCKER_GID:-1000}"
     working_dir: /workspace/SRIM_scripts
     environment:
@@ -11,6 +11,8 @@ services:
       PYTHONPATH: /workspace/pysrim
       WINEPREFIX: /data/wine-volume/prefix
       WINEDEBUG: -all
+      SRIM_ROOT: /data/srim-volume/srim-2013
+      PYSRIM_ROOT: /workspace/pysrim
     volumes:
       # Both source trees are bind-mounted: edits in either checkout are used
       # by the next container invocation without rebuilding the image.
@@ -22,10 +24,10 @@ services:
       - container_home:/data/home-volume
     command:
       - python
-      - srim_scan.py
+      - srim_project.py
       - plan
       - --config
-      - configs/noble_cf4_standard_docker.toml
+      - examples/minimal_silicon.toml
 
 volumes:
   srim_install:
