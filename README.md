@@ -235,3 +235,22 @@ The numerical export specifies the event-field units: native absolute X stays
 in Angstrom while displacements and sampled paths use mm. The separate
 `srmodule_medium_comparison` tables compare exact native stopping/range points
 between the two media; they do not establish full-cascade or charge equivalence.
+
+## Export existing results for CYGNO-MC
+
+The [read-only exporter](scripts/export_cygno_mc.py) reads the supplied local
+`geant4_config.json` and completed batches, with no changes to active scans:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n 15 python3 scripts/export_cygno_mc.py \
+  --config geant4_config.json --out exports/cygno_mc_20261016_release
+```
+
+Use the existing WSL NumPy/SciPy/Matplotlib analysis environment. The export
+includes all five isotope CSVs in one table, separate primary/recoil energy
+channels, a bounded monotone smooth QF, its analytic response derivative,
+conditional Monte Carlo uncertainties, frozen replay inputs and a C++ header.
+The [export documentation](docs/cygno_mc_export.md) explains the methods and
+CYGNO-MC integration requirements. Existing direct points retain their actual
+293 K source conditions; reuse at the requested 293.15 K target is explicitly
+derived, with no exact-target direct simulations claimed.
