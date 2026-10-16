@@ -65,6 +65,15 @@ Files in this MC checkout's `tests/` tree are Git-ignored and need explicit
 filesystem/archive transfer. The standalone C++ response is an interchange
 interface; a validated per-hit transport integration remains a separate task.
 
+For readable source-function comparisons, run
+`scripts/plot_cygno_mc_comparison.py --export-dir PATH_TO_HANDOFF --mc-root
+PATH_TO_CYGNO_MC --out NEW_PLOT_DIRECTORY`. It checks the frozen comparison's
+source/input hashes, plots each isotope separately, and supplies difference
+panels and a five-page PDF. The main derivative is `d[E*QF(E)]/dE`; ordinary
+`dQF/dE` is a separate supplement. H/O defaults are labelled explicitly.
+These are current-source analytic functions compared with TRIM fits, rather
+than a newly executed Geant4 event calculation. The sealed handoff is preserved.
+
 ## Files and directness
 
 The four QF CSVs have exactly the requested columns:
