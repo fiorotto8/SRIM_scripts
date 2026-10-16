@@ -43,6 +43,28 @@ simulated event counts do not represent contaminant concentrations. Neither
 the source counts nor `n_ions` should be replaced by the million events per
 Geant4 species specified in the input config.
 
+After the campaign has finished, `scripts/package_cygno_mc.py` can copy a
+validated export and the completed study into a new MC handoff directory.
+It checks that the supplied configuration's source hashes still match the MC
+checkout, retains campaign validation flags, inventories every native archive,
+includes five full native examples, and supplies source-condition ranges plus
+explicitly derived density-transferred ranges. Original raw archives stay in
+the SRIM study; their paths and SHA256 values are exported. This copies data
+and reproduction tools without changing the MC physics source. For example:
+
+```bash
+python3 scripts/package_cygno_mc.py \
+  --study runs/cygno_hecf4_900mbar_20261015 \
+  --export exports/cygno_mc_20261016_completed \
+  --mc-root /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC \
+  --out /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC/tests/nuclear_recoils/srim_results_NEW
+```
+
+Use a new destination. Preserve the accompanying final review and work summary.
+Files in this MC checkout's `tests/` tree are Git-ignored and need explicit
+filesystem/archive transfer. The standalone C++ response is an interchange
+interface; a validated per-hit transport integration remains a separate task.
+
 ## Files and directness
 
 The four QF CSVs have exactly the requested columns:
