@@ -1,6 +1,33 @@
 [
   {
     "batch_ids": [
+      "cygno-10d2cf9eb1f9a9af8f46",
+      "cygno-7fd1c995521fc178b4f5",
+      "cygno-d97101c53358426b200a"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.025"
+  },
+  {
+    "batch_ids": [
+      "cygno-0bc66900591e712f4f9d",
+      "cygno-298ca2e11ee01e94600f",
+      "cygno-3964d1a8d033bab1af0b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.04"
+  },
+  {
+    "batch_ids": [
+      "cygno-4a9679987030990096b0",
+      "cygno-704e07d0fc0cec1c1f59",
+      "cygno-de811241bc7a47581306"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.063"
+  },
+  {
+    "batch_ids": [
       "cygno-3e5a91764cfa86076d58",
       "cygno-927295d82b065e20949b",
       "cygno-d4d5f029b5a0ec57a354",
@@ -387,6 +414,33 @@
   },
   {
     "batch_ids": [
+      "cygno-f0ae843ac989e4afd543",
+      "cygno-f91af85b2d0e990066a3",
+      "cygno-fc564c1e0dff32385232"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.025"
+  },
+  {
+    "batch_ids": [
+      "cygno-61d58ca6e786c50f1bbb",
+      "cygno-840a907df7f0dabfe110",
+      "cygno-9e61c79e5d69ee6f6b20"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.04"
+  },
+  {
+    "batch_ids": [
+      "cygno-5fd629a4ed688407cb46",
+      "cygno-603e378b266e5e63f499",
+      "cygno-e3d95c87e647ce523b5c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.063"
+  },
+  {
+    "batch_ids": [
       "cygno-0e9ee5e1f2b63408ed32",
       "cygno-4eafa376de05c68e8389",
       "cygno-739993a4d7d37d0002a2"
@@ -760,6 +814,33 @@
     ],
     "n_batches": 3,
     "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-4b729dda61dd41155794",
+      "cygno-8a16468810506d0eb6fb",
+      "cygno-e7070c56121c2631dbb2"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.025"
+  },
+  {
+    "batch_ids": [
+      "cygno-4a4f02d5f8dcd015e1a5",
+      "cygno-9a6e923558858d8bf431",
+      "cygno-abe34cd31d20da86529c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.04"
+  },
+  {
+    "batch_ids": [
+      "cygno-52cd61a224608ef7cbe1",
+      "cygno-a4f01bfa49f3deeff5da",
+      "cygno-c197153c9118fe53045e"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.063"
   },
   {
     "batch_ids": [
@@ -1164,6 +1245,33 @@
   },
   {
     "batch_ids": [
+      "cygno-58511583e8a92898cf35",
+      "cygno-9b07cd46963837628862",
+      "cygno-f83c0e7e8820561bfd6b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.025"
+  },
+  {
+    "batch_ids": [
+      "cygno-1412024399fa8a82328c",
+      "cygno-632afd59836fbd30176b",
+      "cygno-b508099fd6748316bc5f"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.04"
+  },
+  {
+    "batch_ids": [
+      "cygno-2106ef243c27871c2994",
+      "cygno-240922c4b7210999eb06",
+      "cygno-b86048c6f0c934f48f70"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.063"
+  },
+  {
+    "batch_ids": [
       "cygno-19c3768e8008174d6cc0",
       "cygno-a37d8891b8a4b20be1dc",
       "cygno-c3e5cba26d15be77287b",
@@ -1532,6 +1640,33 @@
     ],
     "n_batches": 3,
     "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-5fc92c9dfd1ae32b70a4",
+      "cygno-845471a1ee3f4fc83ba1",
+      "cygno-ba573570e0039f7e8d51"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.025"
+  },
+  {
+    "batch_ids": [
+      "cygno-3033a5d74b95d4b66b59",
+      "cygno-51927958b356e68859f5",
+      "cygno-92ad2976f1a90c852eac"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.04"
+  },
+  {
+    "batch_ids": [
+      "cygno-10d2cbc5d51b0d6f3739",
+      "cygno-a30dc9ea07e232b377db",
+      "cygno-d155af5f4283a878e183"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.063"
   },
   {
     "batch_ids": [

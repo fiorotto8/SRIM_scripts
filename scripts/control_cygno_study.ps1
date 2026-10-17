@@ -53,6 +53,10 @@ switch ($Action) {
         }
         # Reuse the native Python from the last launch for this study.
         $launcherPath = Join-Path $RunDir 'launcher.json'
+        $previous = $null
+        if (Test-Path -LiteralPath $launcherPath) {
+            $previous = Get-Content -LiteralPath $launcherPath -Raw | ConvertFrom-Json
+        }
         if (-not $Python -and (Test-Path -LiteralPath $launcherPath)) {
             $previous = Get-Content -LiteralPath $launcherPath -Raw | ConvertFrom-Json
             if ($previous.PSObject.Properties['command'] -and @($previous.command).Count -gt 0) {
@@ -66,6 +70,7 @@ switch ($Action) {
         if (-not [IO.File]::Exists($launcher)) { throw "Launcher is unavailable: $launcher" }
         if (Test-Path -LiteralPath $stopMarker) { Remove-Item -LiteralPath $stopMarker }
         $options = @{ RunDir = $RunDir; Workers = $Workers }
+        if ($previous -and @($previous.command) -contains 'extend') { $options.Mode = 'extend' }
         if ($Python) { $options.Python = $Python }
         & $launcher @options
     }

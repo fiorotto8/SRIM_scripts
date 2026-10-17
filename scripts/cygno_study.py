@@ -278,6 +278,8 @@ def run_one(job,runtime,out,cfg,metadata,elements):
         'qf':budget['qf_electronic'],'eee_kev':budget['total_electronic_energy_kev'],'range_header':range_header.__dict__,
         'effective_settings':effective,'endpoints':endpoints,'paths':paths,'clipped':clipped,'backscattered':back,'transmitted':transmitted,
         'target_width_angstrom':width,'source_depth_angstrom':source_depth,'exyz_step_ev':step,'bulk_energy_ceiling':energy_ceiling,
+        'geometry_srmodule_energy_kev':prediction.energy_kev,
+        'geometry_srmodule_note':'Stopping-table endpoint may be used only for conservative target geometry; IONIZ full-cascade energies determine QF',
         'source_revision':metadata.get('execution_source_revision')}
     archive=out/'raw'/job['stage']/f"{job['job_id']}.tar.gz"
     files={'TRIM.IN':runtime/'TRIM.IN','TRIM.dat':runtime/'TRIM.dat','TRIMAUTO':runtime/'TRIMAUTO','TRIM.cfg':runtime/'Data/TRIM.cfg','TDATA.sav':runtime/'SRIM Restore/TDATA.sav','native_process.json':native_log,**outputs}
@@ -610,7 +612,7 @@ def windows_campaign_active(pid,out):
         driver=stopping.to_windows_path(Path(__file__).resolve()).lower().replace('/','\\')
         directory=stopping.to_windows_path(out.resolve()).lower().replace('/','\\')
         token=lambda value:bool(re.search(r'(?:^|\s)"?'+re.escape(value)+r'"?(?=\s|$)',text))
-        return token(driver) and token(directory) and token('campaign')
+        return token(driver) and token(directory) and (token('campaign') or token('extend'))
     except (OSError,subprocess.SubprocessError,ValueError):return False
 
 def study_status(out):
@@ -637,7 +639,7 @@ def study_status(out):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command',choices=['plan','srmodule','pilot','run','systematics','campaign','analyse','report','status'])
+    parser.add_argument('command',choices=['plan','srmodule','pilot','run','systematics','campaign','extend','analyse','report','status'])
     parser.add_argument('--config',type=Path,default=ROOT/'configs/cygno_hecf4_900mbar.toml')
     parser.add_argument('--run-dir',type=Path,default=ROOT/'runs/cygno_hecf4_900mbar_20261015')
     parser.add_argument('--srim-root',type=Path,default=ROOT)
@@ -648,6 +650,9 @@ def main():
     if args.command=='status':
         print(json.dumps(study_status(out),indent=2))
         return 0
+    if args.command=='extend':
+        from cygno_qf_extension import run_extension
+        return run_extension(source,out,cfg,args.config,args.workers if args.workers is not None else cfg['simulation']['workers'])
     metadata,elements=prepare(out,cfg,args.config,source)
     if args.workers is not None and args.workers<1:parser.error('--workers must be positive')
     workers=args.workers or cfg['simulation']['workers']

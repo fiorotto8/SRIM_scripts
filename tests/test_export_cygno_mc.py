@@ -111,6 +111,19 @@ class EnergyAccountingTests(unittest.TestCase):
                 self.assertEqual(reader.fieldnames, export.FIELDS)
                 self.assertEqual(next(reader)["is_direct"], "1")
 
+    def test_full_simulated_support_accepts_direct_endpoints_without_guards(self):
+        points=[]
+        for i,e in enumerate(np.geomspace(.025,3000.,18)):
+            q=.1+.8*i/17
+            points.append(dict(species='H1',Z=1,A=1,energy_keV=float(e),QF=q,QF_sem=.01,
+                               n_ions=300,run_id=str(i),batch_channels=np.array([[q*e,0.]]*3)))
+        model=export.smooth(points,.025,3000.,2,7,full_support=True)
+        q,_,d,_=export.evaluate(model,np.array([.025,3000.]))
+        self.assertTrue(np.all(np.isfinite(q)) and np.all(d>0))
+        self.assertEqual(len(model['raw_fit_run_ids']),18)
+        for e in [.024999,3000.001]:
+            with self.assertRaises(ValueError):export.evaluate(model,np.array([e]))
+
 
 if __name__ == "__main__":
     unittest.main()

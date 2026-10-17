@@ -2,6 +2,22 @@
   "assembled_at_UTC": "2026-10-17T16:38:31.664310+00:00",
   "campaign": "cygno_hecf4_900mbar_20261015",
   "canonical_publication_directory": "studies/cygno_qf_900mbar",
+  "energy_accounting_qualified": false,
+  "extended_at_UTC": "2026-10-17T17:40:27+00:00",
+  "extension_execution_runner_sha256": "06bf235537410abcba2266eeb342810b9cf19c1b08147124bad2fd8ea9a6cb0f",
+  "extension_scripts": {
+    "cygno_qf_extension.py": "908925685a4b35e237e73a81f22da04e83689ad74b8690f41764a525e7f9f0bf",
+    "cygno_qf_extension_analysis.py": "8b041d0023a96518ccd89613c05969bee83b5fae4c9d7dc03ded54bc17be0f56"
+  },
+  "extension_source_sha256": {
+    "scripts/control_cygno_study.ps1": "9c27f8f95616f89b05bac5fc4fe8dee15fc0e266112a55f4f9190e008e7c4cfb",
+    "scripts/cygno_qf_extension.py": "97e65ffaa754f37a63d8e99a799a0894582a9f1a39d8f27de915b58e16c3af19",
+    "scripts/cygno_qf_extension_analysis.py": "8f016944719f395dec4d9fe66a0a6d20b41862be6472e78378e53ef2a8f8ef98",
+    "scripts/cygno_study.py": "e22c5c3c2a9f88ecb3a0a1c9ee8b4ead89d2e8747df54b5e7fd4067d967584fd",
+    "scripts/export_cygno_mc.py": "c441896c43262295a405a83677f859f2dfea734b1c599c052650681e004f3fbf",
+    "scripts/start_cygno_study.ps1": "84a9c23c6ab4c8f19f22d12d085c9522ca8337797e58c75db7e9e7fac24810a1",
+    "scripts/validate_cygno_mc_export.py": "825f47d6d9b41b19998a3f9534464093340ae97700ce268d4e3a14580b1c98ec"
+  },
   "offline_analysis_python": "3.12.3",
   "original_validation_status": "finished_with_unresolved_validation",
   "path_metadata": "Machine-local MC/thesis locations redacted from comparison metadata; historical SRIM source paths in frozen capture are provenance only and not replay dependencies",
@@ -25,11 +41,16 @@
     "srim_scan.py": "66dfa2fba524f5e4e38027f6401f00f274ec23ca03b2ca357f86370fb65d083a",
     "trim_qf_sweep.py": "5646daacddb11dffe7cbc474d6cb47803474b63096bdf907ca60192a5ffe28ef"
   },
+  "source_repository_file_sha256_role": "Original pre-extension infrastructure; current extension source hashes and archived native execution runner are recorded separately",
   "source_selection": {
-    "batches": 852,
-    "direct_domain_points": 142,
-    "ions": 85200,
+    "batches": 897,
+    "direct_domain_points": 195,
+    "ions": 89700,
     "smooth_rows_per_species": 401
   },
-  "third_party_materials": "No SRIM binaries/databases or full thesis PDF included; source citation, equation/parameter transcription and hashes retained"
+  "third_party_materials": "No SRIM binaries/databases or full thesis PDF included; source citation, equation/parameter transcription and hashes retained",
+  "valid_energy_keV": [
+    0.025,
+    3000.0
+  ]
 }

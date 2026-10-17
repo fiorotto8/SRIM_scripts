@@ -39,6 +39,34 @@ def analytic(p, energy):
     return q, q + energy * k * (1 + a*b*energy**(b-1)) / (1+f)**2
 
 
+def extension_comparison(exporter, models, previous):
+    """Absolute changes and nonprobabilistic basis/penalty sensitivity."""
+    diagnostic=json.loads((DATASET/'validation/derivative_stability.json').read_text())
+    energy=np.geomspace(.25,1000,501)
+    fig,axes=plt.subplots(2,5,figsize=(18,7),sharex=True)
+    fig.subplots_adjust(left=.06,right=.99,top=.85,bottom=.17,hspace=.20,wspace=.32)
+    for col,species in enumerate(['H1','He4','C12','O16','F19']):
+        new=exporter.evaluate(models[species],energy);old=exporter.evaluate(previous[species],energy)
+        alternative=[exporter.evaluate(m,energy) for m in diagnostic['sensitivity_models'][species]]
+        no_low=exporter.evaluate(diagnostic['no_new_low_energy_models'][species],energy)
+        for row,index in [(0,0),(1,2)]:
+            values=np.array([new[index]]+[v[index] for v in alternative])-old[index]
+            ax=axes[row,col]
+            ax.fill_between(energy,values.min(axis=0),values.max(axis=0),alpha=.20,color='#0072B2')
+            ax.plot(energy,values[0],color='#0072B2',lw=1.8)
+            ax.plot(energy,no_low[index]-old[index],color='#A65628',ls=':',lw=1.3)
+            ax.axhline(0,color='black',ls='--',lw=.8)
+            ax.set_xscale('log');ax.grid(alpha=.2);ax.tick_params(labelsize=9)
+        axes[0,col].set_title(NAMES[species]);axes[1,col].set_xlabel('Energy [keV/ion]')
+    axes[0,0].set_ylabel('Updated QF − previous QF')
+    axes[1,0].set_ylabel('Updated d[E QF]/dE − previous')
+    fig.suptitle('Effect of extending the fit — comparison over the previous 0.25–1000 keV interval',fontsize=16,fontweight='bold')
+    fig.text(.5,.07,'Blue: updated fit minus previous published fit. Shading: basis/penalty sensitivity envelope; NOT a statistical confidence interval.',ha='center',fontsize=10)
+    fig.text(.5,.025,'Brown dotted: extended fit excluding the new 25–63 eV anchors. Fits share data; change uncertainties are unassigned.',ha='center',fontsize=10)
+    fig.savefig(OUT/'extension_comparison.png',dpi=180)
+    return fig
+
+
 def main():
     global OUT, EXPORT
     parser = argparse.ArgumentParser(description=__doc__)
@@ -58,6 +86,9 @@ def main():
         p = [config['existing_QF']['coefficients'][species][name] for name in ['k','a','b']]
         assert p == PARAMS[species], 'Thesis Table4.1 and frozen MC reference differ'
     models = {m['species']: m for m in json.loads((EXPORT / 'response_models.json').read_text())['models']}
+    previous_path=DATASET/'provenance/previous_response_models.json'
+    previous={m['species']:m for m in json.loads(previous_path.read_text())['models']} if previous_path.exists() else {}
+    manifest=json.loads((EXPORT/'manifest.json').read_text())
     rows = list(csv.DictReader((EXPORT / 'qf_source_direct.csv').open()))
     review = json.loads((DATASET / 'validation/final_review.json').read_text())
     fits = {}
@@ -74,7 +105,11 @@ def main():
                              diagnostic_chi2_per_dof=float(sum(result.fun**2)/(len(q)-3)),
                              maximum_abs_residual_pull=float(max(abs(result.fun))),
                              interpretation='Same thesis form refitted to new points in1–500keV; model diagnostic only; no detector/physical validation')
-    e = np.geomspace(.25,1000,1201)
+    lo=max(m['valid_energy_keV'][0] for m in models.values());hi=min(m['valid_energy_keV'][1] for m in models.values())
+    e = np.geomspace(lo,hi,1201)
+    derivative_top=max(1.055,max(float(max(exporter.evaluate(m,e)[2])) for m in models.values())*1.03)
+    ticks=[v for v in [.025,.1,1,10,100,1000,3000] if lo<=v<=hi]
+    tick_formatter=FuncFormatter(lambda v,pos:f'{v/1000:g}k' if v>=1000 else f'{v:g}')
     plt.rcParams.update({'font.size':11,'axes.labelsize':11,'axes.titlesize':16,
                          'pdf.fonttype':42,'axes.spines.top':False,'axes.spines.right':False})
     fig, axes = plt.subplots(2,3,figsize=(14.5,9.4),sharex=True,sharey='row')
@@ -92,21 +127,29 @@ def main():
         fits[species]['max_abs_derivative_change_vs_spline_in_fit_interval'] = float(max(abs(fd-d[matched])))
         for row,new,unc,old,refit in [(0,q,qs,oldq,fq),(1,d,ds,oldd,fd)]:
             ax=axes[row,col]
-            ax.axvspan(.25,1,color='#d5d5d5',alpha=.5,zorder=0)
-            ax.axvspan(500,1000,color='#d5d5d5',alpha=.5,zorder=0)
+            ax.axvspan(lo,1,color='#d5d5d5',alpha=.5,zorder=0)
+            ax.axvspan(500,hi,color='#d5d5d5',alpha=.5,zorder=0)
             ax.axvline(1,color='#888888',lw=.8);ax.axvline(500,color='#888888',lw=.8)
             ax.plot(e,new,color='#0072B2',lw=2.25,zorder=3)
             ax.fill_between(e,new-unc,new+unc,color='#0072B2',alpha=.18,zorder=2)
             ax.plot(e,old,color='#D55E00',ls=(0,(5,3)),lw=2.1,zorder=4)
+            if previous:
+                overlap=(e>=.25)&(e<=1000)
+                prior=exporter.evaluate(previous[species],e[overlap])[row*2]
+                ax.plot(e[overlap],prior,color='#333333',ls='-.',lw=1.1,zorder=4)
             ax.plot(e[matched],refit,color='#009E73',ls=(0,(1,2)),lw=2.0,zorder=5)
-            ax.set_xscale('log');ax.set_xlim(.25,1000);ax.set_ylim(0,1.055)
-            ax.xaxis.set_major_locator(FixedLocator([.25,1,10,100,1000]))
-            ax.xaxis.set_major_formatter(FuncFormatter(lambda v,pos:f'{v:g}'))
+            ax.set_xscale('log');ax.set_xlim(lo,hi);ax.set_ylim(0,1.055 if row==0 else derivative_top)
+            ax.xaxis.set_major_locator(FixedLocator(ticks))
+            ax.xaxis.set_major_formatter(tick_formatter)
             ax.grid(alpha=.20)
         raw=[r for r in rows if r['species']==species]
         axes[0,col].errorbar([float(r['energy_keV']) for r in raw],[float(r['QF']) for r in raw],
                              yerr=[float(r['QF_sem']) for r in raw],fmt='o',ms=3,color='#0072B2',
                              elinewidth=.8,capsize=1,zorder=6)
+        flags={p['energy_keV'] for c in manifest['coverage'] if c['species']==species for p in c['raw_energy_budget_flags']}
+        marked=[r for r in raw if float(r['energy_keV']) in flags]
+        axes[0,col].plot([float(r['energy_keV']) for r in marked],[float(r['QF']) for r in marked],
+                         marker='s',ms=6,markerfacecolor='none',color='#B2182B',ls='',zorder=7)
         axes[0,col].set_title(NAMES[species])
         axes[1,col].set_xlabel('Initial energy [keV per ion]')
     axes[0,0].set_ylabel('QF (primary + recoil electronic fraction)')
@@ -114,12 +157,15 @@ def main():
     fig.suptitle('CYGNO quenching recap — thesis implementation vs completed TRIM scan',fontsize=17,fontweight='bold',y=.98)
     fig.text(.5,.925,'He/CF₄ 60/40 molar · new direct simulations: 900 mbar, 293 K · electronic-energy response',ha='center',fontsize=11)
     handles=[Line2D([],[],color='#0072B2',lw=2.3,marker='o',ms=4,label='New TRIM points + smooth fit'),
-             Line2D([],[],color='#D55E00',lw=2.1,ls='--',label='Thesis Table4.1 / current MC'),
+             Line2D([],[],color='#D55E00',lw=2.1,ls='--',label='Thesis Table4.1 / frozen MC reference'),
              Line2D([],[],color='#009E73',lw=2,ls=':',label='Thesis form refitted to new data (diagnostic)'),
              Patch(facecolor='#d5d5d5',alpha=.5,label='Outside thesis fitted interval: 1–500 keV')]
+    handles.append(Line2D([],[],color='#B2182B',marker='s',markerfacecolor='none',ls='',ms=6,label='Raw energy-closure warning'))
+    if previous:
+        handles.append(Line2D([],[],color='#333333',ls='-.',lw=1.1,label='Previous published TRIM fit (0.25–1000 keV)'))
     fig.legend(handles=handles,loc='lower center',bbox_to_anchor=(.5,.082),ncol=2,frameon=False,fontsize=10)
     fig.text(.5,.045,'Blue bands: ±1 conditional statistical SEM; systematic/model uncertainty excluded. Green refit is not a validated replacement.',ha='center',fontsize=10)
-    fig.text(.5,.015,'Only He/C/F have fitted QFs implemented in current MC. H/O use unity defaults; the thesis does provide an H fit, but no O fit.',ha='center',fontsize=10)
+    fig.text(.5,.015,'16 Oct 2026 MC reference: He/C/F fits; H/O unity defaults. The thesis supplies an H fit, but no O fit.',ha='center',fontsize=10)
     fig.savefig(OUT/'recap.png',dpi=190)
     # Keep the existing He/C/F page readable and add a dedicated H/O page.
     hofig, hoaxes = plt.subplots(2,2,figsize=(11.7,9.1),sharex=True,sharey='row')
@@ -137,11 +183,14 @@ def main():
             if species=='H1':
                 legacy=analytic(PARAMS['H1'],e)[row]
                 ax.plot(e,legacy,color='#7B3294',ls='-.',lw=1.9,zorder=4)
-                ax.axvspan(.25,1,color='#d5d5d5',alpha=.5,zorder=0)
-                ax.axvspan(500,1000,color='#d5d5d5',alpha=.5,zorder=0)
-            ax.set_xscale('log');ax.set_xlim(.25,1000);ax.set_ylim(0,1.055)
-            ax.xaxis.set_major_locator(FixedLocator([.25,1,10,100,1000]))
-            ax.xaxis.set_major_formatter(FuncFormatter(lambda v,pos:f'{v:g}'))
+                ax.axvspan(lo,1,color='#d5d5d5',alpha=.5,zorder=0)
+                ax.axvspan(500,hi,color='#d5d5d5',alpha=.5,zorder=0)
+            if previous:
+                overlap=(e>=.25)&(e<=1000)
+                ax.plot(e[overlap],exporter.evaluate(previous[species],e[overlap])[row*2],color='#333333',ls='-.',lw=1.1,zorder=4)
+            ax.set_xscale('log');ax.set_xlim(lo,hi);ax.set_ylim(0,1.055 if row==0 else derivative_top)
+            ax.xaxis.set_major_locator(FixedLocator(ticks))
+            ax.xaxis.set_major_formatter(tick_formatter)
             ax.grid(alpha=.20)
         raw=[r for r in rows if r['species']==species]
         hoaxes[0,col].errorbar([float(r['energy_keV']) for r in raw],[float(r['QF']) for r in raw],
@@ -152,17 +201,18 @@ def main():
             hoaxes[0,col].plot([float(r['energy_keV']) for r in flagged],[float(r['QF']) for r in flagged],
                                marker='s',ms=7,markerfacecolor='none',markeredgecolor='#B2182B',
                                ls='',zorder=6)
-        hoaxes[0,col].set_title(NAMES[species]+('\nThesis fit exists; not active in MC' if species=='H1' else '\nNo thesis fit; MC uses unity'))
+        hoaxes[0,col].set_title(NAMES[species]+('\nThesis fit exists; inactive in reference' if species=='H1' else '\nNo thesis fit; reference uses unity'))
         hoaxes[1,col].set_xlabel('Initial energy [keV per ion]')
     hoaxes[0,0].set_ylabel('QF (primary + recoil electronic fraction)')
     hoaxes[1,0].set_ylabel(r'$d[E\,QF(E)]/dE$')
     hofig.suptitle('CYGNO recap — new hydrogen and oxygen recoil responses',fontsize=17,fontweight='bold',y=.98)
     hofig.text(.5,.93,'He/CF₄ 60/40 molar · 900 mbar, 293 K · full-cascade TRIM',ha='center',fontsize=11)
-    hohandles=[handles[0],Line2D([],[],color='#D55E00',lw=2.1,ls='--',label='Current MC: unquenched default (unity)'),
+    hohandles=[handles[0],Line2D([],[],color='#D55E00',lw=2.1,ls='--',label='Frozen MC reference: unquenched default (unity)'),
                Line2D([],[],color='#7B3294',lw=1.9,ls='-.',label='Thesis H fit (not implemented in MC)'),
                Line2D([],[],color='#B2182B',marker='s',markerfacecolor='none',ls='',ms=6,label='H points flagged by energy accounting')]
+    if previous:hohandles.append(handles[-1])
     hofig.legend(handles=hohandles,loc='lower center',bbox_to_anchor=(.5,.085),ncol=2,frameon=False,fontsize=9.5)
-    hofig.text(.5,.05,'Blue bands: ±1 conditional statistical SEM; model/calibration uncertainty excluded. H red squares retain ~1.2% closure warnings.',ha='center',fontsize=9)
+    hofig.text(.5,.05,'Blue bands: ±1 conditional statistical SEM; model/calibration uncertainty excluded. Red squares retain closure warnings.',ha='center',fontsize=9)
     hofig.text(.5,.02,'Grey applies to the thesis H fit only: extrapolation outside 1–500 keV. Unity lines are code defaults, not physical QF predictions.',ha='center',fontsize=9)
     hofig.savefig(OUT/'recap_h_o.png',dpi=190)
     probe=np.geomspace(.251,999,121);h=probe*1e-5
@@ -186,13 +236,13 @@ for the response derivative. No further broad scan is justified by statistics al
 What the thesis establishes
 Di Giambattista's thesis [1], pp.127–130, sums both primary and secondary-recoil
 IONIZ bins and divides by initial energy (Eqs.4.9–4.11): the same definition
-used here. Table4.1 exactly matches the He/C/F coefficients in current MC.
+used here. Table4.1 exactly matches the He/C/F coefficients in frozen MC reference.
 The thesis simulated100 ions at23 energies and fitted1–500 keV. It explicitly
 excluded lower energies. Thus the orange curve below1 and above500 keV is
 EXTRAPOLATION. Eq.4.17, pp.131–132, defines the same d[E QF(E)]/dE plotted here.
 Quick mode is stated for preliminary target-width optimization; the thesis does
 not explicitly identify the production QF mode. It also supplies an H fit that
-current MC does not use; O is absent. MC H/O unity is therefore a code default.
+frozen MC reference does not use; O is absent. MC H/O unity is therefore a code default.
 
 What was done here
 Full mode5 cascades cover H1/He4/C12/O16/F19 in baseline60/40 He/CF4 and a
@@ -266,14 +316,79 @@ Frozen inputs and hashes, matched-fit details and checks are in plot_evidence.js
               f"At 1 keV the direct new QFs are H={h_value['TRIM_direct_QF']:.4f} +/- {h_value['TRIM_QF_sem']:.4f} "
               f"and O={o_value['TRIM_direct_QF']:.4f} +/- {o_value['TRIM_QF_sem']:.4f}. "
               "Both new QFs and response derivatives are plotted on the second page. "
-              "Orange unity lines show current MC defaults; purple is the separate thesis H fit, "
+              "Orange unity lines show frozen MC reference defaults; purple is the separate thesis H fit, "
               "which is not implemented. No thesis O curve exists. The flagged low-energy H "
               "points are marked rather than hidden.\n\n")
     discussion=discussion.replace('What the discrepancy means\n',added_ho+'What the discrepancy means\n')
+    change_fig=None
+    if previous:
+        audit=json.loads((DATASET/'validation/extension_validation.json').read_text())
+        stability=json.loads((DATASET/'validation/derivative_stability.json').read_text())
+        changes='\n'.join(f"{r['species']}: max |delta QF|={r['maximum_abs_QF_change_previous_interval']:.5f}; "
+                          f"max |delta dR/dE|={r['maximum_abs_derivative_change_previous_interval']:.5f}."
+                          for r in stability['species'])
+        discussion=f'''CYGNO QF extension — 17 October 2026
+
+What was added and reused
+All 45 bounded full-cascade batches completed: H1, He4, C12, O16 and F19 at
+25, 40 and 63 eV, three independent 100-history batches per point. No adaptive
+campaign or additional systematic scan was launched. All 852 compatible prior
+batches were reused, including direct points below 250 eV and above 1 MeV.
+The combined {audit['combined_direct_points']} direct points support {lo:g}–{hi:g} keV per ion.
+Compatible nominal coarse controls retain their separate source tags;
+threshold variations, pilots and correlated fine controls are not pooled.
+
+Settings and accounting
+The direct gas remains He/CF4=60/40 molar, 900 mbar, 293 K,
+rho=0.001389194959 g/cm3, He:C:F atomic fractions=3:2:8. TRIM mode 5,
+gas flag 1, compound correction 1 and displacement 21 eV were unchanged.
+The requested 293.15 K target still uses an approximate transfer, not direct
+target simulations. Primary plus recoil IONIZ energy is counted once.
+Every new archive member hash and independent electronic/phonon integration
+passed. New maximum absolute closure residual={100*audit['maximum_abs_closure_fraction']:.3f}%;
+{audit['closure_warning_batches']} new batches exceed the retained 1% warning criterion.
+
+Statistics and model limits
+Only {audit['new_points_meeting_relative_QF_SEM_2percent']} of 15 new points meet relative QF SEM<=2%;
+all remain at the requested 300 histories. There is no automatic expansion.
+These energies approach the 21 eV displacement setting; 25 eV is only 1.19
+times that value. That setting is not an ionization threshold, and its physical
+adequacy is unvalidated here. Existing 1 keV cutoff controls do not validate
+25–63 eV physics. Electronic energy includes excitation and is not measured charge.
+
+Extended smooth response and change from previous release
+The same bounded monotone cubic B-spline in log(E) now fits the full measured
+support. Basis size (12/14/16/18/20 coefficients) and regularization are selected
+jointly by leave-one-energy-out cross-validation;
+400 joint-channel batch bootstraps give conditional statistical SEMs.
+d[E QF]/dE is analytic from that same model. Measured endpoint data support the fitted values;
+the evaluator rejects inputs outside the explicit bounds. The previous fit
+was not held fixed. Over 0.25–1000 keV:
+{changes}
+
+Derivative qualification
+Refits with two fewer/more coefficients and weaker/stronger regularization quantify
+basis/penalty sensitivity. Their envelope is not a confidence interval and
+is not folded into statistical SEM. Endpoint derivatives are one-sided model
+values; global derivative stability is not established. The change plot shows
+the difference from the prior response and this sensitivity on its old interval.
+Both fits reuse correlated data, so change uncertainties remain unassigned.
+
+Thesis and MC interpretation
+Flaminia Di Giambattista's thesis, Sec. 4.1.2.1, Table 4.1 and Eq. 4.17,
+uses the same inclusive IONIZ definition and response derivative. Its fitted
+domain is 1–500 keV; shaded curves beyond that domain extrapolate. He/C/F
+coefficients match frozen MC. The thesis H fit is not active in the reference; O has no
+thesis fit. Orange H/O unity lines are code defaults, not physical predictions.
+Per-hit use of inclusive cascades needs ancestry/terminal-energy bookkeeping.
+See REPORT.md and the machine-readable validation for integration limits.
+'''
+        change_fig=extension_comparison(exporter,models,previous)
     # Two readable plot pages, followed by the compact discussion.
     with PdfPages(OUT/'recap.pdf') as pdf:
         pdf.savefig(fig);plt.close(fig)
         pdf.savefig(hofig);plt.close(hofig)
+        if change_fig is not None:pdf.savefig(change_fig);plt.close(change_fig)
         wrapped=[]
         for paragraph in discussion.strip().split('\n\n'):
             lines=paragraph.splitlines()
@@ -305,6 +420,13 @@ Frozen inputs and hashes, matched-fit details and checks are in plot_evidence.js
               'reliability':'Reproducible nominal electronic-energy prediction; not best-possible, low-energy-cutoff-converged, derivative-qualified or charge-calibrated.',
               'final_review':review,'script_sha256':sha(Path(__file__))}
     evidence['thesis']['reference']='Flaminia Di Giambattista, Background study of the LIME prototype at underground LNGS for the CYGNO experiment, PhD thesis, 1 March2024'
+    evidence['valid_energy_keV']=[lo,hi]
+    evidence['MC_reference_date']='2026-10-16'
+    evidence['current_local_MC_edits_validated']=False
+    if previous:
+        evidence['extension']=dict(new_batches=audit['batches'],new_histories=audit['histories'],
+                                   combined_direct_points=audit['combined_direct_points'],
+                                   previous_models_sha256=sha(previous_path),derivative_stability_established=False)
     (OUT/'plot_evidence.json').write_text(json.dumps(evidence,indent=2,sort_keys=True)+'\n')
     print(json.dumps({'out':str(OUT),'same_form_refit_diagnostic':fits,'discussion_words':len(discussion.split()),'MC_files_written':False},indent=2))
 

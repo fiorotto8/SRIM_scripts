@@ -5,6 +5,24 @@ The canonical completed result is now
 tables, thesis comparisons and a portable frozen replay. Older local
 `exports/` and draft recap folders have been consolidated into that publication.
 
+The 17 October extension now covers **0.025–3000 keV/ion** using the combined
+frozen snapshot. Its new 25–63 eV points fail the retained 1% energy-closure
+criterion; the current report and manifest preserve those limitations.
+Use the publication's `reproduce.py` to replay the combined result. The ordinary
+parent-only `--study-dir` example below is a fresh export of the original
+campaign and does not automatically discover extension directories.
+
+The bounded native launcher uses `start_cygno_study.ps1 -Mode extend` with
+`-RunDir C:\SRIM-2013\runs\cygno_hecf4_900mbar_20261015\extensions\low_energy_20261017`.
+It detaches with file-backed logs and never invokes the adaptive campaign.
+The existing control script accepts this same `-RunDir` for status/stop/resume
+and preserves extension mode when resuming. WSL postprocessing is
+`python3 scripts/cygno_qf_extension.py finish --wait`; it starts no simulations
+and returns immediately when the publication is already complete.
+`python3 scripts/cygno_qf_extension.py audit` repeats the independent audit of
+the 45 new archives. `inventory` prints a read-only current inventory; use
+`--output NEW_FILE.json` to save it separately.
+
 Run `scripts/export_cygno_mc.py` in the existing WSL analysis environment with
 NumPy, SciPy and Matplotlib. This is postprocessing only. It does not launch
 SRIM, touch a stop marker or lock, alter the installation, or regenerate the

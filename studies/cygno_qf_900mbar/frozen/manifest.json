@@ -1,24 +1,51 @@
 {
-  "boundary_policy": "Outside0.25\u20131000keV per ion unsupported; evaluator raises. Exact-target direct coverage is missing throughout. No silent extrapolation/clipping.",
+  "boundary_policy": "Outside 0.025\u20133000 keV per ion unsupported; evaluator raises. Exact-target direct coverage is missing throughout. No extrapolation/clipping.",
+  "bounds_interpretation": "Numerically supported interpolation domain, not a validated detector-response or SRIM low-energy-physics interval",
   "condition_match": false,
   "coverage": [
     {
-      "derivative_max": 1.0000017832429346,
-      "derivative_min": 0.6776597418683168,
+      "derivative_max": 0.9998195019465422,
+      "derivative_min": 0.45371359189903293,
       "derived_interpolation_supported_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "differential_exceeds_unity": true,
+      "differential_exceeds_unity": false,
       "direct_at_0_25_keV": false,
       "direct_at_1000_keV": true,
-      "direct_source_points_in_requested_domain": 30,
+      "direct_at_lower_bound": true,
+      "direct_at_upper_bound": true,
+      "direct_source_points_in_requested_domain": 40,
       "exact_target_direct_coverage": [],
       "missing_exact_target_direct_interval_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
       "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.025,
+          "max_abs_residual_fraction": 0.14582166776299518
+        },
+        {
+          "energy_keV": 0.04,
+          "max_abs_residual_fraction": 0.09127000029887349
+        },
+        {
+          "energy_keV": 0.063,
+          "max_abs_residual_fraction": 0.05573063313661917
+        },
+        {
+          "energy_keV": 0.1,
+          "max_abs_residual_fraction": 0.038656900068763586
+        },
+        {
+          "energy_keV": 0.14649382,
+          "max_abs_residual_fraction": 0.024718308808572714
+        },
+        {
+          "energy_keV": 0.21460439,
+          "max_abs_residual_fraction": 0.02038002466734363
+        },
         {
           "energy_keV": 0.31438218,
           "max_abs_residual_fraction": 0.012134789619191056
@@ -29,111 +56,312 @@
         }
       ],
       "source_direct_max_keV": 3000.0,
-      "source_direct_min_keV": 0.1,
+      "source_direct_min_keV": 0.025,
       "species": "H1"
     },
     {
-      "derivative_max": 1.0036239237850508,
-      "derivative_min": 0.3338574069536653,
+      "derivative_max": 1.0023541906574218,
+      "derivative_min": 0.22316570325313467,
       "derived_interpolation_supported_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
       "differential_exceeds_unity": true,
       "direct_at_0_25_keV": false,
       "direct_at_1000_keV": true,
-      "direct_source_points_in_requested_domain": 28,
+      "direct_at_lower_bound": true,
+      "direct_at_upper_bound": true,
+      "direct_source_points_in_requested_domain": 38,
       "exact_target_direct_coverage": [],
       "missing_exact_target_direct_interval_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "raw_energy_budget_flags": [],
+      "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.025,
+          "max_abs_residual_fraction": 0.06505652108546867
+        },
+        {
+          "energy_keV": 0.04,
+          "max_abs_residual_fraction": 0.03748011848416603
+        },
+        {
+          "energy_keV": 0.063,
+          "max_abs_residual_fraction": 0.02672096664314816
+        },
+        {
+          "energy_keV": 0.1,
+          "max_abs_residual_fraction": 0.016667360574137424
+        },
+        {
+          "energy_keV": 0.14649382,
+          "max_abs_residual_fraction": 0.013094020544085023
+        }
+      ],
       "source_direct_max_keV": 3000.0,
-      "source_direct_min_keV": 0.1,
+      "source_direct_min_keV": 0.025,
       "species": "He4"
     },
     {
-      "derivative_max": 1.0071382505600508,
-      "derivative_min": 0.2291881672246576,
+      "derivative_max": 0.9978003247688141,
+      "derivative_min": 0.12560413852211288,
       "derived_interpolation_supported_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "differential_exceeds_unity": true,
+      "differential_exceeds_unity": false,
       "direct_at_0_25_keV": false,
       "direct_at_1000_keV": true,
-      "direct_source_points_in_requested_domain": 28,
+      "direct_at_lower_bound": true,
+      "direct_at_upper_bound": true,
+      "direct_source_points_in_requested_domain": 39,
       "exact_target_direct_coverage": [],
       "missing_exact_target_direct_interval_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "raw_energy_budget_flags": [],
+      "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.025,
+          "max_abs_residual_fraction": 0.03879327007211983
+        },
+        {
+          "energy_keV": 0.04,
+          "max_abs_residual_fraction": 0.026941159734272455
+        },
+        {
+          "energy_keV": 0.063,
+          "max_abs_residual_fraction": 0.01753172692299289
+        },
+        {
+          "energy_keV": 0.1,
+          "max_abs_residual_fraction": 0.011457119052322301
+        }
+      ],
       "source_direct_max_keV": 3000.0,
-      "source_direct_min_keV": 0.1,
+      "source_direct_min_keV": 0.025,
       "species": "C12"
     },
     {
-      "derivative_max": 0.9881172804763854,
-      "derivative_min": 0.2058339848924424,
+      "derivative_max": 0.9999011532464256,
+      "derivative_min": 0.1294313042079988,
       "derived_interpolation_supported_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
       "differential_exceeds_unity": false,
       "direct_at_0_25_keV": false,
       "direct_at_1000_keV": true,
-      "direct_source_points_in_requested_domain": 28,
+      "direct_at_lower_bound": true,
+      "direct_at_upper_bound": true,
+      "direct_source_points_in_requested_domain": 39,
       "exact_target_direct_coverage": [],
       "missing_exact_target_direct_interval_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "raw_energy_budget_flags": [],
+      "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.025,
+          "max_abs_residual_fraction": 0.05757282078851997
+        },
+        {
+          "energy_keV": 0.04,
+          "max_abs_residual_fraction": 0.02416361483000007
+        },
+        {
+          "energy_keV": 0.063,
+          "max_abs_residual_fraction": 0.014893526101782129
+        }
+      ],
       "source_direct_max_keV": 3000.0,
-      "source_direct_min_keV": 0.1,
+      "source_direct_min_keV": 0.025,
       "species": "O16"
     },
     {
-      "derivative_max": 0.9817910716782356,
-      "derivative_min": 0.18872650291449322,
+      "derivative_max": 0.9956006054555234,
+      "derivative_min": 0.10006985351187761,
       "derived_interpolation_supported_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
       "differential_exceeds_unity": false,
       "direct_at_0_25_keV": false,
       "direct_at_1000_keV": true,
-      "direct_source_points_in_requested_domain": 28,
+      "direct_at_lower_bound": true,
+      "direct_at_upper_bound": true,
+      "direct_source_points_in_requested_domain": 39,
       "exact_target_direct_coverage": [],
       "missing_exact_target_direct_interval_keV": [
-        0.25,
-        1000
+        0.025,
+        3000.0
       ],
-      "raw_energy_budget_flags": [],
+      "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.025,
+          "max_abs_residual_fraction": 0.0392631034929547
+        },
+        {
+          "energy_keV": 0.04,
+          "max_abs_residual_fraction": 0.026225664285198062
+        },
+        {
+          "energy_keV": 0.063,
+          "max_abs_residual_fraction": 0.01797288684818101
+        },
+        {
+          "energy_keV": 0.1,
+          "max_abs_residual_fraction": 0.0113651487000202
+        }
+      ],
       "source_direct_max_keV": 3000.0,
-      "source_direct_min_keV": 0.1,
+      "source_direct_min_keV": 0.025,
       "species": "F19"
     }
   ],
   "density_target_over_source": 0.9994968249055027,
+  "energy_accounting_qualified": false,
   "environment": {
     "numpy": "1.26.4",
     "scipy": "1.11.4"
   },
   "event_abundance": "Source counts are SRIM simulated histories, not Geant4 events or physical H/O abundances",
-  "exporter_sha256": "a6f2d9532ecc1f707fc73892d243a78d5185967e56f4a8de956659c9a2d73eb8",
+  "exporter_sha256": "c441896c43262295a405a83677f859f2dfea734b1c599c052650681e004f3fbf",
+  "flagged_low_energy_points_keV": [
+    {
+      "energy_keV": 0.025,
+      "max_abs_residual_fraction": 0.14582166776299518,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.04,
+      "max_abs_residual_fraction": 0.09127000029887349,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.063,
+      "max_abs_residual_fraction": 0.05573063313661917,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.1,
+      "max_abs_residual_fraction": 0.038656900068763586,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.14649382,
+      "max_abs_residual_fraction": 0.024718308808572714,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.21460439,
+      "max_abs_residual_fraction": 0.02038002466734363,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.31438218,
+      "max_abs_residual_fraction": 0.012134789619191056,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.31622777,
+      "max_abs_residual_fraction": 0.011722639706842836,
+      "species": "H1"
+    },
+    {
+      "energy_keV": 0.025,
+      "max_abs_residual_fraction": 0.06505652108546867,
+      "species": "He4"
+    },
+    {
+      "energy_keV": 0.04,
+      "max_abs_residual_fraction": 0.03748011848416603,
+      "species": "He4"
+    },
+    {
+      "energy_keV": 0.063,
+      "max_abs_residual_fraction": 0.02672096664314816,
+      "species": "He4"
+    },
+    {
+      "energy_keV": 0.1,
+      "max_abs_residual_fraction": 0.016667360574137424,
+      "species": "He4"
+    },
+    {
+      "energy_keV": 0.14649382,
+      "max_abs_residual_fraction": 0.013094020544085023,
+      "species": "He4"
+    },
+    {
+      "energy_keV": 0.025,
+      "max_abs_residual_fraction": 0.03879327007211983,
+      "species": "C12"
+    },
+    {
+      "energy_keV": 0.04,
+      "max_abs_residual_fraction": 0.026941159734272455,
+      "species": "C12"
+    },
+    {
+      "energy_keV": 0.063,
+      "max_abs_residual_fraction": 0.01753172692299289,
+      "species": "C12"
+    },
+    {
+      "energy_keV": 0.1,
+      "max_abs_residual_fraction": 0.011457119052322301,
+      "species": "C12"
+    },
+    {
+      "energy_keV": 0.025,
+      "max_abs_residual_fraction": 0.05757282078851997,
+      "species": "O16"
+    },
+    {
+      "energy_keV": 0.04,
+      "max_abs_residual_fraction": 0.02416361483000007,
+      "species": "O16"
+    },
+    {
+      "energy_keV": 0.063,
+      "max_abs_residual_fraction": 0.014893526101782129,
+      "species": "O16"
+    },
+    {
+      "energy_keV": 0.025,
+      "max_abs_residual_fraction": 0.0392631034929547,
+      "species": "F19"
+    },
+    {
+      "energy_keV": 0.04,
+      "max_abs_residual_fraction": 0.026225664285198062,
+      "species": "F19"
+    },
+    {
+      "energy_keV": 0.063,
+      "max_abs_residual_fraction": 0.01797288684818101,
+      "species": "F19"
+    },
+    {
+      "energy_keV": 0.1,
+      "max_abs_residual_fraction": 0.0113651487000202,
+      "species": "F19"
+    }
+  ],
+  "grid_points_per_species": 401,
   "method_labels": {
     "qf_source_direct.csv": "direct full-cascade aggregate at original293K gas conditions",
     "qf_target_smooth.csv": "derived constrained smooth regression; n_ions=0 means no new events at evaluation energies",
     "qf_target_transferred.csv": "derived density/temperature transfer, QF unchanged, original source history counts",
     "stopping_power_proxies.csv": "deterministic stopping ratio diagnostic, never used in QF fits"
   },
-  "nominal_source_ions": 85200,
+  "nominal_source_ions": 89700,
+  "physical_charge_calibrated": false,
   "schema": "CYGNO-MC-SRIM-export-v1",
-  "snapshot_sha256": "63dd429f577a19c16409bf82ff072c4917f4373af3fa1b0ae6f0fa3066def056",
-  "source_batch_count": 852,
+  "snapshot_sha256": "9ea4ac60faeff51c53b0ed370dcb33c0715fddab2b02df2a92e90df16c567df6",
+  "source_batch_count": 897,
   "source_gas": {
     "atomic_fractions": {
       "C": 0.15384615384615385,
@@ -225,5 +453,9 @@
     "detector charge calibration",
     "smoothing shape/basis choice and regularization selection"
   ],
-  "user_rounded_target_density_g_cm3": 0.0013885
+  "user_rounded_target_density_g_cm3": 0.0013885,
+  "valid_energy_keV": [
+    0.025,
+    3000.0
+  ]
 }

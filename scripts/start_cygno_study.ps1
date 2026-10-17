@@ -4,6 +4,7 @@ param(
     [string]$Config = '',
     [string]$RunDir = '',
     [string]$SrimRoot = '',
+    [ValidateSet('campaign', 'extend')][string]$Mode = 'campaign',
     [ValidateRange(0, 2147483647)][int]$Workers = 0,
     [string]$Python = ''
 )
@@ -16,6 +17,9 @@ if (-not $SrimRoot) { $SrimRoot = $repo }
 $Config = [IO.Path]::GetFullPath($Config)
 $RunDir = [IO.Path]::GetFullPath($RunDir).TrimEnd('\', '/')
 $SrimRoot = [IO.Path]::GetFullPath($SrimRoot).TrimEnd('\', '/')
+if ((Test-Path -LiteralPath (Join-Path $RunDir 'extension_plan.json')) -and $Mode -ne 'extend') {
+    throw 'This is a bounded extension. Use -Mode extend; a full adaptive campaign is not permitted here.'
+}
 $driver = Join-Path $repo 'scripts\cygno_study.py'
 
 function Quote-NativeArgument([string]$Value) {
@@ -45,7 +49,7 @@ function Test-OwnedCoordinator($Process) {
     $driverPattern = '(?i)(?:^|\s)(?:"' + $driverPath + '"|' + $driverPath + ')(?=\s|$)'
     $directoryPattern = '(?i)(?:^|\s)(?:"--run-dir"|--run-dir)\s+(?:"' + $runPath + '"|' + $runPath + ')(?=\s|$)'
     return ($text -match $driverPattern -and $text -match $directoryPattern -and
-            $text -match '(?i)(?:^|\s)"?campaign"?(?=\s|$)')
+            $text -match ('(?i)(?:^|\s)"?' + $Mode + '"?(?=\s|$)'))
 }
 
 foreach ($required in @($Config, $driver, (Join-Path $SrimRoot 'TRIM.exe'),
@@ -132,7 +136,7 @@ try {
     $stderrLog = Join-Path $logs "campaign-native-$tag.err.log"
     $stdinFile = Join-Path $logs "campaign-native-$tag.stdin"
     [IO.File]::WriteAllBytes($stdinFile, [byte[]]@())
-    $arguments = @('-u', '-B', $driver, 'campaign', '--config', $Config,
+    $arguments = @('-u', '-B', $driver, $Mode, '--config', $Config,
         '--run-dir', $RunDir, '--srim-root', $SrimRoot, '--defer-report')
     if ($Workers -gt 0) { $arguments += @('--workers', [string]$Workers) }
     $argumentLine = ($arguments | ForEach-Object { Quote-NativeArgument $_ }) -join ' '

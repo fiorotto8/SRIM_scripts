@@ -2,16 +2,22 @@
   "checks": [
     "Requested CSV contract and all isotope identities; density-transfer values unchanged and labeled derived",
     "Inclusive primary+recoil energy and SEM reproduce using channel covariance",
-    "All five smooth models bounded and monotone; analytic derivative integrates to R(1000)-R(0.25); outside-grid rejection",
+    "All five smooth models bounded and monotone; analytic derivative integrates to R(upper)-R(lower); outside-grid rejection",
     "Compiled C++17 header agrees with Python on205 isotope/energy cases including endpoints; bounds and unsupported species throw",
     "Exact-target direct coverage explicitly missing; source conditions preserved"
   ],
-  "direct_rows": 142,
+  "direct_rows": 195,
+  "energy_accounting_qualified": false,
   "passed": true,
   "replay_files": [],
+  "scope": "Numerical interchange only; not physical energy-closure or detector calibration qualification",
   "smooth_rows": 2005,
-  "source_batches": 852,
-  "source_ions": 85200,
+  "source_batches": 897,
+  "source_ions": 89700,
   "target_temperature_K": 293.15,
-  "validator_sha256": "58ea462eab3c1b34fda8d0cf52ce6c2ed6942f36b98286f1374d13c3ec59b45d"
+  "valid_energy_keV": [
+    0.025,
+    3000.0
+  ],
+  "validator_sha256": "825f47d6d9b41b19998a3f9534464093340ae97700ce268d4e3a14580b1c98ec"
 }

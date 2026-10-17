@@ -41,6 +41,7 @@
       "trim_max_absolute_error": 2.6131097285997384e-11
     }
   },
+  "historical_reference_note": "Legacy source/formulas verified in pre-extension20c35bf; input numerical hashes refer to that previous export, not the updated response",
   "input_sha256": {
     "export_cygno_mc.py": "a6f2d9532ecc1f707fc73892d243a78d5185967e56f4a8de956659c9a2d73eb8",
     "qf_source_direct.csv": "9eabe88041525fdac8c13473ba419993fcfadbcfd8bc8b1fdab3a350f9a006ff",

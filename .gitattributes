@@ -17,4 +17,4 @@ srim-root.txt text eol=lf
 # Published scientific inputs and checksum manifests retain their exact bytes.
 studies/cygno_qf_900mbar/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 # Frozen TRIM input examples retain the native writer's trailing spaces.
-studies/cygno_qf_900mbar/frozen/snapshot/input_examples/*.IN whitespace=-blank-at-eol,cr-at-eol
+studies/cygno_qf_900mbar/frozen/snapshot/*input_examples/*.IN whitespace=-blank-at-eol,cr-at-eol

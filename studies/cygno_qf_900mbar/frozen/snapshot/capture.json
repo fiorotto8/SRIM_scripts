@@ -1,13 +1,31 @@
 {
-  "captured_at": "2026-10-16T16:07:19.583024+00:00",
+  "captured_at": "2026-10-17T17:39:51+00:00",
+  "dataset_role_counts": {
+    "compatible_nominal_coarse_control": 45,
+    "new_nominal_extension": 45,
+    "nominal_production_refinement": 807
+  },
   "exclusions": {
     "non_nominal_cutoff_or_correlated_fine_sampling": 45,
     "other_medium": 861,
     "pilot_or_threshold_systematic": 181
   },
-  "listed_source_batch_count": 1939,
-  "raw_archive_integrity_scope": "Original member hashes retained; raw archives exist; one TRIM.IN per isotope hash/gas phase verified. This exporter does not rehash all compressed archive contents.",
-  "selected_batch_count": 852,
+  "extension_request": {
+    "adaptive_expansion": false,
+    "batches_per_point": 3,
+    "energies_keV": [
+      0.025,
+      0.04,
+      0.063
+    ],
+    "histories_per_batch": 100
+  },
+  "full_simulated_support": true,
+  "listed_source_batch_count": 1984,
+  "parent_listed_source_batch_count": 1939,
+  "previous_snapshot_sha256": "63dd429f577a19c16409bf82ff072c4917f4373af3fa1b0ae6f0fa3066def056",
+  "raw_archive_integrity_scope": "Parent1939 archives previously verified; every member hash in all45 new archives reverified before publication",
+  "selected_batch_count": 897,
   "source_config_sha256": "dca9a9c8cb0a954f63766515c811550d97d2b8e905f04e6aed3c4d5d804b1747",
   "source_simulation_settings": {
     "backend": "native-windows",
@@ -29,5 +47,9 @@
     "trim_timeout_s": 7200,
     "workers": 4
   },
+  "source_studies": [
+    "/mnt/c/srim-2013/runs/cygno_hecf4_900mbar_20261015",
+    "/mnt/c/srim-2013/runs/cygno_hecf4_900mbar_20261015/extensions/low_energy_20261017"
+  ],
   "source_study": "/mnt/c/srim-2013/runs/cygno_hecf4_900mbar_20261015"
 }

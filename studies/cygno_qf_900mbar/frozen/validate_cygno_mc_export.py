@@ -47,26 +47,27 @@ def validate(root, compare=None):
     model_map = {m["species"]: m for m in models}
     assert len(models) == 5
     for species, model in model_map.items():
+        lo, hi = model['valid_energy_keV']
         curve = [r for r in smooth if r["species"] == species]
         energies = np.array([float(r["energy_keV"]) for r in curve])
-        assert energies[0] == .25 and energies[-1] == 1000
+        assert energies[0] == lo and energies[-1] == hi
         q, qs, d, ds = evaluate(model, energies)
         assert np.all((q >= -1e-10) & (q <= 1 + 1e-10)) and np.all(d >= -1e-10)
         assert np.all(np.diff(energies * q) > 0)
         assert np.all(qs >= 0) and np.all(ds >= 0)
         np.testing.assert_allclose(q, [float(r["QF"]) for r in curve], rtol=1e-12)
-        interval_points = [float(np.exp(x)) for x in set(model["knots_log_energy"]) if .25 < np.exp(x) < 1000]
-        integral = quad(lambda energy: float(evaluate(model, np.array([energy]))[2][0]), .25, 1000,
+        interval_points = [float(np.exp(x)) for x in set(model["knots_log_energy"]) if lo < np.exp(x) < hi]
+        integral = quad(lambda energy: float(evaluate(model, np.array([energy]))[2][0]), lo, hi,
                         points=interval_points, epsabs=1e-7)[0]
         np.testing.assert_allclose(integral, energies[-1] * q[-1] - energies[0] * q[0], rtol=1e-10)
-        for energy in (.1, 1000.01, float("nan")):
+        for energy in (lo*.99, hi*1.001, float("nan")):
             try:
                 evaluate(model, np.array([energy]))
             except ValueError:
                 pass
             else:
                 raise AssertionError("Unsupported energy was accepted")
-    checks.append("All five smooth models bounded and monotone; analytic derivative integrates to R(1000)-R(0.25); outside-grid rejection")
+    checks.append("All five smooth models bounded and monotone; analytic derivative integrates to R(upper)-R(lower); outside-grid rejection")
     qualification = root / "qualification"
     qualification.mkdir(exist_ok=True)
     compiler = shutil.which("g++")
@@ -76,9 +77,10 @@ def validate(root, compare=None):
     lines = ['#include "../cygno_srim_response.hpp"', '#include <iostream>', '#include <iomanip>',
              'int main(){ std::cout<<std::setprecision(17);']
     for model in models:
-        for energy in np.geomspace(.25, 1000, 41):
+        for energy in np.geomspace(*model['valid_energy_keV'], 41):
             lines.append(f'{{auto r=cygno_srim::evaluate({model["Z"]},{model["A"]},{float(energy):.17g});std::cout<<"{model["species"]} {float(energy):.17g} "<<r.QF<<" "<<r.QF_sem<<" "<<r.dRdE<<" "<<r.dRdE_sem<<"\\n";}}')
-    lines += ['for(double e:{0.0,0.249,1000.001}) {bool caught=false;try{cygno_srim::evaluate(1,1,e);}catch(const std::out_of_range&){caught=true;}if(!caught)return 2;}',
+    lo,hi=model_map['H1']['valid_energy_keV']
+    lines += [f'for(double e:{{0.0,{lo*.999:.17g},{hi*1.001:.17g}}}) {{bool caught=false;try{{cygno_srim::evaluate(1,1,e);}}catch(const std::out_of_range&){{caught=true;}}if(!caught)return 2;}}',
               'bool caught=false;try{cygno_srim::evaluate(3,7,10);}catch(const std::invalid_argument&){caught=true;}return caught?0:3;}']
     cpp.write_text("\n".join(lines) + "\n")
     binary = qualification / "check_response"
@@ -100,6 +102,9 @@ def validate(root, compare=None):
     assert all(c["exact_target_direct_coverage"] == [] for c in manifest["coverage"])
     checks.append("Exact-target direct coverage explicitly missing; source conditions preserved")
     result = {"passed": True, "checks": checks, "source_batches": len(records),
+              "scope": "Numerical interchange only; not physical energy-closure or detector calibration qualification",
+              "energy_accounting_qualified": manifest.get('energy_accounting_qualified', False),
+              "valid_energy_keV": model_map['H1']['valid_energy_keV'],
               "source_ions": sum(b["job"]["n_ions"] for b in records), "direct_rows": len(direct),
               "smooth_rows": len(smooth), "target_temperature_K": config["target"]["temperature_K"],
               "replay_files": replay_files, "validator_sha256": sha(Path(__file__))}

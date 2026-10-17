@@ -1,0 +1,20 @@
+{
+  "control": {
+    "SR Module/SR.IN": "5eca8ae70716f9c2396d36e7daa3224f8575fbbebbc564ef2771f84a9b31af9d",
+    "TRIM.IN": "e2000e86245492a7901b758bbe95fa364fcdf5b684795f5085c0fc3b6636f12b",
+    "TRIMAUTO": "19a365f45a230083f170074b49072583c406ce5e20fa5929201d3f5d1be914a5"
+  },
+  "fingerprint": {
+    "Data/ATOMDATA": "44c8cfd5372b711ea3ca75493462c6339bfdaaa0b803c64de14ec4979369c91b",
+    "Data/POTCOEF03.DAT": "d5831aacaa28f703d19e18e2620b1da66ebf37f1b95ebfaccc04c86712926a55",
+    "Data/SCOEF03.DAT": "a328eaaa04e48efed1d15cfbcdf810849115ff352feaac1ee323c3bf4229ecea",
+    "Data/SNUC03.dat": "4c7ff553b7be34a1b28a31a6ac89055b800392cbbf0401784da6afc5a693a030",
+    "Data/VERSION:text": "SRIM-2013.00\n\nSRIM software version. \n\nSee VERSION.rtf for details.",
+    "SR Module/SCOEF03.dat": "a328eaaa04e48efed1d15cfbcdf810849115ff352feaac1ee323c3bf4229ecea",
+    "SR Module/SNUC03.dat": "4c7ff553b7be34a1b28a31a6ac89055b800392cbbf0401784da6afc5a693a030",
+    "SR Module/SRModule.exe": "a679e55defdb12ebe39c02ca0562016b79ad73105dcaeddc9e8ba40f57c16288",
+    "SR Module/VERSION": "f0265c292d60ec141b8518ed688b52b977f2ec81761b66195545024579ef4c40",
+    "SR Module/VERSION:text": "SRIM-2012.01\n\nSRIM software version. \n\nSee VERSION.rtf for details.",
+    "TRIM.exe": "8b8b910615426b38d6c9898f1c45ac0f376192283970d006dd3c170ce81affe2"
+  }
+}

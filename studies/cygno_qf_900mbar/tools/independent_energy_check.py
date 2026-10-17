@@ -16,14 +16,14 @@ import re
 import tarfile
 
 
-def profile(data, requested_ions, electronic):
+def profile(data, requested_ions, electronic, header_count_tolerance=Decimal('0.011')):
     text = data.decode('latin1')
     count = re.search(r'Total\s+Ions\s+calculated\s*=\s*([\d.Ee+-]+)', text)
     assert count, 'missing incident-ion count'
     printed_count = Decimal(count[1])
     # Native low-energy headers can say 99.99 for 100 actual endpoints (and
     # 4.99 for five). Preserve this anomaly; actual counts are checked below.
-    assert abs(printed_count - requested_ions) <= Decimal('0.011'), 'incident-ion count mismatch'
+    assert abs(printed_count - requested_ions) <= header_count_tolerance, 'incident-ion count mismatch'
     units = re.search(r'Units\s+are\s*>+\s*(.*?)\s*<+', text, re.I)
     assert units and 'angstrom-ion' in units[1].replace(' ', '').lower(), 'missing per-ion/depth units'
     assert ('ev' if electronic else 'phonons') in units[1].lower(), 'unexpected channel units'

@@ -35,6 +35,7 @@ def make_tables(frozen, destination):
     with (frozen / 'response_target_smooth.csv').open() as handle:
         response = list(csv.DictReader(handle))
     models = {m['species']: m for m in json.loads((frozen / 'response_models.json').read_text())['models']}
+    manifest=json.loads((frozen/'manifest.json').read_text())
     for species in SPECIES:
         rows = [row.copy() for row in response if row['species'] == species]
         energy = np.array([float(row['energy_keV']) for row in rows])
@@ -46,6 +47,11 @@ def make_tables(frozen, destination):
         for i, row in enumerate(rows):
             row['dQF_dE_per_keV'] = float(slope[i])
             row['dQF_dE_sem_per_keV'] = float(sem[i])
+            row['valid_energy_min_keV'],row['valid_energy_max_keV']=model['valid_energy_keV']
+            row['source_temperature_K']=manifest['source_gas']['temperature_k']
+            row['target_temperature_K']=manifest['target']['temperature_K']
+            row['physical_charge_calibrated']=0
+            row['low_energy_extension_closure_warning']=int(float(row['energy_keV'])<.1)
         exporter.write_csv(destination / (species + '.csv'), rows)
     shutil.copy2(frozen / 'qf_source_with_guards.csv', destination / 'raw_points.csv')
     shutil.copy2(frozen / 'energy_channels_source.csv', destination / 'energy_channels_source.csv')
@@ -72,11 +78,66 @@ def make_tables(frozen, destination):
                                QF_thesis=old_q, dR_dE_thesis=old_d,
                                thesis_fit_available=int(species in parameters),
                                within_thesis_fit_interval=int(species in parameters and 1 <= energy <= 500),
-                               QF_current_MC=current_q, dR_dE_current_MC=current_d,
-                               current_MC_behavior='analytic_fit' if species in {'He4', 'C12', 'F19'}
+                               QF_MC_reference=current_q, dR_dE_MC_reference=current_d,
+                               MC_reference_date='2026-10-16',
+                               MC_reference_behavior='analytic_fit' if species in {'He4', 'C12', 'F19'}
                                else 'proton_excluded_NR_raw_deposits' if species == 'H1' else 'oxygen_unity_fallback',
                                new_curve_is_direct=0))
     exporter.write_csv(destination / 'thesis_mc_comparison.csv', comparison)
+    if (DATASET/'validation/derivative_stability.json').exists():
+        make_extension_tables(frozen,destination)
+
+
+def make_extension_tables(frozen,destination):
+    import numpy as np
+    exporter=load_exporter(frozen)
+    models=json.loads((frozen/'response_models.json').read_text())['models']
+    previous={m['species']:m for m in json.loads((DATASET/'provenance/previous_response_models.json').read_text())['models']}
+    diagnostics=json.loads((DATASET/'validation/derivative_stability.json').read_text())
+    comparison=[];stability=[]
+    for model in models:
+        species=model['species'];energy=np.geomspace(*model['valid_energy_keV'],801)
+        q,_,d,_=exporter.evaluate(model,energy)
+        alternatives=[exporter.evaluate(m,energy) for m in diagnostics['sensitivity_models'][species]]
+        allq=np.array([q]+[a[0] for a in alternatives]);alld=np.array([d]+[a[2] for a in alternatives])
+        for i,e in enumerate(energy):
+            stability.append(dict(species=species,energy_keV=float(e),QF=float(q[i]),dR_dE=float(d[i]),
+                                  QF_model_sensitivity_min=float(allq[:,i].min()),QF_model_sensitivity_max=float(allq[:,i].max()),
+                                  dR_dE_model_sensitivity_min=float(alld[:,i].min()),dR_dE_model_sensitivity_max=float(alld[:,i].max())))
+        overlap=np.geomspace(.25,1000,501)
+        new=exporter.evaluate(model,overlap);old=exporter.evaluate(previous[species],overlap)
+        no_low=exporter.evaluate(diagnostics['no_new_low_energy_models'][species],overlap)
+        for i,e in enumerate(overlap):
+            comparison.append(dict(species=species,energy_keV=float(e),QF_previous=float(old[0][i]),
+                                   QF_updated=float(new[0][i]),QF_change=float(new[0][i]-old[0][i]),
+                                   dR_dE_previous=float(old[2][i]),dR_dE_updated=float(new[2][i]),
+                                   dR_dE_change=float(new[2][i]-old[2][i]),
+                                   QF_without_new_low_points=float(no_low[0][i]),
+                                   dR_dE_without_new_low_points=float(no_low[2][i])))
+    exporter.write_csv(destination/'previous_response_comparison.csv',comparison)
+    exporter.write_csv(destination/'derivative_stability.csv',stability)
+    with (frozen/'energy_channels_source.csv').open() as handle:
+        new_points=[r for r in csv.DictReader(handle) if float(r['energy_keV']) in (.025,.04,.063)]
+    exporter.write_csv(destination/'extension_points.csv',new_points)
+    inventory=[]
+    with (DATASET/'validation/summary.csv').open() as handle:
+        for r in csv.DictReader(handle):
+            inventory.append(dict(medium=r['medium'],species=r['species'],energy_keV=float(r['energy_kevnr']),
+                                  n_batches=int(r['n_batches']),n_ions=int(r['n_ions_total']),
+                                  dataset_role='nominal_production_refinement',
+                                  compatible_with_baseline=int(r['medium']=='baseline')))
+    original=json.loads((DATASET/'validation/extension_inventory.json').read_text())
+    for r in original['points']:
+        if r['role']=='compatible nominal coarse control':
+            inventory.append(dict(medium='baseline',species=r['species'],energy_keV=r['energy_keV'],
+                                  n_batches=r['n_batches'],n_ions=r['n_ions'],
+                                  dataset_role='compatible_nominal_coarse_control',compatible_with_baseline=1))
+    isotope_to_symbol={'H1':'H','He4':'He','C12':'C','O16':'O','F19':'F'}
+    for r in new_points:
+        inventory.append(dict(medium='baseline',species=isotope_to_symbol[r['species']],energy_keV=float(r['energy_keV']),
+                              n_batches=int(r['n_batches']),n_ions=int(r['n_ions']),
+                              dataset_role='new_nominal_extension',compatible_with_baseline=1))
+    exporter.write_csv(destination/'point_inventory.csv',inventory)
 
 
 def verify():
@@ -97,13 +158,14 @@ def verify():
         raise ValueError('Published file inventory differs from SHA256SUMS')
     exporter = load_exporter(DATASET / 'frozen')
     _, _, records = exporter.load_snapshot(DATASET / 'frozen/snapshot')
+    models={m['species']:m for m in json.loads((DATASET/'frozen/response_models.json').read_text())['models']}
     for species in SPECIES:
         with (DATASET / 'tables' / (species + '.csv')).open() as handle:
             rows = list(csv.DictReader(handle))
         assert len(rows) == 401 and all(row['species'] == species for row in rows)
         e, q, d, slope = np.array([[float(row[key]) for key in
                                   ['energy_keV', 'QF', 'dR_dE', 'dQF_dE_per_keV']] for row in rows]).T
-        assert e[0] == .25 and e[-1] == 1000 and np.all(np.diff(e) > 0)
+        assert [e[0],e[-1]] == models[species]['valid_energy_keV'] and np.all(np.diff(e) > 0)
         assert np.all((q >= 0) & (q <= 1 + 1e-12)) and np.all(np.diff(e*q) > 0)
         np.testing.assert_allclose(d, q + e*slope, rtol=1e-12, atol=1e-14)
         assert all(row['is_direct'] == '0' and row['n_ions'] == '0' for row in rows)

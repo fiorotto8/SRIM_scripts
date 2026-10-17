@@ -88,7 +88,7 @@ def capture(study, config_path, snapshot):
         if job["medium"] != "baseline":
             exclusions["other_medium"] += 1
             continue
-        if job["stage"] not in ("production", "refinement", "track_sampling"):
+        if job["stage"] not in ("production", "refinement", "track_sampling", "low_energy_extension"):
             exclusions["pilot_or_threshold_systematic"] += 1
             continue
         if job["displacement_energy_ev"] != 21 or job["exyz_energy_samples"] != 1000:
@@ -260,7 +260,7 @@ def evaluate(model, energies):
     e = np.asarray(energies, dtype=float)
     lo, hi = model["valid_energy_keV"]
     if np.any(~np.isfinite(e)) or np.any(e < lo) or np.any(e > hi):
-        raise ValueError(f"Energy outside validated interchange domain[{lo},{hi}]keV per ion; extrapolation disabled")
+        raise ValueError(f"Energy outside supported numerical domain[{lo},{hi}]keV per ion; extrapolation disabled")
     b = basis(model["knots_log_energy"], np.log(e))
     response_basis = b + basis(model["knots_log_energy"], np.log(e), 1)
     coefficients = np.asarray(model["coefficients"])
@@ -272,30 +272,41 @@ def evaluate(model, energies):
     return q, qsem, d, dsem
 
 
-def smooth(points, lo, hi, n_bootstrap, seed):
+def smooth(points, lo, hi, n_bootstrap, seed, full_support=False, n_coefficients=None, fixed_penalty=None):
     eligible = sorted([p for p in points if p["QF_sem"] is not None and p["QF_sem"] > 0], key=lambda p: p["energy_keV"])
     lower = [p for p in eligible if p["energy_keV"] < lo]
     upper = [p for p in eligible if p["energy_keV"] > hi]
-    if not lower or not upper:
+    if full_support:
+        fitted = [p for p in eligible if lo <= p['energy_keV'] <= hi]
+        if not fitted or fitted[0]['energy_keV'] != lo or fitted[-1]['energy_keV'] != hi:
+            raise ValueError('Full-support boundaries require measured endpoints with known positive SEM')
+    elif not lower or not upper:
         raise ValueError("Smooth response requires measured guard points bracketing both boundaries")
-    fitted = [lower[-1]] + [p for p in eligible if lo <= p["energy_keV"] <= hi] + [upper[0]]
+    else:
+        fitted = [lower[-1]] + [p for p in eligible if lo <= p["energy_keV"] <= hi] + [upper[0]]
     e = np.array([p["energy_keV"] for p in fitted])
     q = np.array([p["QF"] for p in fitted])
     errors = np.array([p["QF_sem"] for p in fitted])
     x = np.log(e)
-    ncoef = min(14, len(e) - 3)
-    knots = np.r_[np.repeat(x[0], 4), np.linspace(x[0], x[-1], ncoef - 2)[1:-1], np.repeat(x[-1], 4)]
-    design = basis(knots, x)
     # Leave-one-energy-out CV; nearby independent energies remain distinct.
-    scores = []
-    for penalty in (0., .01, .1, 1., 10., 100.):
-        pulls = []
-        for i in range(len(e)):
-            mask = np.arange(len(e)) != i
-            c = fit_coefficients(design[mask], q[mask], errors[mask], penalty)
-            pulls.append(float((design[i] @ c - q[i]) / errors[i]))
-        scores.append({"penalty": penalty, "leave_one_energy_out_mean_squared_pull": float(np.mean(np.square(pulls)))})
-    penalty = min(scores, key=lambda v: v["leave_one_energy_out_mean_squared_pull"])["penalty"]
+    candidates=(12,14,16,18,20) if full_support and n_coefficients is None else (n_coefficients or 14,)
+    candidates=sorted({min(n,len(e)-3) for n in candidates})
+    scores=[];designs={};knot_sets={}
+    for ncoef in candidates:
+        knots = np.r_[np.repeat(x[0], 4), np.linspace(x[0], x[-1], ncoef - 2)[1:-1], np.repeat(x[-1], 4)]
+        design=basis(knots,x);designs[ncoef]=design;knot_sets[ncoef]=knots
+        for penalty in ((fixed_penalty,) if fixed_penalty is not None else (0., .01, .1, 1., 10., 100.)):
+            pulls=[]
+            for i in range(len(e)):
+                mask=np.arange(len(e))!=i
+                c=fit_coefficients(design[mask],q[mask],errors[mask],penalty)
+                pulls.append(float((design[i]@c-q[i])/errors[i]))
+            score=dict(penalty=penalty,leave_one_energy_out_mean_squared_pull=float(np.mean(np.square(pulls))))
+            if full_support:score['n_coefficients']=ncoef
+            scores.append(score)
+    chosen=min(scores,key=lambda v:v['leave_one_energy_out_mean_squared_pull'])
+    penalty=chosen['penalty'];ncoef=chosen.get('n_coefficients',candidates[0])
+    design=designs[ncoef];knots=knot_sets[ncoef]
     c = fit_coefficients(design, q, errors, penalty)
     rng = np.random.default_rng(seed)
     draws = []
@@ -313,7 +324,7 @@ def smooth(points, lo, hi, n_bootstrap, seed):
     model = {"species": fitted[0]["species"], "Z": fitted[0]["Z"], "A": fitted[0]["A"],
              "valid_energy_keV": [lo, hi], "degree": 3, "coordinate": "natural logarithm of total kinetic energy in keV per ion",
              "knots_log_energy": knots.tolist(), "coefficients": c.tolist(),
-             "coefficient_covariance": np.cov(draws.T, ddof=1).tolist(),
+             "coefficient_covariance": (np.cov(draws.T, ddof=1) if n_bootstrap > 1 else np.zeros((len(c), len(c)))).tolist(),
              "bootstrap_coefficients": draws.tolist(), "bootstrap_seed": seed,
              "bootstrap_replicates": n_bootstrap, "selected_penalty": penalty, "cross_validation": scores,
              "raw_fit_run_ids": [p["run_id"] for p in fitted], "source_ions_in_fit": sum(p["n_ions"] for p in fitted),
@@ -323,7 +334,11 @@ def smooth(points, lo, hi, n_bootstrap, seed):
              "weighted_residual_RMS_pull": float(np.sqrt(np.mean(pulls ** 2))), "maximum_abs_residual_pull": float(max(abs(pulls))),
              "model_assumptions": "Cubic B-spline QF versus logE; coefficients constrained to[0,1] and nondecreasing. This is a smoothing/monotonic-QF assumption, not a new SRIM simulation.",
              "uncertainty": "Variance-corrected paired independent-batch bootstrap at each energy, preserving primary/recoil covariance. Conditional on chosen basis, penalty and shape constraints; no gas-transfer, SRIM-model, cutoff or detector-calibration uncertainty included.",
-             "boundary_policy": "Inclusive0.25–1000keV per ion; use analytic one-sided values at boundaries. Outside domain raise an error; no clamping, extrapolation or invented sub-grid response."}
+             "boundary_policy": f"Inclusive {lo:g}–{hi:g} keV per ion; analytic one-sided boundary values, no extrapolation or clamping."}
+    if full_support:
+        model.update(full_simulated_support=True, boundary_support='Measured endpoint data included; fitted means need not pass through them; no support outside bounds',
+                     basis_selection='Full-support default jointly selects12/14/16/18/20 coefficients and penalty by leave-one-energy-out CV',
+                     excluded_points_with_unknown_or_zero_sem=[p['run_id'] for p in points if p['run_id'] not in {v['run_id'] for v in eligible}])
     return model
 
 
@@ -332,20 +347,22 @@ def export_header(path, models):
              "// Energy is total keV per ion. Bounds are inclusive; outside throws. Monte Carlo SEM only.",
              "#pragma once", "#include <cmath>", "#include <stdexcept>", "#include <vector>",
              "namespace cygno_srim {", "struct Response { double QF, QF_sem, dRdE, dRdE_sem; };",
-             "struct Model { int Z,A; std::vector<double> t,c,cov; };",
+             "struct Model { int Z,A; double lo,hi; std::vector<double> t,c,cov; };",
              "inline const std::vector<Model>& models() { static const std::vector<Model> m = {"]
     fmt = lambda values: "{" + ",".join(format(float(v), ".17g") for v in values) + "}"
     for model in models:
-        lines.append("{" + f"{model['Z']},{model['A']}," + fmt(model["knots_log_energy"]) + "," + fmt(model["coefficients"]) + "," + fmt(np.ravel(model["coefficient_covariance"])) + "},")
+        lo, hi = model['valid_energy_keV']
+        lines.append("{" + f"{model['Z']},{model['A']},{lo:.17g},{hi:.17g}," + fmt(model["knots_log_energy"]) + "," + fmt(model["coefficients"]) + "," + fmt(np.ravel(model["coefficient_covariance"])) + "},")
     lines += ["}; return m; }",
               "inline double basis(const std::vector<double>& t, int i, int k, double x) {",
               "  if(k==0) return t[i]<=x && x<t[i+1] ? 1.0 : 0.0;",
               "  double a=0,b=0; if(t[i+k]>t[i]) a=(x-t[i])/(t[i+k]-t[i])*basis(t,i,k-1,x);",
               "  if(t[i+k+1]>t[i+1]) b=(t[i+k+1]-x)/(t[i+k+1]-t[i+1])*basis(t,i+1,k-1,x); return a+b; }",
               "inline Response evaluate(int Z,int A,double E) {",
-              "  if(!std::isfinite(E) || E<0.25 || E>1000) throw std::out_of_range(\"SRIM response requires0.25–1000keV per ion\");",
+              "  if(!std::isfinite(E) || E<=0) throw std::out_of_range(\"SRIM response requires finite positive total keV per ion\");",
               "  for(const auto& m:models()) if(m.Z==Z && m.A==A) {",
-              "    const int n=static_cast<int>(m.c.size()); const double x=std::log(E); std::vector<double> b(n),d(n);",
+              "    if(E<m.lo || E>m.hi) throw std::out_of_range(\"SRIM energy outside explicit model bounds\");",
+              "    const int n=static_cast<int>(m.c.size()); const double x0=std::log(E); const double x=x0==m.t.back()?std::nextafter(x0,-INFINITY):x0; std::vector<double> b(n),d(n);",
               "    double q=0,r=0,vq=0,vr=0; for(int i=0;i<n;++i) { b[i]=basis(m.t,i,3,x); double dx=0;",
               "      if(m.t[i+3]>m.t[i]) dx+=3/(m.t[i+3]-m.t[i])*basis(m.t,i,2,x);",
               "      if(m.t[i+4]>m.t[i+1]) dx-=3/(m.t[i+4]-m.t[i+1])*basis(m.t,i+1,2,x);",
@@ -363,6 +380,10 @@ def build(snapshot, out, n_bootstrap=400, grid_points=401, seed=20261016):
     source_id = Path(json.loads((snapshot / "capture.json").read_text())["source_study"]).name
     points = aggregate(records, source_id)
     lo, hi = config["primaries"]["energy_min_keV"], config["primaries"]["energy_max_keV"]
+    full_support = json.loads((snapshot/'capture.json').read_text()).get('full_simulated_support', False)
+    if full_support:
+        lo = max(min(p['energy_keV'] for p in points if p['species']==sp[0]) for sp in SPECIES.values())
+        hi = min(max(p['energy_keV'] for p in points if p['species']==sp[0]) for sp in SPECIES.values())
     inside = [p for p in points if lo <= p["energy_keV"] <= hi]
     required_row = lambda p: {k: p[k] for k in FIELDS}
     write_csv(out / "qf_source_direct.csv", [required_row(p) for p in inside], FIELDS)
@@ -382,14 +403,14 @@ def build(snapshot, out, n_bootstrap=400, grid_points=401, seed=20261016):
             coverage.append({"species": species, "missing_entire_species": True})
             continue
         try:
-            model = smooth(selected, lo, hi, n_bootstrap, seed + index)
+            model = smooth(selected, lo, hi, n_bootstrap, seed + index, full_support=full_support)
         except ValueError as error:
             coverage.append({"species": species, "smooth_response_available": False,
                              "reason": str(error), "source_direct_min_keV": min(p["energy_keV"] for p in selected),
                              "source_direct_max_keV": max(p["energy_keV"] for p in selected),
                              "exact_target_direct_coverage": [], "missing_exact_target_direct_interval_keV": [lo, hi]})
             continue
-        model["run_id"] = f"{source_id}:density_transfer_spline:{species}"
+        model["run_id"] = f"{source_id}:{'full_support_' if full_support else ''}density_transfer_spline:{species}"
         q, qsem, derivative, dsem = evaluate(model, energy_grid)
         bb = basis(model["knots_log_energy"], np.log(energy_grid))
         db = bb + basis(model["knots_log_energy"], np.log(energy_grid), 1)
@@ -409,8 +430,10 @@ def build(snapshot, out, n_bootstrap=400, grid_points=401, seed=20261016):
         coverage.append({"species": species, "source_direct_min_keV": min(p["energy_keV"] for p in selected),
                          "source_direct_max_keV": max(p["energy_keV"] for p in selected),
                          "direct_source_points_in_requested_domain": sum(lo <= p["energy_keV"] <= hi for p in selected),
-                         "direct_at_0_25_keV": any(p["energy_keV"] == lo for p in selected),
-                         "direct_at_1000_keV": any(p["energy_keV"] == hi for p in selected),
+                         "direct_at_0_25_keV": any(p["energy_keV"] == .25 for p in selected),
+                         "direct_at_1000_keV": any(p["energy_keV"] == 1000 for p in selected),
+                         "direct_at_lower_bound": any(p["energy_keV"] == lo for p in selected),
+                         "direct_at_upper_bound": any(p["energy_keV"] == hi for p in selected),
                          "derived_interpolation_supported_keV": [lo, hi],
                          "exact_target_direct_coverage": [], "missing_exact_target_direct_interval_keV": [lo, hi],
                          "derivative_min": float(min(derivative)), "derivative_max": float(max(derivative)),
@@ -444,12 +467,17 @@ def build(snapshot, out, n_bootstrap=400, grid_points=401, seed=20261016):
                 "target_transfer": "QF and channel energies reused unchanged under dilute homogeneous-gas density/temperature invariance approximation. No exact-target simulations or validation of that transfer were performed. Source and Geant4 natural target masses also differ slightly.",
                 "uncertainty_not_quantified": ["density/temperature and natural-target-mass transfer", "SRIM physical model", "detector charge calibration", "smoothing shape/basis choice and regularization selection"],
                 "coverage": coverage, "source_batch_count": len(records),
+                "bounds_interpretation": "Numerically supported interpolation domain, not a validated detector-response or SRIM low-energy-physics interval",
+                "physical_charge_calibrated": False,
+                "energy_accounting_qualified": len(coverage)==5 and all('raw_energy_budget_flags' in c and not c['raw_energy_budget_flags'] for c in coverage),
+                "flagged_low_energy_points_keV": [{"species":c['species'],**flag} for c in coverage for flag in c.get('raw_energy_budget_flags',[])],
                 "nominal_source_ions": sum(b["job"]["n_ions"] for b in records),
                 "method_labels": {"qf_source_direct.csv": "direct full-cascade aggregate at original293K gas conditions",
                                   "qf_target_transferred.csv": "derived density/temperature transfer, QF unchanged, original source history counts",
                                   "qf_target_smooth.csv": "derived constrained smooth regression; n_ions=0 means no new events at evaluation energies",
                                   "stopping_power_proxies.csv": "deterministic stopping ratio diagnostic, never used in QF fits"},
-                "boundary_policy": "Outside0.25–1000keV per ion unsupported; evaluator raises. Exact-target direct coverage is missing throughout. No silent extrapolation/clipping.",
+                "valid_energy_keV": [lo,hi], "grid_points_per_species": grid_points,
+                "boundary_policy": f"Outside {lo:g}–{hi:g} keV per ion unsupported; evaluator raises. Exact-target direct coverage is missing throughout. No extrapolation/clipping.",
                 "event_abundance": "Source counts are SRIM simulated histories, not Geant4 events or physical H/O abundances",
                 "snapshot_sha256": sha(snapshot / "sha256.json"),
                 "environment": {"numpy": np.__version__, "scipy": scipy.__version__},
@@ -470,7 +498,7 @@ def make_plots(out, points, models):
         q, qs, d, ds = evaluate(model, e)
         axes[0].plot(e, q, color=color, label=model["species"])
         axes[0].fill_between(e, q - qs, q + qs, color=color, alpha=.15)
-        raw = [p for p in points if p["species"] == model["species"] and .25 <= p["energy_keV"] <= 1000]
+        raw = [p for p in points if p["species"] == model["species"] and model['valid_energy_keV'][0] <= p["energy_keV"] <= model['valid_energy_keV'][1]]
         axes[0].errorbar([p["energy_keV"] for p in raw], [p["QF"] for p in raw], yerr=[p["QF_sem"] or 0 for p in raw], color=color, fmt=".", ms=4, alpha=.8)
         axes[1].plot(e, d, color=color, label=model["species"])
         axes[1].fill_between(e, d - ds, d + ds, color=color, alpha=.15)

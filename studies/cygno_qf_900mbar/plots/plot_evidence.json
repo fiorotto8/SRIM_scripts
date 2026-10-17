@@ -5,6 +5,30 @@
     "current_MC_H_O_response": "unity defaults, not fitted physical predictions",
     "flagged_H_points": [
       {
+        "energy_keV": 0.025,
+        "max_abs_residual_fraction": 0.14582166776299518
+      },
+      {
+        "energy_keV": 0.04,
+        "max_abs_residual_fraction": 0.09127000029887349
+      },
+      {
+        "energy_keV": 0.063,
+        "max_abs_residual_fraction": 0.05573063313661917
+      },
+      {
+        "energy_keV": 0.1,
+        "max_abs_residual_fraction": 0.038656900068763586
+      },
+      {
+        "energy_keV": 0.14649382,
+        "max_abs_residual_fraction": 0.024718308808572714
+      },
+      {
+        "energy_keV": 0.21460439,
+        "max_abs_residual_fraction": 0.02038002466734363
+      },
+      {
         "energy_keV": 0.31438218,
         "max_abs_residual_fraction": 0.012134789619191056
       },
@@ -15,6 +39,7 @@
     ]
   },
   "MC_files_written": false,
+  "MC_reference_date": "2026-10-16",
   "MC_reference_source_hashes": {
     "CYGNO.cc": "c6499901fea4759a3a413699e0088cb17e4db9da29ea5da87d1b57dbd4552d7e",
     "src/CYGNODetectorMaterial.cc": "a4587573629a44d45a233652057ef90e82fa2841b9180eb5d4c43ec508b102cb",
@@ -30,6 +55,7 @@
     "tests/nuclear_recoils/O16.mac": "5d17fd22b626deb7126b499bbe304aaed65465cb7811816ae3abb1c3b05883da"
   },
   "MC_verification_scope": "Frozen source reference verified during publication preparation; no live MC checkout needed for replay",
+  "current_local_MC_edits_validated": false,
   "direct_1keV_comparison": [
     {
       "MC_is_unquenched_default": true,
@@ -72,6 +98,13 @@
       "species": "F19"
     }
   ],
+  "extension": {
+    "combined_direct_points": 195,
+    "derivative_stability_established": false,
+    "new_batches": 45,
+    "new_histories": 4500,
+    "previous_models_sha256": "3c394f7d630d90f9850c485937735fb21e86ba37ddc8d387668edaf1fb03272d"
+  },
   "final_review": {
     "campaign_completed_at": "2026-10-16T16:01:52+00:00",
     "campaign_completion_status": "finished_with_unresolved_validation",
@@ -1298,8 +1331,8 @@
   },
   "input_hashes": {
     "final_review.json": "f28d4c116d3d674f052195d0dd736d51a3f47f15103d2dd1c37aa1004c10c762",
-    "qf_source_direct.csv": "9eabe88041525fdac8c13473ba419993fcfadbcfd8bc8b1fdab3a350f9a006ff",
-    "response_models.json": "4cab216fd1716c6846cec0ef8dd773b17b54dc98e7ae31c2238228487a4bdd6c",
+    "qf_source_direct.csv": "3dfac1a78017acaa6fe0fa1c324f75aa533f049e068de27ac4ca4ae7f1bc8139",
+    "response_models.json": "3b282f713957ed62f49b05382409ae49fec30e3553a46994c81555a2d392e0cd",
     "systematics.json": "5013953ef406bfa9799480f944aa3a8e7a972b1b0d98fe27a88bef3022dac551"
   },
   "new_simulations_run": false,
@@ -1319,7 +1352,7 @@
         444.65658
       ],
       "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
-      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.008550484240071765,
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.006900272732070334,
       "maximum_abs_residual_pull": 3.443776959109264,
       "n_points": 20,
       "parameters_k_a_b": [
@@ -1339,7 +1372,7 @@
         444.65658
       ],
       "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
-      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.007687826666287867,
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.0055757684048879375,
       "maximum_abs_residual_pull": 4.093812676553779,
       "n_points": 21,
       "parameters_k_a_b": [
@@ -1359,7 +1392,7 @@
         444.65658
       ],
       "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
-      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.015934693577704273,
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.009098151267191157,
       "maximum_abs_residual_pull": 2.9593689570339805,
       "n_points": 20,
       "parameters_k_a_b": [
@@ -1373,7 +1406,7 @@
       ]
     }
   },
-  "script_sha256": "e085f9e2df89919dd05b370d792777c7907f417e5222d87496d1bc3a138671a6",
+  "script_sha256": "f849f2348f0e664b7f337fab484aef262a6b5d3ae67d4c679bb339762a417a8b",
   "thesis": {
     "QF_equations": {
       "equations": [
@@ -1442,5 +1475,9 @@
       "pdf_page": 144,
       "printed_page": 135
     }
-  }
+  },
+  "valid_energy_keV": [
+    0.025,
+    3000.0
+  ]
 }

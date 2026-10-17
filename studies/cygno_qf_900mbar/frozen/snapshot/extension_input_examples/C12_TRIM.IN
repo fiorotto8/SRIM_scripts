@@ -1,0 +1,30 @@
+==> SRIM-2011.00 This file controls TRIM Calculations.
+Ion: Z1 ,  M1,  Energy (keV), Angle,Number,Bragg Corr,AutoSave Number.
+6 12.00000 0.0400004 0 100 0 100
+Cascade Type[1=None;2=Full;3=Mono/Sputt;4-5=Ions(TRIM.dat);6-7=Recoils(TRIM.dat)], Random Number Seed, Reminders
+                      5                           358272962       0
+Diskfiles (0=no,1=yes): Ranges, Backscatt, Transmit, Sputtered, Collisions(1=Ion;2=Ion+Recoils), Special EXYZ.txt file
+1 1 1 1 0 1
+Target material : Number of Elements & Layers
+"C 0.04 keV in baseline                "       3               1
+PlotType (0-5); Plot Depths: Xmin, Xmax(Ang.) [=0 0 for Viewing Full Target]
+5 0 464320
+Target Elements:    Z   Mass(amu)
+Atom 1 = He =        2    4.00300
+Atom 2 =  C =        6   12.01100
+Atom 3 =  F =        9   18.99800
+Layer   Layer Name /               Width Density   He(2)  C(6)  F(9)
+Numb.   Description                (Ang) (g/cm3)  Stoich
+ 1      "baseline      "          464320 0.00138919 0.6 0.4 1.6
+1  Target layer phases (0=Solid, 1=Gas)
+       1
+Target Compound Corrections (Bragg)
+       1
+Individual target atom displacement energies (eV)
+      21 21 21
+Individual target atom lattice binding energies (eV)
+      1e-06 1e-06 1e-06
+Individual target atom surface binding energies (eV)
+      1e-06 1e-06 1e-06
+Stopping Power Version (1=2008, 0=2008)
+ 0 

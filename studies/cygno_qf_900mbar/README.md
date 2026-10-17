@@ -1,9 +1,12 @@
 # CYGNO recoil electronic response: He/CF₄ at 900 mbar
 
-Final results from the completed 15–16 October 2026 SRIM/TRIM campaign,
+Results from the 15–16 October campaign, extended on 17 October 2026,
 covering **H1, He4, C12, O16 and F19**. Energy is total kinetic energy in
 **keV per ion**, not keV/u. QF means primary-plus-secondary electronic energy
 divided by incident energy; it is not a measured free-charge quenching factor.
+
+**Low-energy limitation:** all 45 new batches fail the retained 1% energy-closure
+criterion (maximum 14.58%). Their response is a flagged nominal calculation.
 
 Start with the [recap PDF](plots/recap.pdf) and [short technical report](REPORT.md).
 The plots compare the new direct points and smooth responses with Flaminia
@@ -15,7 +18,7 @@ event simulations.
 
 | Files | Contents |
 |---|---|
-| [H1](tables/H1.csv), [He4](tables/He4.csv), [C12](tables/C12.csv), [O16](tables/O16.csv), [F19](tables/F19.csv) | 401 smooth evaluation energies each, 0.25–1000 keV; QF, response and derivative with statistical uncertainties |
+| [H1](tables/H1.csv), [He4](tables/He4.csv), [C12](tables/C12.csv), [O16](tables/O16.csv), [F19](tables/F19.csv) | 401 smooth evaluation energies each, 0.025–3000 keV; QF, response and derivative with statistical uncertainties |
 | [raw_points.csv](tables/raw_points.csv) | All eligible direct baseline points, including energies outside the exported interval used to bracket the fit |
 | [energy_channels_source.csv](tables/energy_channels_source.csv) | Separate primary/recoil electronic energies, SEMs, covariance and energy-accounting flags |
 | [threshold_sensitivity.csv](tables/threshold_sensitivity.csv) | Displacement-setting controls; sensitivity estimates, not a total uncertainty band |
@@ -62,6 +65,30 @@ Superseded exports and draft recaps were removed after preservation checks;
 **Conditions:** direct simulations used 293 K and
 0.001389194959 g/cm³. Tables for the requested 293.15 K,
 0.001388495951 g/cm³ medium reuse QF under the documented gas-transfer
-approximation. Exact-target direct simulations are absent. Below 0.25 and
-above 1000 keV the supplied evaluator rejects inputs. The bands exclude
+approximation. Exact-target direct simulations are absent. Below 0.025 and
+above 3000 keV the supplied evaluator rejects inputs. The bands exclude
 model, threshold, fit-choice, gas-transfer and detector-calibration errors.
+
+<!-- bounded-extension -->
+## 25–63 eV extension
+
+Exactly **45 new batches / 4,500 histories** were run: three independent
+100-history batches at 25, 40 and 63 eV for each ion. All 852 compatible
+previous batches were reused. The resulting **195 direct points support
+0.025–3000 keV per ion**. Systematic source roles remain labelled separately.
+
+**This is numerical coverage, not validated detector or low-energy physics.**
+New energy-closure residuals reach **14.58%**;
+45 of 45 new batches exceed 1%. Only
+6 of 15 new points meet 2% relative QF SEM.
+No renormalization or automatic statistical expansion was applied.
+
+- [New direct points](tables/extension_points.csv), including channels/SEMs/closure flags.
+- [Full point inventory](tables/point_inventory.csv), including the separate contaminated medium and control roles.
+- [Changes from the previous response](tables/previous_response_comparison.csv).
+- [Derivative sensitivity](tables/derivative_stability.csv): basis/penalty envelope, **not** a confidence band.
+- [Comparison plot](plots/extension_comparison.png), including a fit excluding new low-energy anchors.
+
+The [report](REPORT.md) explains the 21 eV setting, histogram-count anomaly,
+boundary checks and MC integration. The original MC configuration is kept
+as provenance; its primary-energy interval is not automatically rewritten.
