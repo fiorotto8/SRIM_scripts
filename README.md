@@ -8,6 +8,11 @@ Ubuntu/PySRIM development remains on the
 [`main` branch](https://github.com/fiorotto8/SRIM_scripts/tree/main). Keep this
 checkout on `windows` for the native Windows CSV workflow.
 
+The completed **[CYGNO QF study](studies/cygno_qf_900mbar/README.md)** contains
+the five-ion QF/derivative tables, comparison plots against Di Giambattista's
+thesis, the technical report and a frozen replay. This is the canonical
+published result; superseded local export/report copies have been consolidated.
+
 Two entry points cover the original CSV workflow:
 
 - `srim_gas_sweep.py` runs SRModule stopping/range calculations and writes a
@@ -243,7 +248,8 @@ The [read-only exporter](scripts/export_cygno_mc.py) reads the supplied local
 
 ```bash
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n 15 python3 scripts/export_cygno_mc.py \
-  --config geant4_config.json --out exports/cygno_mc_20261016_release
+  --config studies/cygno_qf_900mbar/frozen/snapshot/geant4_config.json \
+  --out exports/new_export
 ```
 
 Use the existing WSL NumPy/SciPy/Matplotlib analysis environment. The export
@@ -254,3 +260,14 @@ The [export documentation](docs/cygno_mc_export.md) explains the methods and
 CYGNO-MC integration requirements. Existing direct points retain their actual
 293 K source conditions; reuse at the requested 293.15 K target is explicitly
 derived, with no exact-target direct simulations claimed.
+
+To use or reproduce the completed result, start with
+[studies/cygno_qf_900mbar](studies/cygno_qf_900mbar/README.md):
+
+```bash
+python3 studies/cygno_qf_900mbar/reproduce.py --verify-only
+python3 studies/cygno_qf_900mbar/reproduce.py --out /tmp/cygno_qf_replay
+```
+
+This offline replay needs the recorded analysis packages and a C++17 compiler,
+but no SRIM installation, external thesis PDF or CYGNO-MC checkout.

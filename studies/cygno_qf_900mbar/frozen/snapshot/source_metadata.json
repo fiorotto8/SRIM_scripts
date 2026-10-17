@@ -1,0 +1,172 @@
+{
+  "actual_total_3d_trajectory_length": null,
+  "configuration": {
+    "grid": {
+      "energy_max_kevnr": 3000.0,
+      "energy_min_kevnr": 0.1,
+      "energy_points": 28,
+      "pilot_energies_kevnr": [
+        0.1,
+        1.0,
+        10.0,
+        100.0,
+        1000.0,
+        3000.0
+      ],
+      "pilot_ions": 5,
+      "requested_eee_max_kev": 1000.0,
+      "requested_eee_min_kev": 0.25
+    },
+    "simulation": {
+      "backend": "native-windows",
+      "cascade_type": 5,
+      "compound_correction": 1.0,
+      "displacement_energy_ev": 21.0,
+      "exyz_energy_samples": 1000,
+      "geometry": "Bulk source at midpoint of thick homogeneous gas; full cascades from TRIM.DAT",
+      "independent_batches": 3,
+      "ions_per_batch": 100,
+      "lattice_binding_energy_ev": 1e-06,
+      "maximum_batches": 30,
+      "maximum_secondary_recoils": 2000000,
+      "random_seed_base": 20261015,
+      "srmodule_timeout_s": 90,
+      "surface_binding_energy_ev": 1e-06,
+      "target_sigma_margin": 6.0,
+      "target_width_factor": 8.0,
+      "trim_timeout_s": 7200,
+      "workers": 4
+    },
+    "study": {
+      "cf4_mole_fraction_dry": 0.4,
+      "h2o_ppm_molar": 1000.0,
+      "he_mole_fraction_dry": 0.6,
+      "impurity_convention": "Final wet-mixture mole fractions; dry He/CF4 ratio preserved in remaining 0.998",
+      "name": "cygno_hecf4_900mbar",
+      "o2_ppm_molar": 1000.0,
+      "pressure_mbar": 900.0,
+      "species": [
+        "H",
+        "He",
+        "C",
+        "F",
+        "O"
+      ],
+      "temperature_k": 293.0,
+      "temperature_source": "Active Windows GasDensities.csv header specifies 293 K"
+    },
+    "systematics": {
+      "displacement_energies_ev": [
+        10.0,
+        30.0
+      ],
+      "energies_kevnr": [
+        1.0,
+        100.0,
+        1000.0
+      ],
+      "exyz_refinement_factors": [
+        1,
+        4
+      ],
+      "independent_batches": 3,
+      "ions_per_batch": 100
+    },
+    "validation": {
+      "confidence_level": 0.95,
+      "impurity_material_relative_change": 0.02,
+      "maximum_energy_budget_relative_residual": 0.01,
+      "maximum_qf_relative_sem": 0.02,
+      "maximum_range_relative_sem": 0.03
+    }
+  },
+  "configuration_transitions": [
+    {
+      "changed_field": "simulation.maximum_batches",
+      "new_value": 30,
+      "old_value": 9,
+      "path": "qualification/statistics_budget_extension/transition.json",
+      "reason": "Observed Monte Carlo range precision and paired impurity comparisons require more histories"
+    }
+  ],
+  "created_at": "2026-10-15T08:19:57+00:00",
+  "eee_definition": "SRIM electronic-energy surrogate only; physical charge/light keVee requires separate recoil calibration",
+  "execution_backend": "native Windows executables",
+  "expected_summary_rows": 330,
+  "gas_conditions": [
+    {
+      "atomic_fractions": {
+        "C": 0.15384615384615385,
+        "F": 0.6153846153846154,
+        "He": 0.23076923076923075
+      },
+      "density_g_cm3": 0.0013891949590458925,
+      "element_counts_per_molecule": {
+        "C": 0.4,
+        "F": 1.6,
+        "He": 0.6
+      },
+      "mass_fractions": {
+        "C": 0.12776640161689226,
+        "F": 0.8083610350238013,
+        "He": 0.06387256335930644
+      },
+      "medium": "baseline",
+      "molecular_fractions": {
+        "CF4": 0.4,
+        "He": 0.6
+      },
+      "molecular_weight_g_mol": 37.603,
+      "pressure_mbar": 900.0,
+      "target_mass_source": "Installed Data/ATOMDATA natural elemental masses",
+      "temperature_k": 293.0
+    },
+    {
+      "atomic_fractions": {
+        "C": 0.1535502730979306,
+        "F": 0.6142010923917224,
+        "H": 0.0007692899453804139,
+        "He": 0.2303254096468959,
+        "O": 0.0011539349180706207
+      },
+      "density_g_cm3": 0.0013882642357364958,
+      "element_counts_per_molecule": {
+        "C": 0.3992,
+        "F": 1.5968,
+        "H": 0.002,
+        "He": 0.5988,
+        "O": 0.003
+      },
+      "mass_fractions": {
+        "C": 0.1275963549442893,
+        "F": 0.807285172335895,
+        "H": 5.364868684327428e-05,
+        "He": 0.06378755418058324,
+        "O": 0.0012772698523892043
+      },
+      "medium": "contaminated",
+      "molecular_fractions": {
+        "CF4": 0.3992,
+        "H2O": 0.001,
+        "He": 0.5988,
+        "O2": 0.001
+      },
+      "molecular_weight_g_mol": 37.577807,
+      "pressure_mbar": 900.0,
+      "target_mass_source": "Installed Data/ATOMDATA natural elemental masses",
+      "temperature_k": 293.0
+    }
+  ],
+  "git_commit": "04dfc2215b0ad9e55c591679ed66769092931a30",
+  "isotope_mass_source": "https://pml.nist.gov/cgi-bin/Compositions/stand_alone.pl?ascii=ascii",
+  "isotope_projectile_masses_u": {
+    "C": 12.0,
+    "F": 18.99840316273,
+    "H": 1.00782503223,
+    "He": 4.00260325413,
+    "O": 15.99491461957
+  },
+  "qf_definition": "(IONIZ primary + IONIZ secondary electronic energy) / initial nuclear recoil energy",
+  "schema_version": 1,
+  "source_root": "/mnt/c/SRIM-2013"
+}

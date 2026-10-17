@@ -31,6 +31,11 @@
 !/scripts/start_cygno_study.ps1
 !/scripts/control_cygno_study.ps1
 
+# Curated final scientific data, figures and frozen replay inputs.
+!/studies/
+!/studies/cygno_qf_900mbar/
+!/studies/cygno_qf_900mbar/**
+
 # Generated scan state and local Python caches remain untracked.
 runs/
 __pycache__/

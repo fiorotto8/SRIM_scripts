@@ -1,0 +1,33 @@
+{
+  "captured_at": "2026-10-16T16:07:19.583024+00:00",
+  "exclusions": {
+    "non_nominal_cutoff_or_correlated_fine_sampling": 45,
+    "other_medium": 861,
+    "pilot_or_threshold_systematic": 181
+  },
+  "listed_source_batch_count": 1939,
+  "raw_archive_integrity_scope": "Original member hashes retained; raw archives exist; one TRIM.IN per isotope hash/gas phase verified. This exporter does not rehash all compressed archive contents.",
+  "selected_batch_count": 852,
+  "source_config_sha256": "dca9a9c8cb0a954f63766515c811550d97d2b8e905f04e6aed3c4d5d804b1747",
+  "source_simulation_settings": {
+    "backend": "native-windows",
+    "cascade_type": 5,
+    "compound_correction": 1.0,
+    "displacement_energy_ev": 21.0,
+    "exyz_energy_samples": 1000,
+    "geometry": "Bulk source at midpoint of thick homogeneous gas; full cascades from TRIM.DAT",
+    "independent_batches": 3,
+    "ions_per_batch": 100,
+    "lattice_binding_energy_ev": 1e-06,
+    "maximum_batches": 30,
+    "maximum_secondary_recoils": 2000000,
+    "random_seed_base": 20261015,
+    "srmodule_timeout_s": 90,
+    "surface_binding_energy_ev": 1e-06,
+    "target_sigma_margin": 6.0,
+    "target_width_factor": 8.0,
+    "trim_timeout_s": 7200,
+    "workers": 4
+  },
+  "source_study": "/mnt/c/srim-2013/runs/cygno_hecf4_900mbar_20261015"
+}

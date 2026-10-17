@@ -1,0 +1,1446 @@
+{
+  "HO_page": {
+    "H_thesis_fit_in_current_MC": false,
+    "O_thesis_fit_available": false,
+    "current_MC_H_O_response": "unity defaults, not fitted physical predictions",
+    "flagged_H_points": [
+      {
+        "energy_keV": 0.31438218,
+        "max_abs_residual_fraction": 0.012134789619191056
+      },
+      {
+        "energy_keV": 0.31622777,
+        "max_abs_residual_fraction": 0.011722639706842836
+      }
+    ]
+  },
+  "MC_files_written": false,
+  "MC_source_hashes_verified": {
+    "CYGNO.cc": "c6499901fea4759a3a413699e0088cb17e4db9da29ea5da87d1b57dbd4552d7e",
+    "src/CYGNODetectorMaterial.cc": "a4587573629a44d45a233652057ef90e82fa2841b9180eb5d4c43ec508b102cb",
+    "src/CYGNOEventAction.cc": "1e1025817b7b13360395d5620b78c44315c82dbccb2a5a4096473ecb83746993",
+    "src/CYGNOHit.cc": "fcee77bdc3f75faf6a7e11e25225ef2b82991c81bfead2d3f2c3fffe663dc8c7",
+    "src/CYGNOPhysicsList.cc": "be4a4a60459a465c326c39f6caeb2bb56794995cf4cbf58fb8dca994929a450d",
+    "src/CYGNORunAction.cc": "5a1f633745b651508214c2f2845bc6e04507b6f09cb9ccba0749878183f10f09",
+    "src/CYGNOSensitiveDetector.cc": "f0e63f2c8c5f773aaa0a5c73bf1ef2f717d860c77b75d1f2a54a8991c6c18540",
+    "tests/nuclear_recoils/C12.mac": "ff73c063a0a6ce78df4267adf70e48d410b26af5eca33ed2337863428376316d",
+    "tests/nuclear_recoils/F19.mac": "60bd045bef1fa1b6e6e37c123821c0703179acb82580264c815d932b75f223fc",
+    "tests/nuclear_recoils/H1.mac": "2503b4e6b1f826b7f7746b3b568794535b8770f6c559ad93e041ad940ca58e9a",
+    "tests/nuclear_recoils/He4.mac": "79e5568a468ca8024fcd3a965a8991a38b054589745d7dffaf0dac02dee4bb64",
+    "tests/nuclear_recoils/O16.mac": "5d17fd22b626deb7126b499bbe304aaed65465cb7811816ae3abb1c3b05883da"
+  },
+  "direct_1keV_comparison": [
+    {
+      "MC_is_unquenched_default": true,
+      "MC_value": 1.0,
+      "TRIM_QF_sem": 0.0011398565704135119,
+      "TRIM_direct_QF": 0.7102360825901727,
+      "energy_keV": 1.0,
+      "species": "H1"
+    },
+    {
+      "MC_is_unquenched_default": false,
+      "MC_value": 0.3643933134176571,
+      "TRIM_QF_sem": 0.0017719644580163865,
+      "TRIM_direct_QF": 0.40105728403543833,
+      "energy_keV": 1.0,
+      "species": "He4"
+    },
+    {
+      "MC_is_unquenched_default": false,
+      "MC_value": 0.23439114956168894,
+      "TRIM_QF_sem": 0.00195916014633502,
+      "TRIM_direct_QF": 0.25339090228554667,
+      "energy_keV": 1.0,
+      "species": "C12"
+    },
+    {
+      "MC_is_unquenched_default": true,
+      "MC_value": 1.0,
+      "TRIM_QF_sem": 0.0017620003691382966,
+      "TRIM_direct_QF": 0.22789720810912004,
+      "energy_keV": 1.0,
+      "species": "O16"
+    },
+    {
+      "MC_is_unquenched_default": false,
+      "MC_value": 0.19075518725924967,
+      "TRIM_QF_sem": 0.0018719350877204866,
+      "TRIM_direct_QF": 0.206074397768664,
+      "energy_keV": 1.0,
+      "species": "F19"
+    }
+  ],
+  "final_review": {
+    "campaign_completed_at": "2026-10-16T16:01:52+00:00",
+    "campaign_completion_status": "finished_with_unresolved_validation",
+    "energy_accounting_review": {
+      "flagged_points_in_original_requested_electronic_domain": 0,
+      "interpretation": "Original requested domain is Eelect>=0.25keV. The new CYGNO-MC export instead starts at initial energy 0.25keV per ion, so retained low-energy closure warnings remain relevant to its low-end raw points. Do not renormalize channels or erase flags.",
+      "max_abs_batch_closure_residual_fraction": 0.038656900068763586,
+      "n_summary_points_flagged": 19
+    },
+    "impurity_review": {
+      "classification_counts": {
+        "equivalent_within_material_boundary": 110,
+        "outside_requested_domain": 55
+      },
+      "confidence_note": "Nominal fixed 95% paired linear-contrast intervals; adaptive repeated checks do not guarantee sequential or simultaneous coverage",
+      "interpretation": "At sampled points in the original requested electronic-energy domain, all full-cascade paired QF contrasts resolve the nominal +/-2% criterion. This does not establish equivalence at all energies or equivalence of physical charge or all range distributions.",
+      "material_relative_change_boundary": 0.02,
+      "n_required": 110,
+      "n_resolved": 110,
+      "species_summary": [
+        {
+          "classifications": {
+            "equivalent_within_material_boundary": 20
+          },
+          "n_required": 20,
+          "qf_relative_change_range": [
+            -0.012528973753597794,
+            0.0053489463378132715
+          ],
+          "sampled_energies_keVnr": [
+            1.4478886,
+            954.25257
+          ],
+          "species": "C"
+        },
+        {
+          "classifications": {
+            "equivalent_within_material_boundary": 22
+          },
+          "n_required": 22,
+          "qf_relative_change_range": [
+            -0.005275654824370504,
+            0.006825665256266764
+          ],
+          "sampled_energies_keVnr": [
+            1.2342263,
+            1087.448
+          ],
+          "species": "F"
+        },
+        {
+          "classifications": {
+            "equivalent_within_material_boundary": 25
+          },
+          "n_required": 25,
+          "qf_relative_change_range": [
+            -0.0056342980896835195,
+            0.0016384853240087214
+          ],
+          "sampled_energies_keVnr": [
+            0.46055046,
+            1001.083
+          ],
+          "species": "H"
+        },
+        {
+          "classifications": {
+            "equivalent_within_material_boundary": 22
+          },
+          "n_required": 22,
+          "qf_relative_change_range": [
+            -0.00483978497183556,
+            0.007806550256465645
+          ],
+          "sampled_energies_keVnr": [
+            0.98836153,
+            1007.2695
+          ],
+          "species": "He"
+        },
+        {
+          "classifications": {
+            "equivalent_within_material_boundary": 21
+          },
+          "n_required": 21,
+          "qf_relative_change_range": [
+            -0.011765125912370507,
+            0.013178687607443165
+          ],
+          "sampled_energies_keVnr": [
+            1.1166418,
+            954.25257
+          ],
+          "species": "O"
+        }
+      ],
+      "srmodule_species_summary": [
+        {
+          "all_available_changes_within_criterion": true,
+          "baseline_native_points": 117,
+          "complete_native_point_pairing": true,
+          "contaminated_native_points": 117,
+          "deterministic_model_uncertainty": null,
+          "electronic_stopping_kev_mm_max_abs_relative_change": 0.0006699731404410381,
+          "electronic_stopping_kev_mm_valid_pairs": 117,
+          "electronic_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009041591320071429,
+          "electronic_stopping_mev_mg_cm2_valid_pairs": 117,
+          "full_cascade_qf_equivalence": null,
+          "lateral_straggling_mm_max_abs_relative_change": 0.006849315068493178,
+          "lateral_straggling_mm_valid_pairs": 117,
+          "longitudinal_straggling_mm_max_abs_relative_change": 0.006756756756757021,
+          "longitudinal_straggling_mm_valid_pairs": 117,
+          "material_relative_change_criterion": 0.02,
+          "native_points_in_union": 117,
+          "nuclear_stopping_kev_mm_max_abs_relative_change": 0.0006699731404411491,
+          "nuclear_stopping_kev_mm_valid_pairs": 117,
+          "nuclear_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009861932938857176,
+          "nuclear_stopping_mev_mg_cm2_valid_pairs": 117,
+          "paired_native_points": 117,
+          "physical_charge_equivalence": null,
+          "projected_range_mm_max_abs_relative_change": 0.004166666666666874,
+          "projected_range_mm_valid_pairs": 117,
+          "required_quantities_complete": true,
+          "species": "C",
+          "srmodule_screen_passed": true
+        },
+        {
+          "all_available_changes_within_criterion": true,
+          "baseline_native_points": 117,
+          "complete_native_point_pairing": true,
+          "contaminated_native_points": 117,
+          "deterministic_model_uncertainty": null,
+          "electronic_stopping_kev_mm_max_abs_relative_change": 0.0006699731404411491,
+          "electronic_stopping_kev_mm_valid_pairs": 117,
+          "electronic_stopping_mev_mg_cm2_max_abs_relative_change": 0.0007518796992480592,
+          "electronic_stopping_mev_mg_cm2_valid_pairs": 117,
+          "full_cascade_qf_equivalence": null,
+          "lateral_straggling_mm_max_abs_relative_change": 0.009174311926605672,
+          "lateral_straggling_mm_valid_pairs": 117,
+          "longitudinal_straggling_mm_max_abs_relative_change": 0.0019230769230766942,
+          "longitudinal_straggling_mm_valid_pairs": 117,
+          "material_relative_change_criterion": 0.02,
+          "native_points_in_union": 117,
+          "nuclear_stopping_kev_mm_max_abs_relative_change": 0.0006699731404410381,
+          "nuclear_stopping_kev_mm_valid_pairs": 117,
+          "nuclear_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009861932938857176,
+          "nuclear_stopping_mev_mg_cm2_valid_pairs": 117,
+          "paired_native_points": 117,
+          "physical_charge_equivalence": null,
+          "projected_range_mm_max_abs_relative_change": 0.0037174721189590088,
+          "projected_range_mm_valid_pairs": 117,
+          "required_quantities_complete": true,
+          "species": "F",
+          "srmodule_screen_passed": true
+        },
+        {
+          "all_available_changes_within_criterion": true,
+          "baseline_native_points": 117,
+          "complete_native_point_pairing": true,
+          "contaminated_native_points": 117,
+          "deterministic_model_uncertainty": null,
+          "electronic_stopping_kev_mm_max_abs_relative_change": 0.0014596593089135634,
+          "electronic_stopping_kev_mm_valid_pairs": 117,
+          "electronic_stopping_mev_mg_cm2_max_abs_relative_change": 0.0021310602024509073,
+          "electronic_stopping_mev_mg_cm2_valid_pairs": 117,
+          "full_cascade_qf_equivalence": null,
+          "lateral_straggling_mm_max_abs_relative_change": 0.004424778761062065,
+          "lateral_straggling_mm_valid_pairs": 117,
+          "longitudinal_straggling_mm_max_abs_relative_change": 0.004901960784313708,
+          "longitudinal_straggling_mm_valid_pairs": 117,
+          "material_relative_change_criterion": 0.02,
+          "native_points_in_union": 117,
+          "nuclear_stopping_kev_mm_max_abs_relative_change": 0.0006699731404410381,
+          "nuclear_stopping_kev_mm_valid_pairs": 117,
+          "nuclear_stopping_mev_mg_cm2_max_abs_relative_change": 0.001031459515213884,
+          "nuclear_stopping_mev_mg_cm2_valid_pairs": 117,
+          "paired_native_points": 117,
+          "physical_charge_equivalence": null,
+          "projected_range_mm_max_abs_relative_change": 0.0021551724137931494,
+          "projected_range_mm_valid_pairs": 117,
+          "required_quantities_complete": true,
+          "species": "H",
+          "srmodule_screen_passed": true
+        },
+        {
+          "all_available_changes_within_criterion": true,
+          "baseline_native_points": 117,
+          "complete_native_point_pairing": true,
+          "contaminated_native_points": 117,
+          "deterministic_model_uncertainty": null,
+          "electronic_stopping_kev_mm_max_abs_relative_change": 0.0006699731404410381,
+          "electronic_stopping_kev_mm_valid_pairs": 117,
+          "electronic_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009671179883945502,
+          "electronic_stopping_mev_mg_cm2_valid_pairs": 117,
+          "full_cascade_qf_equivalence": null,
+          "lateral_straggling_mm_max_abs_relative_change": 0.0015797788309637184,
+          "lateral_straggling_mm_valid_pairs": 117,
+          "longitudinal_straggling_mm_max_abs_relative_change": 0.0016666666666667052,
+          "longitudinal_straggling_mm_valid_pairs": 117,
+          "material_relative_change_criterion": 0.02,
+          "native_points_in_union": 117,
+          "nuclear_stopping_kev_mm_max_abs_relative_change": 0.0006699731404410381,
+          "nuclear_stopping_kev_mm_valid_pairs": 117,
+          "nuclear_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009718172983477213,
+          "nuclear_stopping_mev_mg_cm2_valid_pairs": 117,
+          "paired_native_points": 117,
+          "physical_charge_equivalence": null,
+          "projected_range_mm_max_abs_relative_change": 0.008064516129032251,
+          "projected_range_mm_valid_pairs": 117,
+          "required_quantities_complete": true,
+          "species": "He",
+          "srmodule_screen_passed": true
+        },
+        {
+          "all_available_changes_within_criterion": true,
+          "baseline_native_points": 117,
+          "complete_native_point_pairing": true,
+          "contaminated_native_points": 117,
+          "deterministic_model_uncertainty": null,
+          "electronic_stopping_kev_mm_max_abs_relative_change": 0.0006699731404411491,
+          "electronic_stopping_kev_mm_valid_pairs": 117,
+          "electronic_stopping_mev_mg_cm2_max_abs_relative_change": 0.0008695652173913437,
+          "electronic_stopping_mev_mg_cm2_valid_pairs": 117,
+          "full_cascade_qf_equivalence": null,
+          "lateral_straggling_mm_max_abs_relative_change": 0.004065040650406582,
+          "lateral_straggling_mm_valid_pairs": 117,
+          "longitudinal_straggling_mm_max_abs_relative_change": 0.009433962264151052,
+          "longitudinal_straggling_mm_valid_pairs": 117,
+          "material_relative_change_criterion": 0.02,
+          "native_points_in_union": 117,
+          "nuclear_stopping_kev_mm_max_abs_relative_change": 0.0006699731404411491,
+          "nuclear_stopping_kev_mm_valid_pairs": 117,
+          "nuclear_stopping_mev_mg_cm2_max_abs_relative_change": 0.0009970089730808596,
+          "nuclear_stopping_mev_mg_cm2_valid_pairs": 117,
+          "paired_native_points": 117,
+          "physical_charge_equivalence": null,
+          "projected_range_mm_max_abs_relative_change": 0.006451612903225712,
+          "projected_range_mm_valid_pairs": 117,
+          "required_quantities_complete": true,
+          "species": "O",
+          "srmodule_screen_passed": true
+        }
+      ]
+    },
+    "monotonicity_review": {
+      "caveat": "Post-hoc local diagnostic, not a simultaneous/sequential test or a detector calibration; raw means and original fatal flag remain unchanged.",
+      "formulas": {
+        "SEM": "sqrt(SEM_high^2+SEM_low^2), treating distinct initial-energy batches as independent",
+        "Welch_df": "(s1^2+s2^2)^2/[s1^4/(n1-1)+s2^4/(n2-1)], s=SEM, n=number of batches",
+        "difference": "Eelect(high initial energy)-Eelect(low initial energy)",
+        "nominal_interval": "difference +/- t_0.975,Welch_df * SEM"
+      },
+      "reversals": [
+        {
+          "both_below_original_requested_electronic_minimum": true,
+          "difference_eee_keV": -0.0002837092207621239,
+          "difference_over_sem": -0.2534612096620817,
+          "difference_sem_keV": 0.0011193398040685173,
+          "interpretation": "Strict raw monotonicity failure is retained; this difference is consistent with finite Monte Carlo statistics.",
+          "medium": "contaminated",
+          "points": [
+            {
+              "eee_srim_kev_mean": 0.18135843307304048,
+              "eee_srim_kev_sem": 0.0006320272174444123,
+              "energy_budget_relative_residual_max_abs": 0.012414704618909854,
+              "energy_closure_fraction_mean": 1.011423320289862,
+              "energy_kevnr": 0.31438218,
+              "n_batches": 10,
+              "n_ions_total": 1000,
+              "primary_ionization_kev_mean": 0.1773725602572,
+              "qf_mean": 0.5768724966314581,
+              "qf_sem": 0.0020103786335612718,
+              "secondary_ionization_kev_mean": 0.003985872815840454
+            },
+            {
+              "eee_srim_kev_mean": 0.18107472385227835,
+              "eee_srim_kev_sem": 0.0009238307168424419,
+              "energy_budget_relative_residual_max_abs": 0.012072937442954358,
+              "energy_closure_fraction_mean": 1.011189498829626,
+              "energy_kevnr": 0.31622777,
+              "n_batches": 10,
+              "n_ions_total": 1000,
+              "primary_ionization_kev_mean": 0.1765941318851479,
+              "qf_mean": 0.5726085468467186,
+              "qf_sem": 0.002921409200850516,
+              "secondary_ionization_kev_mean": 0.004480591967130433
+            }
+          ],
+          "species": "H",
+          "statistically_significant_at_nominal_5_percent": false,
+          "welch_degrees_of_freedom": 15.9108634497644,
+          "welch_nominal_95_interval_keV": [
+            -0.0026576844630785586,
+            0.0020902660215543108
+          ],
+          "welch_nominal_two_sided_p": 0.803157792585683
+        }
+      ]
+    },
+    "original_failing_and_limited_checks": [
+      {
+        "check": "monotonic_contaminated_H",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": false,
+        "severity": "failure"
+      },
+      {
+        "check": "physical_charge_calibration",
+        "detail": "Unknown recoil-specific W/charge calibration; numerical physical charge QF intentionally null",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "total_3d_track_length",
+        "detail": "EXYZ provides sampled primary paths; total primary/cascade path length not established",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "low_energy_control_budget",
+        "detail": "Supplementary low-energy control points below requested0.25keV surrogate can show SRIM cutoff/transport overshoot; energy_budget_valid flags these rows",
+        "passed": false,
+        "severity": "warning"
+      },
+      {
+        "check": "track_sampling_H_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_H_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_He_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_He_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_C_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_C_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_C_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.058450879906865504; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "warning"
+      },
+      {
+        "check": "track_sampling_F_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_F_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_O_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_O_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_O_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.06783287902184987; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "warning"
+      }
+    ],
+    "original_validation_status_retained": "incomplete",
+    "physical_charge_qf_calibrated": false,
+    "provenance": {
+      "input_sha256": {
+        "archive_validation.json": "99d3028d132af8f7542fedf3b65ca9dd9a2f97b87735b60fe76cb7116285cd49",
+        "campaign_completion.json": "4a3195c0f4a4f561b74159425f125533881fcb9a1e4ce365634f8934b7130545",
+        "impurity_diagnostics.json": "1e94688aa172b4f55554b45e899a0738ae5187e71e8ae4ff14954fb1ef07db22",
+        "srmodule_medium_comparison.json": "9c7607b3655009f85289e894f1ee6df8e662492b9e0c6569e71660e23bf8a19b",
+        "summary.csv": "508cb14beed00c5345d03dcff2875cbf7d10de9b4c17465cab20087124dc8ee4",
+        "systematics.json": "5013953ef406bfa9799480f944aa3a8e7a972b1b0d98fe27a88bef3022dac551",
+        "validation.json": "e6fa07353601f8ccaa8839afd30cf1a04574f955936230d0fd7d5440bae5d60c"
+      },
+      "replay": "python3 final_review.py --study-dir /path/to/study --output final_review.json",
+      "study_dir": "/mnt/c/srim-2013/runs/cygno_hecf4_900mbar_20261015"
+    },
+    "raw_archive_validation": {
+      "checks": [
+        {
+          "check": "raw_archive_sha256",
+          "detail": "1939/1939 archives verified by content without extraction",
+          "passed": true,
+          "severity": "pass"
+        }
+      ],
+      "expected_archives": 1939,
+      "passed": true,
+      "verified_archives": 1939
+    },
+    "recommendation": "Proceed with documented export and existing-data analysis; do not launch an additional broad scan automatically. Keep the strict monotonicity failure and all modeling/track/calibration limitations visible. Targeted reruns require a specific unresolved scientific need.",
+    "schema": "CYGNO-SRIM-final-review-v1",
+    "simulations_launched_by_this_review": 0,
+    "threshold_review": {
+      "batches_per_group": 3,
+      "contrasts": [
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": 0.013845007979747304,
+          "qf_difference_sem": 0.0033937004177580273,
+          "qf_relative_change": 0.019493529432151203,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": -0.010236281025532645,
+          "qf_difference_sem": 0.0017888831540507782,
+          "qf_relative_change": -0.01441250490710324,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": 0.0005785594669499572,
+          "qf_difference_sem": 0.00019915044478054967,
+          "qf_relative_change": 0.0005847537472045376,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": -8.326091066745978e-05,
+          "qf_difference_sem": 0.00017406553549146011,
+          "qf_relative_change": -8.415233401179586e-05,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -1.4364365832020276e-05,
+          "qf_difference_sem": 5.1521326503000394e-05,
+          "qf_relative_change": -1.438545816192491e-05,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -0.00016196762162945522,
+          "qf_difference_sem": 3.3247253373150194e-05,
+          "qf_relative_change": -0.00016220545144729947,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "H",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": 0.01484663419228982,
+          "qf_difference_sem": 0.00395791743394981,
+          "qf_relative_change": 0.037018737181140286,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": -0.0063972389506575245,
+          "qf_difference_sem": 0.002175914050423495,
+          "qf_relative_change": -0.015950935702472493,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": 0.00377999844589616,
+          "qf_difference_sem": 0.0022597832999794194,
+          "qf_relative_change": 0.004014058675444158,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": -0.0011307407714078455,
+          "qf_difference_sem": 0.0025957497853971033,
+          "qf_relative_change": -0.0012007570553569397,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": 0.00010807215150498983,
+          "qf_difference_sem": 0.00045805693821098696,
+          "qf_relative_change": 0.00010886537610323227,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -7.15337675308847e-05,
+          "qf_difference_sem": 0.0005712461059818179,
+          "qf_relative_change": -7.205880884097496e-05,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "He",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": 0.023752700074341326,
+          "qf_difference_sem": 0.0020490079732502346,
+          "qf_relative_change": 0.09373935630717461,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": -0.004364413816106694,
+          "qf_difference_sem": 0.0036720331367148524,
+          "qf_relative_change": -0.017224035183348564,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": 0.006666662161456727,
+          "qf_difference_sem": 0.00598321410344124,
+          "qf_relative_change": 0.008624000041016999,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": -0.0016413941855945025,
+          "qf_difference_sem": 0.0060698573927819854,
+          "qf_relative_change": -0.002123308963476705,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": 0.00038413640064394183,
+          "qf_difference_sem": 0.0007989408306517125,
+          "qf_relative_change": 0.00040118066172817394,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -0.0009541597897334553,
+          "qf_difference_sem": 0.0007252066881903322,
+          "qf_relative_change": -0.0009964961799975149,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "C",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": 0.023730028971450656,
+          "qf_difference_sem": 0.0022123092667019153,
+          "qf_relative_change": 0.11515272750227627,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": -0.011234256217205335,
+          "qf_difference_sem": 0.0033336405946603424,
+          "qf_relative_change": -0.05451553583971523,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": 0.007702963196099977,
+          "qf_difference_sem": 0.0023227988807702923,
+          "qf_relative_change": 0.012049798289248419,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": -0.001896110928599981,
+          "qf_difference_sem": 0.0028261465836403716,
+          "qf_relative_change": -0.002966099362286599,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": 0.00012057891263561604,
+          "qf_difference_sem": 0.0014335066576238566,
+          "qf_relative_change": 0.00013187075255471716,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -0.0018682568492683904,
+          "qf_difference_sem": 0.0007510310318363416,
+          "qf_relative_change": -0.0020432132890685585,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "F",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": 0.024563574932089577,
+          "qf_difference_sem": 0.0019681907253484934,
+          "qf_relative_change": 0.10778357109284213,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1.0,
+          "qf_difference": -0.009562467787840034,
+          "qf_difference_sem": 0.0029822237666874123,
+          "qf_relative_change": -0.041959565310959866,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": 0.001617425308487186,
+          "qf_difference_sem": 0.0024609158528970587,
+          "qf_relative_change": 0.002314879016922366,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 100.0,
+          "qf_difference": -0.0075665517032065255,
+          "qf_difference_sem": 0.0027378945270968274,
+          "qf_relative_change": -0.010829341964850147,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 10.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": 0.0012026399062081694,
+          "qf_difference_sem": 0.002909711466412451,
+          "qf_relative_change": 0.0012906635961332001,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        },
+        {
+          "comparison": "threshold_vs_nominal",
+          "complete": true,
+          "displacement_energy_ev": 30.0,
+          "energy_kevnr": 1000.0,
+          "qf_difference": -0.0015176728669969997,
+          "qf_difference_sem": 0.002535022252726134,
+          "qf_relative_change": -0.0016287544677010533,
+          "reference_displacement_energy_ev": 21.0,
+          "species": "O",
+          "uncertainty_method": "Independent batch means; difference SEM is quadrature of both batch SEMs"
+        }
+      ],
+      "interpretation": "Threshold shifts are model sensitivity; they are not included in QF_sem. Difference SEM uses independent batch-mean quadrature, as in the source analysis. No automatic correction is applied.",
+      "ions_per_batch": 100,
+      "nominal_displacement_energy_eV": 21.0
+    },
+    "track_sampling_review": {
+      "comparisons": [
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": false,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            1.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0,
+          "paired_qf_difference_over_sem": null,
+          "paired_qf_difference_sem": 0.0,
+          "paired_qf_relative_change": 0.0,
+          "paired_relative_path_change_mean": 0.0,
+          "paired_relative_path_change_sem": 0.0,
+          "path_change_absolute_plus_two_sem": 0.0,
+          "same_actual_exyz_increment": true,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "H",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            100.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 100.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            25.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": -9.925048683060803e-06,
+          "paired_qf_difference_over_sem": -0.03587448595263065,
+          "paired_qf_difference_sem": 0.0002766603735079584,
+          "paired_qf_relative_change": -1.0031310072935443e-05,
+          "paired_relative_path_change_mean": 0.0008286696212492414,
+          "paired_relative_path_change_sem": 0.004745712626089393,
+          "path_change_absolute_plus_two_sem": 0.010320094873428028,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "H",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1000.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1000.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            250.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 7.563844253869838e-05,
+          "paired_qf_difference_over_sem": 1.8152721346604648,
+          "paired_qf_difference_sem": 4.1667825498156545e-05,
+          "paired_qf_relative_change": 7.574950842229921e-05,
+          "paired_relative_path_change_mean": 0.00036919757211654564,
+          "paired_relative_path_change_sem": 0.0007750059437714449,
+          "path_change_absolute_plus_two_sem": 0.0019192094596594356,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "H",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": false,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            1.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0,
+          "paired_qf_difference_over_sem": null,
+          "paired_qf_difference_sem": 0.0,
+          "paired_qf_relative_change": 0.0,
+          "paired_relative_path_change_mean": 0.0,
+          "paired_relative_path_change_sem": 0.0,
+          "path_change_absolute_plus_two_sem": 0.0,
+          "same_actual_exyz_increment": true,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "He",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            100.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 100.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            25.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0023281373312920386,
+          "paired_qf_difference_over_sem": 1.5411345579176738,
+          "paired_qf_difference_sem": 0.0015106645421265063,
+          "paired_qf_relative_change": 0.002472297273678546,
+          "paired_relative_path_change_mean": 0.010246919861380674,
+          "paired_relative_path_change_sem": 0.005519872001061315,
+          "path_change_absolute_plus_two_sem": 0.021286663863503304,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "He",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1000.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1000.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            250.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": -1.4447189104149771e-05,
+          "paired_qf_difference_over_sem": -0.03709492468279555,
+          "paired_qf_difference_sem": 0.0003894653844883074,
+          "paired_qf_relative_change": -1.455322813097846e-05,
+          "paired_relative_path_change_mean": 0.001243786579154064,
+          "paired_relative_path_change_sem": 0.0019295224829810349,
+          "path_change_absolute_plus_two_sem": 0.005102831545116134,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "He",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": false,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            1.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0,
+          "paired_qf_difference_over_sem": null,
+          "paired_qf_difference_sem": 0.0,
+          "paired_qf_relative_change": 0.0,
+          "paired_relative_path_change_mean": 0.0,
+          "paired_relative_path_change_sem": 0.0,
+          "path_change_absolute_plus_two_sem": 0.0,
+          "same_actual_exyz_increment": true,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "C",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            100.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 100.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            25.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": -5.266707696005568e-05,
+          "paired_qf_difference_over_sem": -0.007668042635281033,
+          "paired_qf_difference_sem": 0.006868386036057223,
+          "paired_qf_relative_change": -6.813017712067753e-05,
+          "paired_relative_path_change_mean": 0.01951090355122087,
+          "paired_relative_path_change_sem": 0.019469988177822316,
+          "path_change_absolute_plus_two_sem": 0.058450879906865504,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "C",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1000.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1000.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            250.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0001499265733333477,
+          "paired_qf_difference_over_sem": 0.4181491386097063,
+          "paired_qf_difference_sem": 0.00035854808605330346,
+          "paired_qf_relative_change": 0.00015657886573540634,
+          "paired_relative_path_change_mean": 0.00047197180603593864,
+          "paired_relative_path_change_sem": 0.005412025816962307,
+          "path_change_absolute_plus_two_sem": 0.011296023439960553,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "C",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": false,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            1.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0,
+          "paired_qf_difference_over_sem": null,
+          "paired_qf_difference_sem": 0.0,
+          "paired_qf_relative_change": 0.0,
+          "paired_relative_path_change_mean": 0.0,
+          "paired_relative_path_change_sem": 0.0,
+          "path_change_absolute_plus_two_sem": 0.0,
+          "same_actual_exyz_increment": true,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "F",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "additional_interpretation": "Nonzero QF shift is a numerical/sampling sensitivity to retain; nominal paired SEM alone does not characterize this effect. No causal mechanism established.",
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            100.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 100.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            25.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.005395963855839958,
+          "paired_qf_difference_over_sem": 7.27887539103867,
+          "paired_qf_difference_sem": 0.0007413183446557083,
+          "paired_qf_relative_change": 0.00844094335954591,
+          "paired_relative_path_change_mean": 0.002600662742219003,
+          "paired_relative_path_change_sem": 0.003962217591442601,
+          "path_change_absolute_plus_two_sem": 0.010525097925104206,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "F",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1000.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1000.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            250.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0008865516899726478,
+          "paired_qf_difference_over_sem": 0.6938786417336695,
+          "paired_qf_difference_sem": 0.0012776754271576667,
+          "paired_qf_relative_change": 0.0009695744967334939,
+          "paired_relative_path_change_mean": 0.0025002894739229267,
+          "paired_relative_path_change_sem": 0.003988295489926563,
+          "path_change_absolute_plus_two_sem": 0.010476880453776052,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "F",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": false,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            1.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": 0.0,
+          "paired_qf_difference_over_sem": null,
+          "paired_qf_difference_sem": 0.0,
+          "paired_qf_relative_change": 0.0,
+          "paired_relative_path_change_mean": 0.0,
+          "paired_relative_path_change_sem": 0.0,
+          "path_change_absolute_plus_two_sem": 0.0,
+          "same_actual_exyz_increment": true,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "O",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            100.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 100.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            25.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": -0.0006076482811565587,
+          "paired_qf_difference_over_sem": -0.3601526575192541,
+          "paired_qf_difference_sem": 0.00168719643870481,
+          "paired_qf_relative_change": -0.0008696737019862232,
+          "paired_relative_path_change_mean": 0.029077552940664424,
+          "paired_relative_path_change_sem": 0.01937766304059272,
+          "path_change_absolute_plus_two_sem": 0.06783287902184987,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": false,
+          "species": "O",
+          "total_cascade_trajectory_length_mm": null
+        },
+        {
+          "actual_primary_trajectory_length_mm": null,
+          "actual_sampling_refinement": true,
+          "coarse_energy_samples": 1000,
+          "coarse_exyz_steps_ev": [
+            1000.0
+          ],
+          "comparison": "track_refinement",
+          "complete": true,
+          "energy_kevnr": 1000.0,
+          "fine_energy_samples": 4000,
+          "fine_exyz_steps_ev": [
+            250.0
+          ],
+          "interpretation": "Sampled primary polyline only; equal increments at the 1 eV floor provide no refinement test",
+          "n_paired_batches": 3,
+          "paired_qf_difference": -0.0008086169554819556,
+          "paired_qf_difference_over_sem": -0.4116236517190301,
+          "paired_qf_difference_sem": 0.0019644569793426468,
+          "paired_qf_relative_change": -0.0008678012946927531,
+          "paired_relative_path_change_mean": -0.0009778141343459816,
+          "paired_relative_path_change_sem": 0.0020647256743325636,
+          "path_change_absolute_plus_two_sem": 0.005107265483011109,
+          "same_actual_exyz_increment": false,
+          "sampled_polyline_convergence_resolved": true,
+          "species": "O",
+          "total_cascade_trajectory_length_mm": null
+        }
+      ],
+      "criterion": "abs(mean paired fractional path change)+2*SEM <= 0.03 with a distinct smaller EXYZ increment",
+      "interpretation": "All 1keV comparisons hit the same 1eV floor and provide no refinement test. At 100keV C and O do not meet the 3% diagnostic; all five pass at 1000keV. Sampled primary polylines remain lower bounds; actual primary and full-cascade path lengths are unknown."
+    }
+  },
+  "input_hashes": {
+    "exports/cygno_mc_20261016_completed/qf_source_direct.csv": "9eabe88041525fdac8c13473ba419993fcfadbcfd8bc8b1fdab3a350f9a006ff",
+    "exports/cygno_mc_20261016_completed/qualification/final_review.json": "f28d4c116d3d674f052195d0dd736d51a3f47f15103d2dd1c37aa1004c10c762",
+    "exports/cygno_mc_20261016_completed/response_models.json": "4cab216fd1716c6846cec0ef8dd773b17b54dc98e7ae31c2238228487a4bdd6c",
+    "runs/cygno_hecf4_900mbar_20261015/systematics.json": "5013953ef406bfa9799480f944aa3a8e7a972b1b0d98fe27a88bef3022dac551"
+  },
+  "new_simulations_run": false,
+  "plotted_species": [
+    "H1",
+    "He4",
+    "C12",
+    "O16",
+    "F19"
+  ],
+  "reliability": "Reproducible nominal electronic-energy prediction; not best-possible, low-energy-cutoff-converged, derivative-qualified or charge-calibrated.",
+  "same_form_matched_domain_diagnostic": {
+    "C12": {
+      "diagnostic_chi2_per_dof": 2.9032336882602934,
+      "energy_range_fitted_keV": [
+        1.0,
+        444.65658
+      ],
+      "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.008550484240071765,
+      "maximum_abs_residual_pull": 3.443776959109264,
+      "n_points": 20,
+      "parameters_k_a_b": [
+        0.02083927534672692,
+        14.875537079231412,
+        0.30452742763295093
+      ],
+      "requested_fit_interval_keV": [
+        1,
+        500
+      ]
+    },
+    "F19": {
+      "diagnostic_chi2_per_dof": 2.582991312937806,
+      "energy_range_fitted_keV": [
+        1.0,
+        444.65658
+      ],
+      "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.007687826666287867,
+      "maximum_abs_residual_pull": 4.093812676553779,
+      "n_points": 21,
+      "parameters_k_a_b": [
+        0.009211134393918527,
+        26.83275060379861,
+        0.2627957944134416
+      ],
+      "requested_fit_interval_keV": [
+        1,
+        500
+      ]
+    },
+    "He4": {
+      "diagnostic_chi2_per_dof": 2.9601228100136527,
+      "energy_range_fitted_keV": [
+        1.0,
+        444.65658
+      ],
+      "interpretation": "Same thesis form refitted to new points in1\u2013500keV; model diagnostic only; no detector/physical validation",
+      "max_abs_derivative_change_vs_spline_in_fit_interval": 0.015934693577704273,
+      "maximum_abs_residual_pull": 2.9593689570339805,
+      "n_points": 20,
+      "parameters_k_a_b": [
+        0.1444604860993102,
+        3.5940931004557903,
+        0.35904473421248734
+      ],
+      "requested_fit_interval_keV": [
+        1,
+        500
+      ]
+    }
+  },
+  "script_sha256": "73777ea4558c4d628e542e6979e0df5a52212d704ad63bd6a01ef1a5fb9fbb77",
+  "source_review_sha256": "d668f5b0b356f5735b955000ccff306e36040466ac3667c15c880376da77979a",
+  "thesis": {
+    "QF_equations": {
+      "equations": [
+        "4.9",
+        "4.10",
+        "4.11"
+      ],
+      "pdf_pages": [
+        136,
+        137,
+        138
+      ],
+      "printed_pages": [
+        127,
+        128,
+        129
+      ]
+    },
+    "derivative": {
+      "equation": "4.17",
+      "pdf_pages": [
+        140,
+        141
+      ],
+      "printed_pages": [
+        131,
+        132
+      ]
+    },
+    "fit_table": {
+      "fit_domain_keV": [
+        1,
+        500
+      ],
+      "ions_per_energy": 100,
+      "n_energies": 23,
+      "pdf_page": 139,
+      "printed_page": 130
+    },
+    "legacy_parameter_covariance_available": false,
+    "parameters_k_a_b": {
+      "C12": [
+        0.0195,
+        14.7,
+        0.33
+      ],
+      "F19": [
+        0.0083,
+        27.4,
+        0.303
+      ],
+      "H1": [
+        0.65,
+        1.82,
+        0.48
+      ],
+      "He4": [
+        0.117,
+        3.9,
+        0.44
+      ]
+    },
+    "reference": "Flaminia Di Giambattista, Background study of the LIME prototype at underground LNGS for the CYGNO experiment, PhD thesis, 1 March2024, Sec.4.1.2.1",
+    "sha256": "52913ad38cab7fe3d91f313f80619c7276c7ad30d406ad7691e5213ca6a8d67f",
+    "threshold_statement": {
+      "pdf_page": 144,
+      "printed_page": 135
+    }
+  }
+}

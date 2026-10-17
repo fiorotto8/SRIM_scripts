@@ -1,0 +1,243 @@
+{
+  "schema": "CYGNO-MC-SRIM-comparison-v1",
+  "export_date": "2026-10-16",
+  "provenance": {
+    "branch": "g4v11.3_cygno04",
+    "HEAD": "1d6f399d44f01926d0c93d4f4f8f0df4ac1b7b42",
+    "basis": "Current working-tree source and five macros, including the uncommitted 900 mbar / 293.15 K material correction. No new detector initialization or simulation performed for this export.",
+    "sha256": {
+      "src/CYGNODetectorMaterial.cc": "a4587573629a44d45a233652057ef90e82fa2841b9180eb5d4c43ec508b102cb",
+      "src/CYGNOPhysicsList.cc": "be4a4a60459a465c326c39f6caeb2bb56794995cf4cbf58fb8dca994929a450d",
+      "src/CYGNOHit.cc": "fcee77bdc3f75faf6a7e11e25225ef2b82991c81bfead2d3f2c3fffe663dc8c7",
+      "src/CYGNOEventAction.cc": "1e1025817b7b13360395d5620b78c44315c82dbccb2a5a4096473ecb83746993",
+      "src/CYGNOSensitiveDetector.cc": "f0e63f2c8c5f773aaa0a5c73bf1ef2f717d860c77b75d1f2a54a8991c6c18540",
+      "src/CYGNORunAction.cc": "5a1f633745b651508214c2f2845bc6e04507b6f09cb9ccba0749878183f10f09",
+      "CYGNO.cc": "c6499901fea4759a3a413699e0088cb17e4db9da29ea5da87d1b57dbd4552d7e",
+      "tests/nuclear_recoils/C12.mac": "ff73c063a0a6ce78df4267adf70e48d410b26af5eca33ed2337863428376316d",
+      "tests/nuclear_recoils/F19.mac": "60bd045bef1fa1b6e6e37c123821c0703179acb82580264c815d932b75f223fc",
+      "tests/nuclear_recoils/H1.mac": "2503b4e6b1f826b7f7746b3b568794535b8770f6c559ad93e041ad940ca58e9a",
+      "tests/nuclear_recoils/He4.mac": "79e5568a468ca8024fcd3a965a8991a38b054589745d7dffaf0dac02dee4bb64",
+      "tests/nuclear_recoils/O16.mac": "5d17fd22b626deb7126b499bbe304aaed65465cb7811816ae3abb1c3b05883da"
+    }
+  },
+  "target": {
+    "name": "CYGNO_gas",
+    "state": "gas",
+    "molar_fractions": {
+      "He": 0.6,
+      "CF4": 0.4
+    },
+    "pressure_Pa": 90000.0,
+    "pressure_mbar": 900.0,
+    "temperature_K": 293.15,
+    "temperature_C": 20.0,
+    "density_g_cm3": 0.0013884959507410994,
+    "density_g_m3": 1388.4959507410993,
+    "partial_density_g_cm3": {
+      "He": 8.867812214067407e-05,
+      "CF4": 0.0012998178286004252
+    },
+    "density_model": "Ideal gas: rho = P * (x_He*M_He + x_CF4*(M_C+4*M_F)) / (Avogadro*k_Boltzmann*T). Molar masses come from Geant4 NIST elements at runtime.",
+    "reference_element_molar_masses_g_mol": {
+      "He": 4.002642585085739,
+      "C": 12.01073638,
+      "F": 18.9984
+    },
+    "mass_reference": "Values previously queried from local Geant4 11.4.0 G4NistManager; natural-element abundances.",
+    "SRIM_element_atomic_fractions": {
+      "He": 0.23076923076923075,
+      "C": 0.15384615384615385,
+      "F": 0.6153846153846154
+    },
+    "element_mass_fractions": {
+      "He": 0.06386631671006515,
+      "C": 0.1277625097686558,
+      "F": 0.8083711735212793
+    },
+    "note": "Use elemental atomic fractions, not the 60/40 molecular fractions, when supplying elemental target stoichiometry."
+  },
+  "primaries": {
+    "ions": [
+      {
+        "species": "H1",
+        "Z": 1,
+        "A": 1,
+        "PDG": 2212,
+        "events": 1000000,
+        "random_seeds": [
+          58311653,
+          303648753
+        ]
+      },
+      {
+        "species": "He4",
+        "Z": 2,
+        "A": 4,
+        "PDG": 1000020040,
+        "events": 1000000,
+        "random_seeds": [
+          112983958,
+          666898466
+        ]
+      },
+      {
+        "species": "C12",
+        "Z": 6,
+        "A": 12,
+        "PDG": 1000060120,
+        "events": 1000000,
+        "random_seeds": [
+          58959118,
+          807154841
+        ]
+      },
+      {
+        "species": "O16",
+        "Z": 8,
+        "A": 16,
+        "PDG": 1000080160,
+        "events": 1000000,
+        "random_seeds": [
+          14899487,
+          865756336
+        ]
+      },
+      {
+        "species": "F19",
+        "Z": 9,
+        "A": 19,
+        "PDG": 1000090190,
+        "events": 1000000,
+        "random_seeds": [
+          245636896,
+          230908982
+        ]
+      }
+    ],
+    "energy_unit": "keV per ion (total kinetic energy, NOT keV/u)",
+    "energy_min_keV": 0.25,
+    "energy_max_keV": 1000,
+    "sampling": "GPS Pow, alpha=-1: random log-uniform",
+    "position_mm": [
+      0,
+      0,
+      245
+    ],
+    "direction": [
+      0,
+      0,
+      1
+    ],
+    "jobs": 5,
+    "workers_per_job": 1,
+    "CPUs_per_job": 1
+  },
+  "physics": {
+    "electromagnetic": "G4EmStandardPhysics_option4",
+    "hadronic": "G4HadronElasticPhysicsHP + G4HadronPhysicsShielding, default variant",
+    "other_registered": [
+      "G4DecayPhysics",
+      "G4RadioactiveDecayPhysics",
+      "G4EmExtraPhysics",
+      "G4StepLimiterPhysics"
+    ],
+    "production_range_cuts_mm": {
+      "gamma": 0.001,
+      "electron": 0.001,
+      "positron": 0.001
+    },
+    "fluorescence": true,
+    "PIXE": true,
+    "Auger": true,
+    "optical_processes_enabled": false,
+    "custom_max_step": "DBL_MAX; no finite maximum set by these macros",
+    "library_reference_version": "Geant4 11.4.0; launcher defaults to $HOME/geant4/11.4.0. Branch name is not a version guarantee.",
+    "library_source_defaults_not_a_runtime_dump": {
+      "EM_table_minimum_keV": 0.1,
+      "lowest_electron_energy_keV": 0.1,
+      "lowest_muon_hadron_energy_keV": 1.0,
+      "max_NIEL_energy_MeV": 1.0,
+      "energy_loss_step_function_fraction_and_final_range_um": {
+        "electron": [
+          0.2,
+          10
+        ],
+        "muon_hadron": [
+          0.1,
+          50
+        ],
+        "light_ion": [
+          0.1,
+          20
+        ],
+        "ion": [
+          0.1,
+          1
+        ]
+      }
+    },
+    "comparison_limitations": [
+      "Sub-keV transport and the previously observed raw-energy excess require validation with the corrected gas.",
+      "Production range cuts and tracking energy thresholds are distinct quantities."
+    ]
+  },
+  "existing_QF": {
+    "energy_argument": "Hit pre-step kinetic energy in keV",
+    "f": "k*(E+a*E^b)",
+    "QF": "f/(1+f)",
+    "R": "E*QF(E)",
+    "dRdE": "QF(E)+E*dQF(E)/dE",
+    "coefficients": {
+      "He4": {
+        "k": 0.117,
+        "a": 3.9,
+        "b": 0.44
+      },
+      "C12": {
+        "k": 0.0195,
+        "a": 14.7,
+        "b": 0.33
+      },
+      "F19": {
+        "k": 0.0083,
+        "a": 27.4,
+        "b": 0.303
+      }
+    },
+    "hit_rule": "For NR-selected hits: multiply raw deposit by QF(E) at E<=1 keV; by dRdE(E) at E>1 keV.",
+    "NR_selection": "PDG > 1000000000",
+    "H1": "Protons excluded from NR fields; total-energy branches retain raw proton deposits. Future integration must change this selection.",
+    "O16": "NR selected but no fitted QF; current multiplier is unity.",
+    "table_loader_exists": false
+  },
+  "ROOT_comparison": {
+    "source_energy": "tree1/Energy in MeV; multiply by 1000 for keV",
+    "deposited_energy_units": "keV",
+    "Geant4_total_ratio": "nTuple/energyDep_QF_geant / E0_keV",
+    "custom_total_ratio": "nTuple/energyDep_QF / E0_keV",
+    "Geant4_NR_ratio": "nTuple/energyDep_NRQF_geant / E0_keV",
+    "custom_NR_ratio": "nTuple/energyDep_NRQF / E0_keV",
+    "Geant4_hit_definition": "total energy deposit minus non-ionizing deposit for NR-selected hits; total event branch adds raw non-NR deposits.",
+    "raw_denominator_note": "Dividing by energyDep_NR instead of initial energy defines a different diagnostic ratio.",
+    "interpretation": "Simulation-derived electronic-energy fractions, not calibrated detector charge/light yields."
+  },
+  "requested_SRIM_export": {
+    "CSV_columns": [
+      "species",
+      "Z",
+      "A",
+      "energy_keV",
+      "QF",
+      "QF_sem",
+      "n_ions",
+      "run_id",
+      "is_direct"
+    ],
+    "QF_definition": "Total electronic/ionization energy from the primary plus recoil cascade, divided by initial projectile energy. Specify the SRIM outputs/integrals used.",
+    "additional_energy_accounting": "Preserve primary and recoil electronic contributions separately, uncertainty, escape/backscatter and non-overlapping energy balance where available.",
+    "methods": "Label direct full-cascade TRIM, interpolated/density-scaled rows and SRModule stopping-power ratio proxies separately.",
+    "fit": "Provide smooth QF(E) and d[E*QF(E)]/dE with fit/interpolation method, uncertainty and explicit boundary behavior. Preserve raw points; do not silently clip or extrapolate.",
+    "coverage": "0.25-1000 keV per ion. Hits can reach lower energies; state the below-grid policy. Report missing species/energies rather than inventing data.",
+    "integration": "Proposed interchange format; this repository has no CSV QF loader yet."
+  }
+}

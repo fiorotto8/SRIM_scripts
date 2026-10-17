@@ -1,5 +1,10 @@
 # CYGNO-MC interchange from existing full-cascade SRIM results
 
+The canonical completed result is now
+[studies/cygno_qf_900mbar](../studies/cygno_qf_900mbar/README.md), with all-five-ion
+tables, thesis comparisons and a portable frozen replay. Older local
+`exports/` and draft recap folders have been consolidated into that publication.
+
 Run `scripts/export_cygno_mc.py` in the existing WSL analysis environment with
 NumPy, SciPy and Matplotlib. This is postprocessing only. It does not launch
 SRIM, touch a stop marker or lock, alter the installation, or regenerate the
@@ -8,7 +13,8 @@ running campaign's tables. Use a new export directory outside the study tree:
 ```bash
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n 15 python3 scripts/export_cygno_mc.py \
   --study-dir runs/cygno_hecf4_900mbar_20261015 \
-  --config geant4_config.json --out exports/cygno_mc_20261016_final
+  --config studies/cygno_qf_900mbar/frozen/snapshot/geant4_config.json \
+  --out exports/new_export
 ```
 
 The supplied local `geant4_config.json` is copied byte-for-byte into the export.
@@ -55,7 +61,7 @@ and reproduction tools without changing the MC physics source. For example:
 ```bash
 python3 scripts/package_cygno_mc.py \
   --study runs/cygno_hecf4_900mbar_20261015 \
-  --export exports/cygno_mc_20261016_completed \
+  --export studies/cygno_qf_900mbar/frozen \
   --mc-root /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC \
   --out /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC/tests/nuclear_recoils/srim_results_NEW
 ```

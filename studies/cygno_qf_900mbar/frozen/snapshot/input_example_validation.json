@@ -1,0 +1,32 @@
+[
+  {
+    "batch_id": "cygno-00032ad7c273c580aa51",
+    "requested_gas_phase": 1,
+    "sha256": "5ab061762542248d183ddeb359ba8a5cee1a7f97cbf8a684a1b479c6abc0a655",
+    "species": "H1"
+  },
+  {
+    "batch_id": "cygno-0010b66ab590851482f6",
+    "requested_gas_phase": 1,
+    "sha256": "c146711b2f64b191492558eb81fc3ce8227784d1aad5ab78201ce3a1e02930e0",
+    "species": "He4"
+  },
+  {
+    "batch_id": "cygno-00dc5df8fcc62e2386c7",
+    "requested_gas_phase": 1,
+    "sha256": "85a72a61b33d56883acd09829feaaab7adfc6c4154ca6027544e99786f26ceab",
+    "species": "C12"
+  },
+  {
+    "batch_id": "cygno-00b8c8012584461a247d",
+    "requested_gas_phase": 1,
+    "sha256": "2a80206bb5947e552f98be26c31078f2fef3e95290c7a00f4588f59d4d777f91",
+    "species": "O16"
+  },
+  {
+    "batch_id": "cygno-029aa5a743d81a54dc88",
+    "requested_gas_phase": 1,
+    "sha256": "2be4fc9886e2037607f324cc2c1e4affec1dee3ff5f807729ba872b4a8f5c871",
+    "species": "F19"
+  }
+]

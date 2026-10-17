@@ -1,0 +1,111 @@
+{
+  "CYGNO_MC_HEAD": "1246b920100c1564387482342a1c479a24f91d97",
+  "checks_passed": [
+    "All12 configuration source/macro SHA256 values match live checkout",
+    "Complete live C++ QF and dRdE functions agree with extracted Python algebra",
+    "Both full d[E*QF]/dE derivatives independently checked by finite differences at121energies/species"
+  ],
+  "comparison_script_sha256": "7d10377db72ae77dcd4dfaaa2114aff74b5c21ee2b9b85cb59ba7f03dd41bc86",
+  "config_source_HEAD": "1d6f399d44f01926d0c93d4f4f8f0df4ac1b7b42",
+  "config_source_matches_current_bytes": true,
+  "cpp_verification": {
+    "compiled_source_cases": 132,
+    "compiler": "/usr/bin/g++",
+    "compiler_version": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+  },
+  "created_UTC": "2026-10-16T16:09:54.971379+00:00",
+  "finite_difference_checks": {
+    "C12": {
+      "cases": 121,
+      "current_max_absolute_error": 1.2168932528311416e-11,
+      "trim_max_absolute_error": 1.7314705225146554e-11
+    },
+    "F19": {
+      "cases": 121,
+      "current_max_absolute_error": 1.86124449186309e-11,
+      "trim_max_absolute_error": 2.6023960764121057e-11
+    },
+    "H1": {
+      "cases": 121,
+      "current_max_absolute_error": 9.670708678299889e-12,
+      "trim_max_absolute_error": 2.3545498883947857e-11
+    },
+    "He4": {
+      "cases": 121,
+      "current_max_absolute_error": 1.643629676806313e-11,
+      "trim_max_absolute_error": 1.7801982110654535e-11
+    },
+    "O16": {
+      "cases": 121,
+      "current_max_absolute_error": 9.670708678299889e-12,
+      "trim_max_absolute_error": 2.6131097285997384e-11
+    }
+  },
+  "input_sha256": {
+    "export_cygno_mc.py": "a6f2d9532ecc1f707fc73892d243a78d5185967e56f4a8de956659c9a2d73eb8",
+    "qf_source_direct.csv": "9eabe88041525fdac8c13473ba419993fcfadbcfd8bc8b1fdab3a350f9a006ff",
+    "response_models.json": "4cab216fd1716c6846cec0ef8dd773b17b54dc98e7ae31c2238228487a4bdd6c",
+    "snapshot/geant4_config.json": "dca9a9c8cb0a954f63766515c811550d97d2b8e905f04e6aed3c4d5d804b1747"
+  },
+  "local_path_redaction": "Machine-local checkout location omitted; source and input SHA256 values retained",
+  "original_reference_sha256": "7ee647418e3cc9fe42bdff9701eee082b275f9fc5577c13ce428c0cd5f4428be",
+  "parameters_extracted_from_live_source": {
+    "C12": {
+      "a": 14.7,
+      "b": 0.33,
+      "k": 0.0195
+    },
+    "F19": {
+      "a": 27.4,
+      "b": 0.303,
+      "k": 0.0083
+    },
+    "He4": {
+      "a": 3.9,
+      "b": 0.44,
+      "k": 0.117
+    }
+  },
+  "scope": "Formula comparison only; no Geant4 events or detector calibration. H/O unity reflects code behavior. Legacy fit uncertainties are unavailable. TRIM curves/bands are derived fit and conditional MC SEM, not exact-target direct simulations or physical-model errors.",
+  "summary": {
+    "C12": {
+      "current_behavior": "analytic_fit",
+      "energy_keV_at_max": 0.25,
+      "max_absolute_QF_difference": 0.027181876287952544
+    },
+    "F19": {
+      "current_behavior": "analytic_fit",
+      "energy_keV_at_max": 0.9722486129824278,
+      "max_absolute_QF_difference": 0.013228026905199808
+    },
+    "H1": {
+      "current_behavior": "proton_excluded_NR_raw_deposits",
+      "energy_keV_at_max": 0.25,
+      "max_absolute_QF_difference": 0.450904390649407
+    },
+    "He4": {
+      "current_behavior": "analytic_fit",
+      "energy_keV_at_max": 0.25,
+      "max_absolute_QF_difference": 0.05900686668704083
+    },
+    "O16": {
+      "current_behavior": "oxygen_unity_fallback",
+      "energy_keV_at_max": 0.25,
+      "max_absolute_QF_difference": 0.8342310599079661
+    }
+  },
+  "verified_MC_source_sha256": {
+    "CYGNO.cc": "c6499901fea4759a3a413699e0088cb17e4db9da29ea5da87d1b57dbd4552d7e",
+    "src/CYGNODetectorMaterial.cc": "a4587573629a44d45a233652057ef90e82fa2841b9180eb5d4c43ec508b102cb",
+    "src/CYGNOEventAction.cc": "1e1025817b7b13360395d5620b78c44315c82dbccb2a5a4096473ecb83746993",
+    "src/CYGNOHit.cc": "fcee77bdc3f75faf6a7e11e25225ef2b82991c81bfead2d3f2c3fffe663dc8c7",
+    "src/CYGNOPhysicsList.cc": "be4a4a60459a465c326c39f6caeb2bb56794995cf4cbf58fb8dca994929a450d",
+    "src/CYGNORunAction.cc": "5a1f633745b651508214c2f2845bc6e04507b6f09cb9ccba0749878183f10f09",
+    "src/CYGNOSensitiveDetector.cc": "f0e63f2c8c5f773aaa0a5c73bf1ef2f717d860c77b75d1f2a54a8991c6c18540",
+    "tests/nuclear_recoils/C12.mac": "ff73c063a0a6ce78df4267adf70e48d410b26af5eca33ed2337863428376316d",
+    "tests/nuclear_recoils/F19.mac": "60bd045bef1fa1b6e6e37c123821c0703179acb82580264c815d932b75f223fc",
+    "tests/nuclear_recoils/H1.mac": "2503b4e6b1f826b7f7746b3b568794535b8770f6c559ad93e041ad940ca58e9a",
+    "tests/nuclear_recoils/He4.mac": "79e5568a468ca8024fcd3a965a8991a38b054589745d7dffaf0dac02dee4bb64",
+    "tests/nuclear_recoils/O16.mac": "5d17fd22b626deb7126b499bbe304aaed65465cb7811816ae3abb1c3b05883da"
+  }
+}

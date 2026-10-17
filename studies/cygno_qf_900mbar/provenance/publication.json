@@ -1,0 +1,35 @@
+{
+  "assembled_at_UTC": "2026-10-17T16:38:31.664310+00:00",
+  "campaign": "cygno_hecf4_900mbar_20261015",
+  "canonical_publication_directory": "studies/cygno_qf_900mbar",
+  "offline_analysis_python": "3.12.3",
+  "original_validation_status": "finished_with_unresolved_validation",
+  "path_metadata": "Machine-local MC/thesis locations redacted from comparison metadata; historical SRIM source paths in frozen capture are provenance only and not replay dependencies",
+  "physical_charge_calibrated": false,
+  "raw_archives": "Local ignored runs/cygno_hecf4_900mbar_20261015/raw/; raw member hashes retained in frozen batch snapshot and final validation",
+  "schema": "CYGNO-QF-publication-v1",
+  "simulation_execution": "native Windows SRIM2013/TRIM mode5",
+  "simulations_complete": true,
+  "source_repository_commit": "d854d91d5d55674db3ab942ce2572a9d59ce5927",
+  "source_repository_file_sha256": {
+    "configs/cygno_hecf4_900mbar.toml": "40902ce57767894ede43b4d2f19c3c57115faf7cc267d12ddbd4f92d50e6b1c8",
+    "scripts/cygno_native_run.py": "968dccbda8a76d7f994667ffa0d00205369c0e96c8f99be19e67f27b8151c095",
+    "scripts/cygno_study.py": "18bbbbe349fa658443dc00f20baae26668a767a5e805232d42672e9cb92700a6",
+    "scripts/cygno_study_adaptive.py": "e03a6c5124d5bfeb33e609e9f2214261cc81e7216b63f17c7aef295292c11c7f",
+    "scripts/cygno_study_physics.py": "d5a63ddd69f5ded6c5a9af512c5f232299e3ce52e6e13d909646ae7e37e7b5e4",
+    "scripts/cygno_study_validation.py": "9548c02ecf9bef8627f0718c3fdf32fa6c5bf7a62b722e674d941ff7e6957092",
+    "scripts/export_cygno_mc.py": "a6f2d9532ecc1f707fc73892d243a78d5185967e56f4a8de956659c9a2d73eb8",
+    "scripts/start_cygno_study.ps1": "d3943843f25ae40e552893c7df086a209770ee09e8d9ff14ab43440af94f67e3",
+    "scripts/validate_cygno_mc_export.py": "58ea462eab3c1b34fda8d0cf52ce6c2ed6942f36b98286f1374d13c3ec59b45d",
+    "srim_gas_sweep.py": "661ad0cbc59ba342d8572bcac5218fe98a870c9e73951405e0177b276e6b4902",
+    "srim_scan.py": "66dfa2fba524f5e4e38027f6401f00f274ec23ca03b2ca357f86370fb65d083a",
+    "trim_qf_sweep.py": "5646daacddb11dffe7cbc474d6cb47803474b63096bdf907ca60192a5ffe28ef"
+  },
+  "source_selection": {
+    "batches": 852,
+    "direct_domain_points": 142,
+    "ions": 85200,
+    "smooth_rows_per_species": 401
+  },
+  "third_party_materials": "No SRIM binaries/databases or full thesis PDF included; source citation, equation/parameter transcription and hashes retained"
+}

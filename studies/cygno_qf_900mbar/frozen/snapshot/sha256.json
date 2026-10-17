@@ -1,0 +1,14 @@
+{
+  "batches.jsonl": "30e8283fc3a0541169b1cde351b0a668dd181a15b0926de5ba7a7b36c7cc9b32",
+  "capture.json": "5166b431a9e30588756a4038dd499125b6032b23e62d0508892d0ecc927896aa",
+  "geant4_config.json": "dca9a9c8cb0a954f63766515c811550d97d2b8e905f04e6aed3c4d5d804b1747",
+  "input_example_validation.json": "799be21731532ea79575388b1eb538032a78be73dfc234f2ce25d5389cc08755",
+  "input_examples/C12_TRIM.IN": "85a72a61b33d56883acd09829feaaab7adfc6c4154ca6027544e99786f26ceab",
+  "input_examples/F19_TRIM.IN": "2be4fc9886e2037607f324cc2c1e4affec1dee3ff5f807729ba872b4a8f5c871",
+  "input_examples/H1_TRIM.IN": "5ab061762542248d183ddeb359ba8a5cee1a7f97cbf8a684a1b479c6abc0a655",
+  "input_examples/He4_TRIM.IN": "c146711b2f64b191492558eb81fc3ce8227784d1aad5ab78201ce3a1e02930e0",
+  "input_examples/O16_TRIM.IN": "2a80206bb5947e552f98be26c31078f2fef3e95290c7a00f4588f59d4d777f91",
+  "source_installation.json": "f90b29f25ce2a54e0272febe117152601bfa7c4c203c2b52a12988b7e7b11f70",
+  "source_metadata.json": "f193a53e79ca879352c69e736fde005d4f612371e4d0a764e17cc06b5bc91493",
+  "srmodule.csv": "02ad5fe9dc63aca8dc2fcade799fa3b463532d881a75f84905163cfa323a1b2d"
+}

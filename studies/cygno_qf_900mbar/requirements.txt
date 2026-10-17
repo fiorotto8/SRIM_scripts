@@ -1,0 +1,5 @@
+# Frozen analysis versions; fresh pip installations should use Python3.11.
+# Verified existing environment: Python3.12.3 (fresh dependency install untested).
+numpy==1.26.4
+scipy==1.11.4
+matplotlib==3.6.3

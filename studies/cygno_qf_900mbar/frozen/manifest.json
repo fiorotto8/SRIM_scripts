@@ -1,0 +1,229 @@
+{
+  "boundary_policy": "Outside0.25\u20131000keV per ion unsupported; evaluator raises. Exact-target direct coverage is missing throughout. No silent extrapolation/clipping.",
+  "condition_match": false,
+  "coverage": [
+    {
+      "derivative_max": 1.0000017832429346,
+      "derivative_min": 0.6776597418683168,
+      "derived_interpolation_supported_keV": [
+        0.25,
+        1000
+      ],
+      "differential_exceeds_unity": true,
+      "direct_at_0_25_keV": false,
+      "direct_at_1000_keV": true,
+      "direct_source_points_in_requested_domain": 30,
+      "exact_target_direct_coverage": [],
+      "missing_exact_target_direct_interval_keV": [
+        0.25,
+        1000
+      ],
+      "raw_energy_budget_flags": [
+        {
+          "energy_keV": 0.31438218,
+          "max_abs_residual_fraction": 0.012134789619191056
+        },
+        {
+          "energy_keV": 0.31622777,
+          "max_abs_residual_fraction": 0.011722639706842836
+        }
+      ],
+      "source_direct_max_keV": 3000.0,
+      "source_direct_min_keV": 0.1,
+      "species": "H1"
+    },
+    {
+      "derivative_max": 1.0036239237850508,
+      "derivative_min": 0.3338574069536653,
+      "derived_interpolation_supported_keV": [
+        0.25,
+        1000
+      ],
+      "differential_exceeds_unity": true,
+      "direct_at_0_25_keV": false,
+      "direct_at_1000_keV": true,
+      "direct_source_points_in_requested_domain": 28,
+      "exact_target_direct_coverage": [],
+      "missing_exact_target_direct_interval_keV": [
+        0.25,
+        1000
+      ],
+      "raw_energy_budget_flags": [],
+      "source_direct_max_keV": 3000.0,
+      "source_direct_min_keV": 0.1,
+      "species": "He4"
+    },
+    {
+      "derivative_max": 1.0071382505600508,
+      "derivative_min": 0.2291881672246576,
+      "derived_interpolation_supported_keV": [
+        0.25,
+        1000
+      ],
+      "differential_exceeds_unity": true,
+      "direct_at_0_25_keV": false,
+      "direct_at_1000_keV": true,
+      "direct_source_points_in_requested_domain": 28,
+      "exact_target_direct_coverage": [],
+      "missing_exact_target_direct_interval_keV": [
+        0.25,
+        1000
+      ],
+      "raw_energy_budget_flags": [],
+      "source_direct_max_keV": 3000.0,
+      "source_direct_min_keV": 0.1,
+      "species": "C12"
+    },
+    {
+      "derivative_max": 0.9881172804763854,
+      "derivative_min": 0.2058339848924424,
+      "derived_interpolation_supported_keV": [
+        0.25,
+        1000
+      ],
+      "differential_exceeds_unity": false,
+      "direct_at_0_25_keV": false,
+      "direct_at_1000_keV": true,
+      "direct_source_points_in_requested_domain": 28,
+      "exact_target_direct_coverage": [],
+      "missing_exact_target_direct_interval_keV": [
+        0.25,
+        1000
+      ],
+      "raw_energy_budget_flags": [],
+      "source_direct_max_keV": 3000.0,
+      "source_direct_min_keV": 0.1,
+      "species": "O16"
+    },
+    {
+      "derivative_max": 0.9817910716782356,
+      "derivative_min": 0.18872650291449322,
+      "derived_interpolation_supported_keV": [
+        0.25,
+        1000
+      ],
+      "differential_exceeds_unity": false,
+      "direct_at_0_25_keV": false,
+      "direct_at_1000_keV": true,
+      "direct_source_points_in_requested_domain": 28,
+      "exact_target_direct_coverage": [],
+      "missing_exact_target_direct_interval_keV": [
+        0.25,
+        1000
+      ],
+      "raw_energy_budget_flags": [],
+      "source_direct_max_keV": 3000.0,
+      "source_direct_min_keV": 0.1,
+      "species": "F19"
+    }
+  ],
+  "density_target_over_source": 0.9994968249055027,
+  "environment": {
+    "numpy": "1.26.4",
+    "scipy": "1.11.4"
+  },
+  "event_abundance": "Source counts are SRIM simulated histories, not Geant4 events or physical H/O abundances",
+  "exporter_sha256": "a6f2d9532ecc1f707fc73892d243a78d5185967e56f4a8de956659c9a2d73eb8",
+  "method_labels": {
+    "qf_source_direct.csv": "direct full-cascade aggregate at original293K gas conditions",
+    "qf_target_smooth.csv": "derived constrained smooth regression; n_ions=0 means no new events at evaluation energies",
+    "qf_target_transferred.csv": "derived density/temperature transfer, QF unchanged, original source history counts",
+    "stopping_power_proxies.csv": "deterministic stopping ratio diagnostic, never used in QF fits"
+  },
+  "nominal_source_ions": 85200,
+  "schema": "CYGNO-MC-SRIM-export-v1",
+  "snapshot_sha256": "63dd429f577a19c16409bf82ff072c4917f4373af3fa1b0ae6f0fa3066def056",
+  "source_batch_count": 852,
+  "source_gas": {
+    "atomic_fractions": {
+      "C": 0.15384615384615385,
+      "F": 0.6153846153846154,
+      "He": 0.23076923076923075
+    },
+    "density_g_cm3": 0.0013891949590458925,
+    "element_counts_per_molecule": {
+      "C": 0.4,
+      "F": 1.6,
+      "He": 0.6
+    },
+    "mass_fractions": {
+      "C": 0.12776640161689226,
+      "F": 0.8083610350238013,
+      "He": 0.06387256335930644
+    },
+    "medium": "baseline",
+    "molecular_fractions": {
+      "CF4": 0.4,
+      "He": 0.6
+    },
+    "molecular_weight_g_mol": 37.603,
+    "pressure_mbar": 900.0,
+    "target_mass_source": "Installed Data/ATOMDATA natural elemental masses",
+    "temperature_k": 293.0
+  },
+  "source_simulation_settings": {
+    "backend": "native-windows",
+    "cascade_type": 5,
+    "compound_correction": 1.0,
+    "displacement_energy_ev": 21.0,
+    "exyz_energy_samples": 1000,
+    "geometry": "Bulk source at midpoint of thick homogeneous gas; full cascades from TRIM.DAT",
+    "independent_batches": 3,
+    "ions_per_batch": 100,
+    "lattice_binding_energy_ev": 1e-06,
+    "maximum_batches": 30,
+    "maximum_secondary_recoils": 2000000,
+    "random_seed_base": 20261015,
+    "srmodule_timeout_s": 90,
+    "surface_binding_energy_ev": 1e-06,
+    "target_sigma_margin": 6.0,
+    "target_width_factor": 8.0,
+    "trim_timeout_s": 7200,
+    "workers": 4
+  },
+  "source_study": "cygno_hecf4_900mbar_20261015",
+  "target": {
+    "SRIM_element_atomic_fractions": {
+      "C": 0.15384615384615385,
+      "F": 0.6153846153846154,
+      "He": 0.23076923076923075
+    },
+    "density_g_cm3": 0.0013884959507410994,
+    "density_g_m3": 1388.4959507410993,
+    "density_model": "Ideal gas: rho = P * (x_He*M_He + x_CF4*(M_C+4*M_F)) / (Avogadro*k_Boltzmann*T). Molar masses come from Geant4 NIST elements at runtime.",
+    "element_mass_fractions": {
+      "C": 0.1277625097686558,
+      "F": 0.8083711735212793,
+      "He": 0.06386631671006515
+    },
+    "mass_reference": "Values previously queried from local Geant4 11.4.0 G4NistManager; natural-element abundances.",
+    "molar_fractions": {
+      "CF4": 0.4,
+      "He": 0.6
+    },
+    "name": "CYGNO_gas",
+    "note": "Use elemental atomic fractions, not the 60/40 molecular fractions, when supplying elemental target stoichiometry.",
+    "partial_density_g_cm3": {
+      "CF4": 0.0012998178286004252,
+      "He": 8.867812214067407e-05
+    },
+    "pressure_Pa": 90000.0,
+    "pressure_mbar": 900.0,
+    "reference_element_molar_masses_g_mol": {
+      "C": 12.01073638,
+      "F": 18.9984,
+      "He": 4.002642585085739
+    },
+    "state": "gas",
+    "temperature_C": 20.0,
+    "temperature_K": 293.15
+  },
+  "target_transfer": "QF and channel energies reused unchanged under dilute homogeneous-gas density/temperature invariance approximation. No exact-target simulations or validation of that transfer were performed. Source and Geant4 natural target masses also differ slightly.",
+  "uncertainty_not_quantified": [
+    "density/temperature and natural-target-mass transfer",
+    "SRIM physical model",
+    "detector charge calibration",
+    "smoothing shape/basis choice and regularization selection"
+  ],
+  "user_rounded_target_density_g_cm3": 0.0013885
+}

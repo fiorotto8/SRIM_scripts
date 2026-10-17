@@ -1,0 +1,1934 @@
+[
+  {
+    "batch_ids": [
+      "cygno-3e5a91764cfa86076d58",
+      "cygno-927295d82b065e20949b",
+      "cygno-d4d5f029b5a0ec57a354",
+      "cygno-f3c345196a67b482a31f"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.1"
+  },
+  {
+    "batch_ids": [
+      "cygno-248d5fbf27a8f07ac5ff",
+      "cygno-ac1131eee191c0d9d5d9",
+      "cygno-daebb8ba1640f1c6a135",
+      "cygno-e968ecb98fbc7551b376"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.14649382"
+  },
+  {
+    "batch_ids": [
+      "cygno-039037aae5bfb7821ede",
+      "cygno-d31818b2674b9cceb2b9",
+      "cygno-e141707ed54d7048099c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.21460439"
+  },
+  {
+    "batch_ids": [
+      "cygno-35daf727f24c3139b8ff",
+      "cygno-5890354b4ed0141849c1",
+      "cygno-7768493e0fd476bfd42a",
+      "cygno-90a97c07c40dd8b5a954",
+      "cygno-e50d3307406ba97353be"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.31438218"
+  },
+  {
+    "batch_ids": [
+      "cygno-1da3bcf25054e1b84e53",
+      "cygno-6114d3b7a0001b1ffea4",
+      "cygno-8a391f0f68b2d6ec2ffc",
+      "cygno-ae4b8adb1ae9c93f05a8"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.46055046"
+  },
+  {
+    "batch_ids": [
+      "cygno-06924b91566327ab844c",
+      "cygno-1c664dd39e0a0f625d86",
+      "cygno-88092175c72e1104b797",
+      "cygno-b59ec2ce5439b56b4b8f"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.67467797"
+  },
+  {
+    "batch_ids": [
+      "cygno-6b610aa88d6fd1098779",
+      "cygno-a506e3108650925fadea",
+      "cygno-d3ab2ce475209a97f03b",
+      "cygno-d774b4cc022401a010b6"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.91479175"
+  },
+  {
+    "batch_ids": [
+      "cygno-380861a6b32a70af9e19",
+      "cygno-affbeae769516984dc5e",
+      "cygno-cb41f6f5a7c48e530845",
+      "cygno-e1d79886de8a58249068"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:0.98836153"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ff0d581f5ec3bf7f634",
+      "cygno-6986906b018c0b6e5f3a",
+      "cygno-854691bc5c947afe27e3"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1"
+  },
+  {
+    "batch_ids": [
+      "cygno-36a0f3d5f4b5eba01fe8",
+      "cygno-432cc23b857a2095162f",
+      "cygno-4e7a6e2aec507a390879",
+      "cygno-68ba7dc861605378b86c",
+      "cygno-70a74915b69601acb982",
+      "cygno-9d017bcbb7a21cfee368",
+      "cygno-c2ee3b89413684af5fd6",
+      "cygno-d599f02d1edc437102b5",
+      "cygno-e8d4660da0bce16e8a0f",
+      "cygno-ebe407fb8008e47dd0d8"
+    ],
+    "n_batches": 10,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1.4478886"
+  },
+  {
+    "batch_ids": [
+      "cygno-00dc5df8fcc62e2386c7",
+      "cygno-0c4478baa551992dcadb",
+      "cygno-46acf5da607722e2e7e5",
+      "cygno-518cbc6a674a8090db87",
+      "cygno-7a9f883d58eed8ecb1a6",
+      "cygno-9754e6468464959cdb12",
+      "cygno-a8ee798f402ce6414ed3",
+      "cygno-aa74a8799192c68c910d",
+      "cygno-b2e8e58900fab3432972",
+      "cygno-b3a2e2749f75b6fffcfa",
+      "cygno-bd3407ddd75124e2f4b0",
+      "cygno-c3b0a67fccea31c09c5b",
+      "cygno-dc259190f8628d8203af"
+    ],
+    "n_batches": 13,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:2.1210673"
+  },
+  {
+    "batch_ids": [
+      "cygno-01628f3f920595c250cb",
+      "cygno-01e161278761f8b7fc92",
+      "cygno-1d3a0a25d07c9e46ad10",
+      "cygno-687b3fcc7e5b725a91f9",
+      "cygno-89de74244957db9d928f",
+      "cygno-9a8bd9f4d9b416b6fdde",
+      "cygno-c0c321320212bca3fbd3",
+      "cygno-dd6121a9713fb03ac160",
+      "cygno-e2fa524c701f453abcbe"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:3.1072325"
+  },
+  {
+    "batch_ids": [
+      "cygno-1cb10551a0392ee65a9d",
+      "cygno-1d9e76d514c2f14ccfdf",
+      "cygno-39b9d21821e62e4bf6dc",
+      "cygno-3ebabb51b3503f57ab4f",
+      "cygno-4389b4e06714cba3dd74",
+      "cygno-800959d2eba53274bd67",
+      "cygno-a9fccc4bd44870e21f07",
+      "cygno-c4a861fd610351bcf05c"
+    ],
+    "n_batches": 8,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:4.5519036"
+  },
+  {
+    "batch_ids": [
+      "cygno-01266e893ac962cbe9e5",
+      "cygno-26044f56cf502d7e6aff",
+      "cygno-5ad7a2268e4e43733c55",
+      "cygno-7d1ab89e47b629f26c6d",
+      "cygno-9e16edbac04f68a20b4a",
+      "cygno-c9858c459e470b7baa75",
+      "cygno-ce4f8e93a6c1039ba1d1",
+      "cygno-d596e9688a42d6f52c34",
+      "cygno-f3b8aae42dc07cb12266"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:6.6682575"
+  },
+  {
+    "batch_ids": [
+      "cygno-2e7383fc3d88d49f9f94",
+      "cygno-4571d52e558750b63c2b",
+      "cygno-5b38a63faf53f4404020",
+      "cygno-7c997df52f8e84c35df4",
+      "cygno-e9175a7a6629c91dad81"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:9.7685852"
+  },
+  {
+    "batch_ids": [
+      "cygno-2e19b6368f0cf547d1df",
+      "cygno-6d28776db0d844c58463",
+      "cygno-71cb67cd3b81284ca9ad",
+      "cygno-ec5738fd8972953139ac"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:14.310374"
+  },
+  {
+    "batch_ids": [
+      "cygno-095e21d9872b28d689a8",
+      "cygno-6127687c7322b5186ca1",
+      "cygno-6d8b78a680480dd16566",
+      "cygno-6ddf930922e3f7e42d05",
+      "cygno-738bdfd92c6dd347da0d",
+      "cygno-7562b556658b1d4a2184",
+      "cygno-d118214b8514a244437a",
+      "cygno-e6869637667cab456dba",
+      "cygno-f81e62a41b144205d226",
+      "cygno-f8c399827d4e5c738f69"
+    ],
+    "n_batches": 10,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:20.963813"
+  },
+  {
+    "batch_ids": [
+      "cygno-036f306b215964d489aa",
+      "cygno-2e5ed21aa98fa21f3c22",
+      "cygno-6297c08053462f32efbb",
+      "cygno-78ee0e852d8ed925926d",
+      "cygno-797ede13be53fe5d0f97"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:30.710691"
+  },
+  {
+    "batch_ids": [
+      "cygno-1865d58c9727599e1bc0",
+      "cygno-a398f077c1301a163a82",
+      "cygno-d85dc317fb7b8254307f"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:31.622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-527c2755d6f06eb2e759",
+      "cygno-5c78136795378ae931aa",
+      "cygno-f99d1faa3f119503b698"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:44.989264"
+  },
+  {
+    "batch_ids": [
+      "cygno-0cfbdfe38ec5019cfa81",
+      "cygno-2a21d10edc4f6ceea57e",
+      "cygno-2be78b663bd3b3a8a7e0",
+      "cygno-5557079450e3616919f8",
+      "cygno-86767f16421cea085c48",
+      "cygno-979d0025b1bc0f26793f",
+      "cygno-a37a3b67e952463061fe",
+      "cygno-e053113a36236350db94",
+      "cygno-f5f431a28c0b3e802dce"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:65.906492"
+  },
+  {
+    "batch_ids": [
+      "cygno-525ffa6a3194b634c1cd",
+      "cygno-533a4fd67c3bdf9b08b3",
+      "cygno-97b8bb3b1454fd1e7954",
+      "cygno-d80b2e27f205f7a94af9"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:96.548938"
+  },
+  {
+    "batch_ids": [
+      "cygno-65efdc67d7c3e249f48c",
+      "cygno-9f3817f782922d7064fc",
+      "cygno-b453185d3b32728e5e2d"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:100"
+  },
+  {
+    "batch_ids": [
+      "cygno-2cd1f43819df55a5ac0d",
+      "cygno-9e4716b998be15e58eb3",
+      "cygno-c51b1401c449bc045924"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:141.43823"
+  },
+  {
+    "batch_ids": [
+      "cygno-5a863dcd87f8fad3e21d",
+      "cygno-8ce947c0a7218b5b5bac",
+      "cygno-93561fb1881b91f3f84b",
+      "cygno-ed9a12b1dddc966a5b69"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:207.19827"
+  },
+  {
+    "batch_ids": [
+      "cygno-03c6b972c5a63ec564cd",
+      "cygno-067de23cca96b056df08",
+      "cygno-c6a860674fa1349dcf18"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:303.53265"
+  },
+  {
+    "batch_ids": [
+      "cygno-b28a40954509381ab57e",
+      "cygno-cce23e1dcba98ea0dbf6",
+      "cygno-d4b7e08b45376c730a79"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:316.22777"
+  },
+  {
+    "batch_ids": [
+      "cygno-23882b5aa16d516d2d63",
+      "cygno-d600a1f757744bcb649a",
+      "cygno-e8c32d8c53e2ddb197cf"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:444.65658"
+  },
+  {
+    "batch_ids": [
+      "cygno-1ca2585dc6539fb9665d",
+      "cygno-3eb622aa4116ef3eb5ff",
+      "cygno-62b8e96562183dcd0977"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:651.39442"
+  },
+  {
+    "batch_ids": [
+      "cygno-16324ed9a7963043ec13",
+      "cygno-71c402f126f055a806f1",
+      "cygno-c956ebb1e3492ace142d"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:954.25257"
+  },
+  {
+    "batch_ids": [
+      "cygno-99e976c700b5a52380c4",
+      "cygno-dc4d0f4849d333c621f6",
+      "cygno-f9801a100aefea167eb6"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1000"
+  },
+  {
+    "batch_ids": [
+      "cygno-2074e957a537c2b9dc45",
+      "cygno-4add69cdb8035aca439a",
+      "cygno-b935921fc9770f1acc8d"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1045.0188"
+  },
+  {
+    "batch_ids": [
+      "cygno-0909916643fed252e791",
+      "cygno-d9fdf3dc00d35fe4f11d",
+      "cygno-de9f78b2f24c04dbe2a6"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1397.921"
+  },
+  {
+    "batch_ids": [
+      "cygno-583ea7e5afc71989e858",
+      "cygno-fbee7c49895a7d6bcac9",
+      "cygno-fe6064d950f0131dafea"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:1732.0508"
+  },
+  {
+    "batch_ids": [
+      "cygno-288195e02ef9b656f914",
+      "cygno-3f2d36d843278d9243c9",
+      "cygno-f7eedfb021e5f2d9c61b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:2047.8679"
+  },
+  {
+    "batch_ids": [
+      "cygno-0a159cc931e1e64827c4",
+      "cygno-365361d86f49d5a87da7",
+      "cygno-e53c7972b4a92b2728d8"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:C12:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-0e9ee5e1f2b63408ed32",
+      "cygno-4eafa376de05c68e8389",
+      "cygno-739993a4d7d37d0002a2"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.1"
+  },
+  {
+    "batch_ids": [
+      "cygno-72934622dd8a5bef9615",
+      "cygno-82b37ef2ded721207f9b",
+      "cygno-dfe16f2dd20636a7be1d",
+      "cygno-f80f9f71fb6359085c8b"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.14649382"
+  },
+  {
+    "batch_ids": [
+      "cygno-70a310c9b7cbfd13dcea",
+      "cygno-78800b1c544d1aa2e940",
+      "cygno-f4dd2ef43cd038e9116c",
+      "cygno-ffa4460ffc5163b190b5"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.21460439"
+  },
+  {
+    "batch_ids": [
+      "cygno-1d107160e3c6541aeb17",
+      "cygno-241e8ff942883c35aeab",
+      "cygno-f81b8ca66d1ef99bd81f"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.31438218"
+  },
+  {
+    "batch_ids": [
+      "cygno-2cd79eedf98fb351967a",
+      "cygno-ea5293b9f1f79f5e6529",
+      "cygno-f79914b099b46d7c6219"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.46055046"
+  },
+  {
+    "batch_ids": [
+      "cygno-46145dd23a9c8ea4bfda",
+      "cygno-74c5b2e97e7e1c407d25",
+      "cygno-7fcf2746d380bbc05a67"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.67467797"
+  },
+  {
+    "batch_ids": [
+      "cygno-1e98f9bf81d73dc6b636",
+      "cygno-7de71c25401ad7442c33",
+      "cygno-ca58e2b3238c41dc22db"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:0.98836153"
+  },
+  {
+    "batch_ids": [
+      "cygno-0f8ce43246662e73aa98",
+      "cygno-b899d09eb7d708b8c5cd",
+      "cygno-eb7303b33cc828ee2243"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1"
+  },
+  {
+    "batch_ids": [
+      "cygno-245ed9c0c8059905c3bc",
+      "cygno-49aa05e8efb85b87b0ab",
+      "cygno-528899d8d398b2ba2d56",
+      "cygno-62eb674007cc2b5aa2df",
+      "cygno-bcd055f34f93ac2e2382",
+      "cygno-cb1c3bb2fd85deae1745",
+      "cygno-e3258e2da741f823017e"
+    ],
+    "n_batches": 7,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1.2342263"
+  },
+  {
+    "batch_ids": [
+      "cygno-0d9bad453abb041b8e2d",
+      "cygno-2345ca8fca6e7644d7e4",
+      "cygno-41235868ab5a01bfe580",
+      "cygno-620e350a08aca7a5a909",
+      "cygno-75f05ce2ca2fc4ec2815",
+      "cygno-81a412f37d271174b697",
+      "cygno-954f10caff8287798062",
+      "cygno-b2da41c0e16adf3724b1",
+      "cygno-cdf9a023e97999b333f5",
+      "cygno-d0c1c622dc806bff0776",
+      "cygno-d5cfcc3ec9e36b68906d",
+      "cygno-d8866f943a27a0fcb4d7",
+      "cygno-e6d4f56e57b6bdbc88e4"
+    ],
+    "n_batches": 13,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1.4478886"
+  },
+  {
+    "batch_ids": [
+      "cygno-03001b4e8065d048afa1",
+      "cygno-2a450afbff0096f3e59f",
+      "cygno-2b16ea601d1c20074214",
+      "cygno-59d1eef696c3c9031d69",
+      "cygno-8672896fec6d1455d9d5",
+      "cygno-e675c8cd26d1d5fff703"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:2.1210673"
+  },
+  {
+    "batch_ids": [
+      "cygno-2a50a927f23748659d2d",
+      "cygno-44f2e9cffba592df52e3",
+      "cygno-b07fddbadaccfb0fe33a",
+      "cygno-d2b8504aa56791e3f520",
+      "cygno-e6ce450040f4cd82d1b7",
+      "cygno-eedbc8e1658a0298365f"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:3.1072325"
+  },
+  {
+    "batch_ids": [
+      "cygno-09f3141436984d7017a7",
+      "cygno-2d2c47ca9e4f466100c6",
+      "cygno-30352a21256ac8c4fada",
+      "cygno-4211d42c43098fdbc1e4",
+      "cygno-4e16a8b478df75ffda60",
+      "cygno-7cb00f0dbac1a3086258",
+      "cygno-886ef390e257546f3abc",
+      "cygno-8ae4aeea91c13de012ba",
+      "cygno-c617a2f239af4297a32a"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:4.5519036"
+  },
+  {
+    "batch_ids": [
+      "cygno-2c26f02f0eba9bfe5364",
+      "cygno-67353b96d847f188301c",
+      "cygno-fdf6ffa1d1c6fbc9fba5"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:6.6682575"
+  },
+  {
+    "batch_ids": [
+      "cygno-0a059c6cb761ea3d3fe4",
+      "cygno-0a330255e17a17475325",
+      "cygno-106db2aacc29a2834c09",
+      "cygno-6aac78d00c22d511c54b",
+      "cygno-fa505ac39c1107cbf125"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:9.7685852"
+  },
+  {
+    "batch_ids": [
+      "cygno-2bef8eae4f4aaf1bf731",
+      "cygno-8d95b20f504a0aa007e3",
+      "cygno-b2f0c454a7757179a8f8",
+      "cygno-b8cf62e8f4855c071bed",
+      "cygno-c5b15e1255c0114855d5"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:14.310374"
+  },
+  {
+    "batch_ids": [
+      "cygno-033029c4e05d7f387894",
+      "cygno-2b6d67977a7509248e1e",
+      "cygno-40b2d0aef4caa1ef7fd2",
+      "cygno-7ba157b94d6c41fb854d",
+      "cygno-8944600ee36a41049519",
+      "cygno-8c9e9da5615c014274ec",
+      "cygno-b8e9532f310f0ec8e692"
+    ],
+    "n_batches": 7,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:20.963813"
+  },
+  {
+    "batch_ids": [
+      "cygno-029aa5a743d81a54dc88",
+      "cygno-1c366e4ddebc5648c90e",
+      "cygno-57e9cec185cab8001bda",
+      "cygno-6563cfc82658ff5b9710",
+      "cygno-9b4d306a84c654dc4b3c",
+      "cygno-d7d8c3f0aa86a13bd78a"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:30.710691"
+  },
+  {
+    "batch_ids": [
+      "cygno-32a28d34df757cbcd7b7",
+      "cygno-739f3887202dac0a63f8",
+      "cygno-7bd1ce2e74a80b469f9b",
+      "cygno-b4790bb8eda27ec50735",
+      "cygno-bffbada291e77f946eec",
+      "cygno-d40bada370206f505b15"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:31.622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-185acbe38e8b733690b5",
+      "cygno-5ce3eb5f1f5da7762b94",
+      "cygno-8abfb3cd410d7516dfac",
+      "cygno-aa4a2e8656ace65a1b57",
+      "cygno-b192446ed184bf5893fb",
+      "cygno-ca8a47741c728b82eeb7",
+      "cygno-d8daf8e0ae5f592636f8"
+    ],
+    "n_batches": 7,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:44.989264"
+  },
+  {
+    "batch_ids": [
+      "cygno-780b4f93d32a8d8e392e",
+      "cygno-91f82b74d7b20f0aabe3",
+      "cygno-98c7adbccf08309a82e6",
+      "cygno-e0a7c879eeba62c51f12"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:65.906492"
+  },
+  {
+    "batch_ids": [
+      "cygno-3e8e96acba1e46e23b6e",
+      "cygno-62c7182eebd61a14b0ea",
+      "cygno-9ed640b16a2130b59c3b",
+      "cygno-dc2799d6e39316bf57dd",
+      "cygno-e52d3be04ae5f4e44fc0",
+      "cygno-e6b87f31809d50653e2a"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:96.548938"
+  },
+  {
+    "batch_ids": [
+      "cygno-2cb5f501fc7400bb96b5",
+      "cygno-672f8bcf1a6158d37302",
+      "cygno-f2cfff27bea3c433fd08"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:100"
+  },
+  {
+    "batch_ids": [
+      "cygno-421ff063cf5ec3fb2a1a",
+      "cygno-465868b0f6c4425f748d",
+      "cygno-dd98f0ad4d166889f72a",
+      "cygno-e80487aa6512e87b5957"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:141.43823"
+  },
+  {
+    "batch_ids": [
+      "cygno-17e386422f68cbaeac73",
+      "cygno-9c6226b249a411548c73",
+      "cygno-9eb3f15807206b99c377",
+      "cygno-a59981c2299e2610610d"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:207.19827"
+  },
+  {
+    "batch_ids": [
+      "cygno-36d0a2ca149b51e3c65b",
+      "cygno-396f9650973a5107ffbb",
+      "cygno-3d545781212a9706886b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:303.53265"
+  },
+  {
+    "batch_ids": [
+      "cygno-5c103d956f566035eb52",
+      "cygno-6f88b1c419065b6304eb",
+      "cygno-f7d11bb80596e9bbea7d"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:316.22777"
+  },
+  {
+    "batch_ids": [
+      "cygno-03a47f37bc57e4a4b126",
+      "cygno-17755700960d420bcca0",
+      "cygno-8559d04b593541e0aaef"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:444.65658"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ca677abc20baef82db1",
+      "cygno-737687956ec33b582899",
+      "cygno-741f9312ac82946b15b5"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:651.39442"
+  },
+  {
+    "batch_ids": [
+      "cygno-154ab76aef650edfdae7",
+      "cygno-2af52ffeab0fa4602207",
+      "cygno-f525f0776d4055fb021a"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:954.25257"
+  },
+  {
+    "batch_ids": [
+      "cygno-15ef08630664e895e446",
+      "cygno-665236ed5a0d50968450",
+      "cygno-74c8591177b5a80967b6"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1000"
+  },
+  {
+    "batch_ids": [
+      "cygno-0842290af36d301f7dac",
+      "cygno-8e4f3a7efad9b4c0d880",
+      "cygno-9b25c867d765b119c13b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1087.448"
+  },
+  {
+    "batch_ids": [
+      "cygno-3983fedb933120f8a7bd",
+      "cygno-a77b9dcd76186bc1f439",
+      "cygno-abb9835bb725640b1b07"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1397.921"
+  },
+  {
+    "batch_ids": [
+      "cygno-2bd7e7ac342c4e91c7bd",
+      "cygno-73bcadf666afbec0ba44",
+      "cygno-ebff789cb6a88de4535e"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:1732.0508"
+  },
+  {
+    "batch_ids": [
+      "cygno-6c4748face98d999f41c",
+      "cygno-c151224ce445bfd52251",
+      "cygno-fdb225fdaeabf188a70b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:2047.8679"
+  },
+  {
+    "batch_ids": [
+      "cygno-2edcf32a467ed3dd2212",
+      "cygno-3d4487c9866fdb904a78",
+      "cygno-9ccc1fe39a2d9a8a91bf"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:F19:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-1b8c13efc36b8f208187",
+      "cygno-2b3cb1d31f922e58ebc6",
+      "cygno-4841afb96824e2944948",
+      "cygno-57fea8d17e15d5a82733",
+      "cygno-6376fdc5ef6dd339c54d",
+      "cygno-63b0c19e84ed95a97b6f",
+      "cygno-747af9021a6a4257e108",
+      "cygno-a40e9a229efe20e67859",
+      "cygno-c443da67943378b78bc5",
+      "cygno-c5b579592514bb93011a",
+      "cygno-cc6c52697bcf7d39ec5c",
+      "cygno-dbaf1d75c3a183acf51a"
+    ],
+    "n_batches": 12,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.1"
+  },
+  {
+    "batch_ids": [
+      "cygno-159e46333556aaa6e496",
+      "cygno-1ed53a738586a87592ae",
+      "cygno-2d3c60a5521f822bb494",
+      "cygno-3c77be408b00ff40f7cc",
+      "cygno-535a9b2ed3574de73e5e",
+      "cygno-5e094130e614795d1118",
+      "cygno-6bb9f2f702f0b547ad5b",
+      "cygno-83eba62e31c78b8f111e",
+      "cygno-a9fe0abad657f5086999",
+      "cygno-e8ee458d9a991cc32ec2",
+      "cygno-f281587210de4cdfd90a"
+    ],
+    "n_batches": 11,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.14649382"
+  },
+  {
+    "batch_ids": [
+      "cygno-0a01e73a448a89b8b52c",
+      "cygno-26eed1fc0a6b2284f257",
+      "cygno-8e5fed6bc3bc3872fb65",
+      "cygno-8fadb639aabbfd1644bb",
+      "cygno-934e66ea157105ba05e2",
+      "cygno-a5b5393ed9ccea52e2e0",
+      "cygno-a6bdd52f495ed30ece33",
+      "cygno-a82f31c452dc4c42808e",
+      "cygno-d3efc7c4494077ea83a1",
+      "cygno-ecf7bf6474fdd8385851",
+      "cygno-f3f48741a997c96c775b",
+      "cygno-fcbac301c3089a061a45"
+    ],
+    "n_batches": 12,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.21460439"
+  },
+  {
+    "batch_ids": [
+      "cygno-26d5568e24e9635932fa",
+      "cygno-35c91b87636d1059a18c",
+      "cygno-4145642ce45dd6ca8ae2",
+      "cygno-6dc129f1dfeb21eccb24",
+      "cygno-87753a5a5e5f45d5e3c3",
+      "cygno-91bc7be35dee4cdf96f8",
+      "cygno-9d8acaa87eeb79ee4345",
+      "cygno-b9cc87002fcca32abf15",
+      "cygno-e369ea0c0293fdce4043",
+      "cygno-f465e5aa436ac6f7ef54"
+    ],
+    "n_batches": 10,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.31438218"
+  },
+  {
+    "batch_ids": [
+      "cygno-1f72f181785d22cad4c6",
+      "cygno-272e81c5b7f550523e5b",
+      "cygno-370289ebf41bbe060250",
+      "cygno-4277848c7dfa8d91b723",
+      "cygno-8d4bc5889a0cb42ece25",
+      "cygno-a7659e35d11b4b41b837",
+      "cygno-ab36d85803122791c481",
+      "cygno-b1957f3892b25285d6cd",
+      "cygno-d0b7c0486f0da581978b",
+      "cygno-e80f722d70bf4011305d"
+    ],
+    "n_batches": 10,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.31622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-00032ad7c273c580aa51",
+      "cygno-3861813d9a6512a58f3f",
+      "cygno-5678e333f4b07b78c7d2",
+      "cygno-5c2e890148bd2b5abd48",
+      "cygno-6756f033ee98e40d40dc",
+      "cygno-a7f19d65a512ecd874b2",
+      "cygno-af4fd3996a17d0f2cf81",
+      "cygno-c566b3d9347254374716",
+      "cygno-c61c7e9bd185c319f51e"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.40247305"
+  },
+  {
+    "batch_ids": [
+      "cygno-393277af205416968863",
+      "cygno-58577b8e916b28d41de3",
+      "cygno-5caab68254b8b5dbe114",
+      "cygno-709df54f93a4209620ef",
+      "cygno-8e41ba55bc849d144ed3",
+      "cygno-9f7d2b7be047186f5e10",
+      "cygno-a95d73e8ae0cc2316a98",
+      "cygno-c2672cfd585cbf82bdb9",
+      "cygno-fcc26af472a9dfde9ff7"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.46055046"
+  },
+  {
+    "batch_ids": [
+      "cygno-197202eaef14cc8ba04f",
+      "cygno-1bb86eef566727438037",
+      "cygno-445b6be80a777cc7f45d",
+      "cygno-83f1ea09b627f130426f",
+      "cygno-85032a3547857c8b4892",
+      "cygno-ab1c4cfa71edede9f515",
+      "cygno-cd04ca5640327a5c9a12",
+      "cygno-d0c0cacc811242b92024",
+      "cygno-e75f2a3f0884787dba48"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.67467797"
+  },
+  {
+    "batch_ids": [
+      "cygno-1212c40a277d9d9590f3",
+      "cygno-2e7e997d591df0fefe07",
+      "cygno-639834c38f71bd6714be",
+      "cygno-8329d6acc2f9543acab7",
+      "cygno-a71e1433fa774d12092d",
+      "cygno-e7b6435d14e121218d1f"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:0.98836153"
+  },
+  {
+    "batch_ids": [
+      "cygno-46f67b574d9097978a75",
+      "cygno-7d2b5b1bf26fa8f5236b",
+      "cygno-d944f2aa375b45a461ae"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:1"
+  },
+  {
+    "batch_ids": [
+      "cygno-08d9d2eecfacfa15fac4",
+      "cygno-36e3846ba06ddaae6d29",
+      "cygno-553a47bf3137d02ed000",
+      "cygno-5b8a528500b79dafa8f1",
+      "cygno-69b9cefeabbf0bad35d7",
+      "cygno-ef0e1d574b83820ece6b"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:1.4478886"
+  },
+  {
+    "batch_ids": [
+      "cygno-20c4ff49cd3a55a4613f",
+      "cygno-37d685e444d5e5574525",
+      "cygno-8bc7e349c5847b28c43e",
+      "cygno-909aabf79c54d70b3112",
+      "cygno-a24d3034b2549b70bbfc"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:2.1210673"
+  },
+  {
+    "batch_ids": [
+      "cygno-3b8696bd0adbda3b392a",
+      "cygno-ee8ad72f6769f87d24d6",
+      "cygno-f213b03cd702842a7543",
+      "cygno-f8a1b0a46d3abc890fd0"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:3.1072325"
+  },
+  {
+    "batch_ids": [
+      "cygno-57a6336c694a1b525621",
+      "cygno-c58b31a405d68209a14e",
+      "cygno-d84da0a9bbdc59985894",
+      "cygno-e0ad82cd6a4809b9bc84"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:3.1622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-18294127a2de16f2fa9e",
+      "cygno-514abe94a5c8867818a4",
+      "cygno-5b146c0a173beb92742a"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:4.5519036"
+  },
+  {
+    "batch_ids": [
+      "cygno-0d2e34af0107898eaa0f",
+      "cygno-668c254a1eaef0cfb464",
+      "cygno-c9808cc1f18658f3118e"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:6.6682575"
+  },
+  {
+    "batch_ids": [
+      "cygno-30f44c694868129eabfc",
+      "cygno-34506623029cb070579a",
+      "cygno-66323704908fdb82d9ca"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:9.7685852"
+  },
+  {
+    "batch_ids": [
+      "cygno-bf2c753f867c9d8e4742",
+      "cygno-d0b0e2b410cba71d8685",
+      "cygno-d2b0665868d77de2e67e"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:14.310374"
+  },
+  {
+    "batch_ids": [
+      "cygno-83affb1db85fb2b331c2",
+      "cygno-86ab82f61634e20083d7",
+      "cygno-89016473a9ac752c45ef"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:20.963813"
+  },
+  {
+    "batch_ids": [
+      "cygno-1ff4b2470a4e49e911e4",
+      "cygno-94550eddf3edcb8c7a92",
+      "cygno-b1952ed060ef8085f562"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:30.710691"
+  },
+  {
+    "batch_ids": [
+      "cygno-0b5f440ec1fe88f867fe",
+      "cygno-5776bc10a9f7b6f64a50",
+      "cygno-fba67a3723d4d53812ae"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:31.622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-8b3a9451552e844cc158",
+      "cygno-8c9fe00f5819c4eb88c1",
+      "cygno-b818132d0d5246e4214f"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:44.989264"
+  },
+  {
+    "batch_ids": [
+      "cygno-1b575cf7dc98f17d3b8e",
+      "cygno-343f2cbc87d8bdbc2864",
+      "cygno-8c7e30ffbac7c102f1d8"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:65.906492"
+  },
+  {
+    "batch_ids": [
+      "cygno-96abbc809b056dc5d562",
+      "cygno-b49f5bd317ce1927f5d7",
+      "cygno-cbbc81f800d5996ffd15"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:96.548938"
+  },
+  {
+    "batch_ids": [
+      "cygno-44774a10a634b3a0ce4e",
+      "cygno-50cb78a169a1f35905d8",
+      "cygno-f0eaa1c832108665d0ba"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:100"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ce6967dbe8c315bf3f8",
+      "cygno-ed35ef099cd316736f6c",
+      "cygno-f2acdb39b754566ac8a7"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:141.43823"
+  },
+  {
+    "batch_ids": [
+      "cygno-6e05f22d6f3ecfa4389c",
+      "cygno-8484fefc0a125126e143",
+      "cygno-dfa5a67b6ddcbc6fc2cb"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:207.19827"
+  },
+  {
+    "batch_ids": [
+      "cygno-017a077e0e73da57bae7",
+      "cygno-db3b3b05706c6ccaa0be",
+      "cygno-ebdfb8bb57b323321d5c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:303.53265"
+  },
+  {
+    "batch_ids": [
+      "cygno-0b5c60ff8f3a0e90288c",
+      "cygno-aaaf47bbf32c4ed81a46",
+      "cygno-e5b74f4bceafe6cead47"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:316.22777"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ad6a1405907c73c78f7",
+      "cygno-974af691639394a5d558",
+      "cygno-cc40edfe0172c2095fb4"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:444.65658"
+  },
+  {
+    "batch_ids": [
+      "cygno-2af046711fb59c43d512",
+      "cygno-75cdcdb6b865dd90baec",
+      "cygno-b74201753260c21f3644"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:651.39442"
+  },
+  {
+    "batch_ids": [
+      "cygno-3fadd28d759bc89247bf",
+      "cygno-50d8a93cd054f29d58ce",
+      "cygno-56ffc094bcac638ccfa7"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:954.25257"
+  },
+  {
+    "batch_ids": [
+      "cygno-57841249487453d85707",
+      "cygno-ce9413df60f925db7059",
+      "cygno-ef1d31d0c4a1a9807b95"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:1000"
+  },
+  {
+    "batch_ids": [
+      "cygno-089581d69e8843fb0d38",
+      "cygno-9ed51ebc5e55dcc4ba34",
+      "cygno-d245e426f50577ec7d71"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:1001.083"
+  },
+  {
+    "batch_ids": [
+      "cygno-28e9d33e0e4007f741a5",
+      "cygno-6aadf8d3d86ab1af0d2a",
+      "cygno-bf69a3aa3aaf649e042c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:1397.921"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ea02c2c3cf7d866190a",
+      "cygno-7da53130512db247ebfe",
+      "cygno-a179e8be4be35eee90de"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:2047.8679"
+  },
+  {
+    "batch_ids": [
+      "cygno-2163afefa54ee4bbf80c",
+      "cygno-679019713afbab8425a0",
+      "cygno-7e878341ab6fa11e3070"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:H1:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-19c3768e8008174d6cc0",
+      "cygno-a37d8891b8a4b20be1dc",
+      "cygno-c3e5cba26d15be77287b",
+      "cygno-c61c891f0d53c8a0cdd1",
+      "cygno-db1fcb365497022cfc54",
+      "cygno-fc7454524b4c07e550d3"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.1"
+  },
+  {
+    "batch_ids": [
+      "cygno-06af26902893794b5bca",
+      "cygno-3268b83a90ad87c966db",
+      "cygno-c5af9ec1e1fdf8cae330",
+      "cygno-d6cf9a0085e93e7f370f",
+      "cygno-f13180aade72b8f93422",
+      "cygno-ff8c7f8688329a8d3e51"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.14649382"
+  },
+  {
+    "batch_ids": [
+      "cygno-403132d8780c57482a29",
+      "cygno-4bd995f96a34684ab5ef",
+      "cygno-51a104f2e23890efa7f8",
+      "cygno-58901b7eef53ad2a37c9",
+      "cygno-6ea414605cce8ec614bf",
+      "cygno-ee6e090703e346ef665b"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.21460439"
+  },
+  {
+    "batch_ids": [
+      "cygno-1dcd1a6301e78ea515dd",
+      "cygno-4b3338bb344f14f9b452",
+      "cygno-82fc084050fa5901b2da",
+      "cygno-9b50634155650720bc02",
+      "cygno-c299f6dd19e033b2479b",
+      "cygno-c2a8db058ba66db62cc7"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.31438218"
+  },
+  {
+    "batch_ids": [
+      "cygno-1cc446624e9df88cdf47",
+      "cygno-280d47912e639b279c9e",
+      "cygno-70dfe259321afe384de6",
+      "cygno-c6733d0b3b63ced71280",
+      "cygno-fa65026bd33e7eaddeec",
+      "cygno-fcbb2ab212894a5b3bca"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.46055046"
+  },
+  {
+    "batch_ids": [
+      "cygno-0a350d2f37fb98a94d1b",
+      "cygno-a000b6b71ade87f2d264",
+      "cygno-b1b6fd2e24447ee86059",
+      "cygno-be756df4e31c590a6d4a",
+      "cygno-d15aae6315e0fa0347fb",
+      "cygno-eb5795b304812c1d257c"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.65758632"
+  },
+  {
+    "batch_ids": [
+      "cygno-5c5b3942077fd4204485",
+      "cygno-6df3dadab869230721eb",
+      "cygno-aa916147a8f9053fd1f4",
+      "cygno-c3cf4f7576b59962d784",
+      "cygno-d6369c48e9aff51f9bfb"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.67467797"
+  },
+  {
+    "batch_ids": [
+      "cygno-16194984af35349799ba",
+      "cygno-26061bb9f0aecea1a71e",
+      "cygno-2f6e9321eb328dad0d98",
+      "cygno-577151fa1add738db4f2",
+      "cygno-8d548e56841e46ecff9a",
+      "cygno-972f08b2f3e424b7d250",
+      "cygno-b58543d3607275accca3",
+      "cygno-bcd195282cd7a041da30",
+      "cygno-c557bfbd3e56778fe08e",
+      "cygno-cc1203558add6db774dd"
+    ],
+    "n_batches": 10,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:0.98836153"
+  },
+  {
+    "batch_ids": [
+      "cygno-21d4fc468006ab815fcc",
+      "cygno-67ca8095776dda138501",
+      "cygno-d48487f1e9d8e52ae450"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:1"
+  },
+  {
+    "batch_ids": [
+      "cygno-4348172c73d7d556124b",
+      "cygno-583e49e7377bae422211",
+      "cygno-89ef53a70d13b522d2cd",
+      "cygno-b1fb33388ba22211a83b",
+      "cygno-bdb9627f45f1e9d076b9",
+      "cygno-c310ca0cc2b738894e5f"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:1.4478886"
+  },
+  {
+    "batch_ids": [
+      "cygno-1f24564d019c3ca3542d",
+      "cygno-4ee17723c51fadb3e8a2",
+      "cygno-732584f282b79430293d",
+      "cygno-7bc24bd299f6216b5d6d",
+      "cygno-9da5e0f54221aaf5cfbc",
+      "cygno-c78ed0e084bdc645528c"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:2.1210673"
+  },
+  {
+    "batch_ids": [
+      "cygno-0130604890caf063733c",
+      "cygno-0f862fcc97d494c77caf",
+      "cygno-1756c629b3ab12aadb92",
+      "cygno-1bee8dd1179bdd1d1900",
+      "cygno-202f502bcdb64a423e81",
+      "cygno-24251d58a387e5a67ca5",
+      "cygno-4e61b95f50dd57911847",
+      "cygno-76ec55c450498e9a413a",
+      "cygno-c2e9191b4025771ad752"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:3.1072325"
+  },
+  {
+    "batch_ids": [
+      "cygno-1248a070405389550504",
+      "cygno-462d41b32b73a2a19cce",
+      "cygno-495c0fd51182869a246d",
+      "cygno-4a10ef7f8aeef1defdf5",
+      "cygno-5282d2966a89eb15500a",
+      "cygno-6828ae51f9ca5cd846ed",
+      "cygno-af8e79f35a994f2f2734",
+      "cygno-bfcb6f0c6053b4ee5575",
+      "cygno-dd2cd7ee899b5dbc7b12"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:4.5519036"
+  },
+  {
+    "batch_ids": [
+      "cygno-0a5546afee781ded9368",
+      "cygno-57a578612f102221194a",
+      "cygno-7320d8c798deb88b5ffe",
+      "cygno-d9055acd4e22e3a22455",
+      "cygno-fa2c8b441b267ff3f6fe"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:6.6682575"
+  },
+  {
+    "batch_ids": [
+      "cygno-2e3ea20b3e4152968708",
+      "cygno-3b09370c028d71834b94",
+      "cygno-40b913aea388760a7e63",
+      "cygno-f46dfea0b14988f15774"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:9.7685852"
+  },
+  {
+    "batch_ids": [
+      "cygno-45082d597fc8fc3f12fb",
+      "cygno-49e42b066feb0d0382b8",
+      "cygno-6b4db9a26fd70f790935",
+      "cygno-b4ef151d7c7003cdf091",
+      "cygno-b7f12484a24f9beec91c",
+      "cygno-cebee90d5b87c0f2e676",
+      "cygno-eef6cde856a0e77cd0e0",
+      "cygno-f66b0447ded82505cdd1"
+    ],
+    "n_batches": 8,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:14.310374"
+  },
+  {
+    "batch_ids": [
+      "cygno-4bac27819a4253bbdf2f",
+      "cygno-5319ace115845b41398c",
+      "cygno-ab2f7ff94a97c36ea678",
+      "cygno-c8f81ec951983ce0f2cb",
+      "cygno-cccf04fc4a0fe76c7ac1"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:20.963813"
+  },
+  {
+    "batch_ids": [
+      "cygno-73dc4842d94ea9b91412",
+      "cygno-999b3705ac0257db6d46",
+      "cygno-9dda58fee604cf5258f4",
+      "cygno-ec4b6fd092a535bf1705"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:30.710691"
+  },
+  {
+    "batch_ids": [
+      "cygno-4b2dd676082537e11053",
+      "cygno-efaefb447478bdab7550",
+      "cygno-f9f20b6d7464ebbb2b79"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:31.622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-134be5b89b0c35efcb89",
+      "cygno-97662249cc75b1716d4c",
+      "cygno-a7baf69dee38fe066e5c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:44.989264"
+  },
+  {
+    "batch_ids": [
+      "cygno-4fa12686f356cc5ad5f5",
+      "cygno-c7ba408529deda161c4a",
+      "cygno-f3fb29c0c5042f8c0a6a"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:65.906492"
+  },
+  {
+    "batch_ids": [
+      "cygno-3fa86db80bb6cab1cc43",
+      "cygno-86209113ab1929b2d00c",
+      "cygno-cb4d6d16a0d569f4a9d4"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:96.548938"
+  },
+  {
+    "batch_ids": [
+      "cygno-035fbafec49833beb2a3",
+      "cygno-1614da057141d05136fa",
+      "cygno-95a3c0646cc4f5240674"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:100"
+  },
+  {
+    "batch_ids": [
+      "cygno-29c8cf62c4ece02582b7",
+      "cygno-7e84a5d44ee360a8af0d",
+      "cygno-a4d4c55be599286e6299"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:141.43823"
+  },
+  {
+    "batch_ids": [
+      "cygno-0010b66ab590851482f6",
+      "cygno-e53227ca0ae4b7da194d",
+      "cygno-fc2d1c28d18b952e56c9"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:207.19827"
+  },
+  {
+    "batch_ids": [
+      "cygno-2142fb5e29d1225f2667",
+      "cygno-333a544e8fbca2b9dc7a",
+      "cygno-cefdb977858f1247d579"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:303.53265"
+  },
+  {
+    "batch_ids": [
+      "cygno-723a3b648a4106a59c1d",
+      "cygno-ad99aea456fe66b832e6",
+      "cygno-b86d7a09657b527e99d5"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:316.22777"
+  },
+  {
+    "batch_ids": [
+      "cygno-48c5a09cc3a1894cb5d1",
+      "cygno-cb6b2fca6762fdc632e6",
+      "cygno-d594b7dc5be8a6ea3add"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:444.65658"
+  },
+  {
+    "batch_ids": [
+      "cygno-31dfc815c38fc8145725",
+      "cygno-708d1ea80c69b469e18b",
+      "cygno-af7e23931bba79353ffe"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:651.39442"
+  },
+  {
+    "batch_ids": [
+      "cygno-2a64890ada7de6c7977a",
+      "cygno-5b2126de2a7a226785de",
+      "cygno-f7af7565a394ba8fe5b1"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:954.25257"
+  },
+  {
+    "batch_ids": [
+      "cygno-5a29cd21e3a582591cac",
+      "cygno-c7575ecb41762b98f9d6",
+      "cygno-d3b526f0aae8a326759f"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:1000"
+  },
+  {
+    "batch_ids": [
+      "cygno-0c5c9f156ec821a84d8d",
+      "cygno-0f33ce5a453984de737e",
+      "cygno-10c16723bb916fdc545c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:1007.2695"
+  },
+  {
+    "batch_ids": [
+      "cygno-6e7213e94eb7454f5c44",
+      "cygno-705960e38fbe350281a8",
+      "cygno-a2cffa03ac3652333534"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:1397.921"
+  },
+  {
+    "batch_ids": [
+      "cygno-b488d579a9ce46e1af30",
+      "cygno-c2f48213881145e8eacc",
+      "cygno-cc1fa1722f730d89bcb8"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:2047.8679"
+  },
+  {
+    "batch_ids": [
+      "cygno-2cc370cbe46e0340d1b3",
+      "cygno-c55f91c5c4b3722e7928",
+      "cygno-fa9c0a16b48387f418e7"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:He4:3000"
+  },
+  {
+    "batch_ids": [
+      "cygno-00b8c8012584461a247d",
+      "cygno-7070ee70dfd2420a8643",
+      "cygno-c6c0a6d27f8e885453e3"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.1"
+  },
+  {
+    "batch_ids": [
+      "cygno-11d1390746f1d6819cbc",
+      "cygno-430f5a9153276f9769ec",
+      "cygno-727ba098d8f7d5f2af1e"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.14649382"
+  },
+  {
+    "batch_ids": [
+      "cygno-5d39727006b9ef34bf2f",
+      "cygno-d38b1bb86ca8ac9c8117",
+      "cygno-f3584cb77430df4be108",
+      "cygno-fd21328896988e977f06"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.21460439"
+  },
+  {
+    "batch_ids": [
+      "cygno-06103ac22d937444bb88",
+      "cygno-06fed6bb50d97c6f34fb",
+      "cygno-e0dbf914753e15f3618b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.31438218"
+  },
+  {
+    "batch_ids": [
+      "cygno-37bf48648c44f6dd3742",
+      "cygno-9d4764e9db2e37f27bb9",
+      "cygno-f2fa772b18ac5e4a206b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.46055046"
+  },
+  {
+    "batch_ids": [
+      "cygno-44c846152a3066d972a6",
+      "cygno-bc1f76463d0152b234be",
+      "cygno-bcf0efbcdf153ca41171"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.67467797"
+  },
+  {
+    "batch_ids": [
+      "cygno-25c05c148e90691a813a",
+      "cygno-c29fd48d6afa22c94992",
+      "cygno-fc0e917660864d44d365"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:0.98836153"
+  },
+  {
+    "batch_ids": [
+      "cygno-67451483188ee4058f86",
+      "cygno-92ecae13ba4210b1f78d",
+      "cygno-fc9c1e36cd9042c2ac89"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1"
+  },
+  {
+    "batch_ids": [
+      "cygno-0d2ad7b0d96d683f2df0",
+      "cygno-13e1a6abac12ceffa4f3",
+      "cygno-4e723e14caf50cab4516",
+      "cygno-88dfeb16ba452c702f3b",
+      "cygno-ac3b2b5a3768128d4007",
+      "cygno-d5817ce9d95f94dbd8f8",
+      "cygno-d5cf6481dbf15ef0ac91",
+      "cygno-fcf2bd87589fb155807e"
+    ],
+    "n_batches": 8,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1.1166418"
+  },
+  {
+    "batch_ids": [
+      "cygno-08129807a30013c34344",
+      "cygno-23d9128ccbee2928acac",
+      "cygno-27fbdc046d4d2b24a700",
+      "cygno-33c2bbee36d813276d43",
+      "cygno-403f5d584dc508df5227",
+      "cygno-4d83e27b10f6883bbee9",
+      "cygno-61f22316924a1ada06c8",
+      "cygno-62ef368f2127c0281281",
+      "cygno-7b2508bbf7b74587f13a",
+      "cygno-89105935d5eae162acf7",
+      "cygno-9b0a6036299da5a34048",
+      "cygno-ff562dd733658f24850f"
+    ],
+    "n_batches": 12,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1.4478886"
+  },
+  {
+    "batch_ids": [
+      "cygno-5ae7bcc1ad1b7caf436b",
+      "cygno-5bd4222541759f7971bd",
+      "cygno-74848154e8b5773e66e5",
+      "cygno-8a0677134e5df76c3d6f",
+      "cygno-b7bde001907928ef93cf",
+      "cygno-d250ff1bbc9985775fd4",
+      "cygno-debfa4a5dea99f212a4a",
+      "cygno-e3c9b732630c5ec3458c",
+      "cygno-ff0a8258daeb24da3921"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:2.1210673"
+  },
+  {
+    "batch_ids": [
+      "cygno-00b9395385956ba5e71f",
+      "cygno-2dc051e5c92d2566bdd9",
+      "cygno-3bd6956c7c8e462054c7",
+      "cygno-7ac74f0858040fb82eb8",
+      "cygno-822f7797faa2732fe8da",
+      "cygno-f92ba110745f7a314d7d"
+    ],
+    "n_batches": 6,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:3.1072325"
+  },
+  {
+    "batch_ids": [
+      "cygno-0cf55328247c152c1143",
+      "cygno-416295556305018cbc99",
+      "cygno-5467bc36998090688efd",
+      "cygno-5d2289d5bbfc44d0978c",
+      "cygno-b437ac68d8793c0354ad",
+      "cygno-c937383315906c09e710",
+      "cygno-e1b84cbdafc3b878bdea",
+      "cygno-eaf9503eabd9efdac749",
+      "cygno-f205b9fffe372d1427e0"
+    ],
+    "n_batches": 9,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:4.5519036"
+  },
+  {
+    "batch_ids": [
+      "cygno-1fa454e82a2ff2c5d0d0",
+      "cygno-35c83604f3480b11121d",
+      "cygno-b4bbf32b401a77c94b8c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:6.6682575"
+  },
+  {
+    "batch_ids": [
+      "cygno-1555cca4fa524df6e24f",
+      "cygno-36a9e965ce65107f225b",
+      "cygno-7673091b8a4fe8a59882",
+      "cygno-bc356b2f869d559c93ac",
+      "cygno-c253b73b6d6b40b8223b",
+      "cygno-dcbbe70ecd9c71e333f5",
+      "cygno-df76bd95856f620101fa",
+      "cygno-f939dd152a83dd562440"
+    ],
+    "n_batches": 8,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:9.7685852"
+  },
+  {
+    "batch_ids": [
+      "cygno-12636adbde9009ca2f6b",
+      "cygno-2e2119ea5589e6eb2a43",
+      "cygno-31e11a6446a3789df730",
+      "cygno-b858d9188bbc0968c2b6",
+      "cygno-df7965a15e7c50feb2e3",
+      "cygno-e71bd9f3c2a24dd3b994",
+      "cygno-ef1a869bc15c9dc3b05f"
+    ],
+    "n_batches": 7,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:14.310374"
+  },
+  {
+    "batch_ids": [
+      "cygno-6440b66db7c99c340d20",
+      "cygno-694be932273ff0346ce8",
+      "cygno-92f544327c26fe3a2cc7",
+      "cygno-bbcda27cb19f26414481",
+      "cygno-d9c3e07b0685a306ceeb"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:20.963813"
+  },
+  {
+    "batch_ids": [
+      "cygno-0b814acbe724772de01f",
+      "cygno-22ce67eefe949afee4c8",
+      "cygno-2947d7f8fa7e683bfb0c",
+      "cygno-5c1f7350e0461871a09d",
+      "cygno-c3c1c76bc0809186db16"
+    ],
+    "n_batches": 5,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:30.710691"
+  },
+  {
+    "batch_ids": [
+      "cygno-0338f1fc4f17575efd68",
+      "cygno-0dcbd2c3f0ec0a6da61c",
+      "cygno-1b264b551740c60ee72d",
+      "cygno-29630a91d043c6e3ea1e",
+      "cygno-3111a120c99d9fd9a76f",
+      "cygno-478fd3857ee1d205ddf6",
+      "cygno-5ada7c83976e097b6e9b",
+      "cygno-6266a8227e518dc17ed6",
+      "cygno-77262dfd47f517a823b6",
+      "cygno-879db5766b82a0549300",
+      "cygno-95921490907dccfb132f",
+      "cygno-9c9c544f73b6c556cfb9",
+      "cygno-ac42fe59a00e9ac30eb3",
+      "cygno-b0fad870f3745be6dfc2",
+      "cygno-bf220a32e4059822ce7e",
+      "cygno-c0b961a6b2acdbb06f9d",
+      "cygno-cbbd7e40eac069b137ca",
+      "cygno-d63fbdb12b9f3746f1aa",
+      "cygno-d83403747bd9f398c8be",
+      "cygno-e2b761338467c920ee73",
+      "cygno-ee71bfc38de657385eee",
+      "cygno-fa716dc02f73e2f23509",
+      "cygno-ff471cedb3f33e0deb56"
+    ],
+    "n_batches": 23,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:31.622777"
+  },
+  {
+    "batch_ids": [
+      "cygno-0ec7c30d9149bd8d11d7",
+      "cygno-703bf8e52f35f9d25d51",
+      "cygno-937d475591450b32e097",
+      "cygno-9f56d3c1d37ac5204fdb",
+      "cygno-bbb0122ee90f838427e3",
+      "cygno-bc2ad62c65f6d4880c12",
+      "cygno-e103026617b5f74373cc",
+      "cygno-fe6dc2320fe0a1787569"
+    ],
+    "n_batches": 8,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:44.989264"
+  },
+  {
+    "batch_ids": [
+      "cygno-7d5788b5acf551b3548d",
+      "cygno-8aa18cacf4e322a9d202",
+      "cygno-97b8e5351b9a2cfd5488",
+      "cygno-e5321143f137fbd9b9fe"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:65.906492"
+  },
+  {
+    "batch_ids": [
+      "cygno-514d858c415d932c92de",
+      "cygno-960e761c8642502c070f",
+      "cygno-968dc2afdbc32aaef903",
+      "cygno-b9f8c5fbe967d7b799d3",
+      "cygno-c9308a43399724266307",
+      "cygno-cfde0d6ea4f70bb59c5c",
+      "cygno-f10b519dccce8e466f4c"
+    ],
+    "n_batches": 7,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:96.548938"
+  },
+  {
+    "batch_ids": [
+      "cygno-1af9b0b77f8c0dfaa51f",
+      "cygno-51bb40d5d8c009257b8c",
+      "cygno-d4767a4126a24c92fab4"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:100"
+  },
+  {
+    "batch_ids": [
+      "cygno-7985ae88aaad5e54f371",
+      "cygno-a552b0190dd55c36ef99",
+      "cygno-a75715b397b8a98fe04c"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:141.43823"
+  },
+  {
+    "batch_ids": [
+      "cygno-1f635e4b16224c9c0c76",
+      "cygno-2055b19545805269134e",
+      "cygno-25fed57b019a6922777b"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:207.19827"
+  },
+  {
+    "batch_ids": [
+      "cygno-3d766913f5a21ca8f2f6",
+      "cygno-9af5ac79702f6c5966f9",
+      "cygno-cdc906bf914d1b5dfc9c",
+      "cygno-eca53141d363ea98930f"
+    ],
+    "n_batches": 4,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:303.53265"
+  },
+  {
+    "batch_ids": [
+      "cygno-4620488fb560f8b8bcca",
+      "cygno-551557dfffbd36f8e76b",
+      "cygno-82793aaea37ac5c6a676"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:316.22777"
+  },
+  {
+    "batch_ids": [
+      "cygno-66783e45b27673fc761a",
+      "cygno-73b0ad790f36f2d075c3",
+      "cygno-791867b683bb645075fe"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:444.65658"
+  },
+  {
+    "batch_ids": [
+      "cygno-28f9aeba8c6c06778171",
+      "cygno-5249ccff45cd7f925f96",
+      "cygno-7af75fa08cb0d9f319f9"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:651.39442"
+  },
+  {
+    "batch_ids": [
+      "cygno-100351c40a779748f298",
+      "cygno-2935ea7eba454aa1b4d2",
+      "cygno-317a0473e4befda0fb8a"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:954.25257"
+  },
+  {
+    "batch_ids": [
+      "cygno-4c88160e34bdf115a5c8",
+      "cygno-cbb6928bbbdfbf46901c",
+      "cygno-f1ff875321abf61b19ef"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1000"
+  },
+  {
+    "batch_ids": [
+      "cygno-203490126fcac28d41f0",
+      "cygno-5e139c3efe17b725d7db",
+      "cygno-947d9201c071210bd5ae"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1078.3525"
+  },
+  {
+    "batch_ids": [
+      "cygno-53d4671077eeb8d94116",
+      "cygno-69425c0f55dfaa557fbd",
+      "cygno-6de778cb0f86aba228c9"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1397.921"
+  },
+  {
+    "batch_ids": [
+      "cygno-322f0d954125025744ac",
+      "cygno-734698a6f97dc042b02c",
+      "cygno-a2904be15b997c3d75c8"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:1732.0508"
+  },
+  {
+    "batch_ids": [
+      "cygno-34abd4bdd86478ec72c3",
+      "cygno-44e5248baf5403bb5aec",
+      "cygno-80459621190c8e0cfd78"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:2047.8679"
+  },
+  {
+    "batch_ids": [
+      "cygno-28bc7a86ed98146842ec",
+      "cygno-3bb01959793cfe88c4d3",
+      "cygno-3ea839a9aa6d5f9f19ae"
+    ],
+    "n_batches": 3,
+    "run_id": "cygno_hecf4_900mbar_20261015:baseline:O16:3000"
+  }
+]

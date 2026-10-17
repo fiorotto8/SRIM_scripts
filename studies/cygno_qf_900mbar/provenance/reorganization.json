@@ -1,0 +1,77 @@
+{
+  "reorganized_at_UTC": "2026-10-17T16:56:53.607400+00:00",
+  "canonical": "studies/cygno_qf_900mbar",
+  "removed": [
+    {
+      "path": "exports/cygno_mc_20261016",
+      "files": 22,
+      "bytes": 6495839,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_final",
+      "files": 28,
+      "bytes": 6508914,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_release",
+      "files": 39,
+      "bytes": 6731983,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_release.zip",
+      "files": 1,
+      "bytes": 1843513,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_release.zip.sha256",
+      "files": 1,
+      "bytes": 96,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_completed_replay",
+      "files": 32,
+      "bytes": 6657252,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_comparison_20261016",
+      "files": 6,
+      "bytes": 1164338,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "exports/cygno_mc_20261016_completed",
+      "files": 48,
+      "bytes": 8226466,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "reports/cygno_qf_thesis_recap_20261016",
+      "files": 6,
+      "bytes": 962236,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    },
+    {
+      "path": "CYGNO_QF_REVIEW.txt",
+      "files": 1,
+      "bytes": 2888,
+      "reason": "Superseded generated export or draft recap; canonical completed numerics and provenance preserved"
+    }
+  ],
+  "removed_files": 184,
+  "removed_bytes": 38593525,
+  "kept": [
+    "runs/cygno_hecf4_900mbar_20261015/ including all raw archives",
+    "Original SRIM installation and databases",
+    "Existing scan scripts/configurations/tests",
+    "Root geant4_config.json",
+    "Unrelated historical inputs/results",
+    "CYGNO-MC checkout (read only throughout)"
+  ],
+  "preservation_check": "All15 completed export core files and entire snapshot copied byte-for-byte before removal; standalone replay and final audit passed"
+}

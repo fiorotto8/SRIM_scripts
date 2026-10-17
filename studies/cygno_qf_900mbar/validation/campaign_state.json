@@ -1,0 +1,9 @@
+{
+  "coordinator_platform": "nt",
+  "finished_at": "2026-10-16T16:01:53+00:00",
+  "host": "ROG",
+  "pid": 30884,
+  "source_revision": "b4761ef028f16d12b13de37930ee3c0f3bfa41433d40c94ff83b994a3fda6936",
+  "started_at": "2026-10-15T19:00:14+00:00",
+  "status": "failed"
+}

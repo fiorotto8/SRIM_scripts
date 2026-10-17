@@ -1,0 +1,78 @@
+{
+  "checked_at_UTC": "2026-10-17T16:58:55.458603+00:00",
+  "scope": "Numerical/software reproduction only; original physical validation limitations retained",
+  "fresh_git_index_checkout": true,
+  "original_campaign_and_MC_not_required_for_main_replay": true,
+  "numerical_replay": {
+    "passed": true,
+    "checks": [
+      "Requested CSV contract and all isotope identities; density-transfer values unchanged and labeled derived",
+      "Inclusive primary+recoil energy and SEM reproduce using channel covariance",
+      "All five smooth models bounded and monotone; analytic derivative integrates to R(1000)-R(0.25); outside-grid rejection",
+      "Compiled C++17 header agrees with Python on205 isotope/energy cases including endpoints; bounds and unsupported species throw",
+      "All numerical CSVs, spline coefficients/bootstrap draws and C++ header byte-identical on frozen replay",
+      "Exact-target direct coverage explicitly missing; source conditions preserved"
+    ],
+    "source_batches": 852,
+    "source_ions": 85200,
+    "direct_rows": 142,
+    "smooth_rows": 2005,
+    "target_temperature_K": 293.15,
+    "replay_files": [
+      "energy_channels_source.csv",
+      "qf_source_with_guards.csv",
+      "qf_source_direct.csv",
+      "batch_energy_channels.csv",
+      "response_target_smooth.csv",
+      "stopping_power_proxies.csv",
+      "qf_target_transferred.csv",
+      "qf_target_smooth.csv",
+      "response_models.json",
+      "point_provenance.json",
+      "cygno_srim_response.hpp"
+    ],
+    "validator_sha256": "58ea462eab3c1b34fda8d0cf52ce6c2ed6942f36b98286f1374d13c3ec59b45d"
+  },
+  "all_published_tables_byte_identical": true,
+  "published_table_files": [
+    "C12.csv",
+    "F19.csv",
+    "H1.csv",
+    "He4.csv",
+    "O16.csv",
+    "energy_channels_source.csv",
+    "impurity_comparison.csv",
+    "raw_points.csv",
+    "thesis_mc_comparison.csv",
+    "threshold_sensitivity.csv"
+  ],
+  "recap_PNGs_byte_identical": true,
+  "recap_PDF_pages_visually_checked": 3,
+  "git_preserves_published_bytes": true,
+  "legacy_compiled_function_cases_reproduced": 132,
+  "read_only_live_MC_source_hashes_matched": 12,
+  "repository_tests": {
+    "run": 103,
+    "passed": 101,
+    "skipped": 2,
+    "failed": 0
+  },
+  "fresh_dependency_installation_tested": false,
+  "independent_raw_reintegration": {
+    "checked_batches": 1939,
+    "passed": true,
+    "all_original_numerical_records_identical": true,
+    "maximum_relative_difference_electronic": 8.441193021958608e-05,
+    "maximum_relative_difference_phonon": 8.441193021958717e-05,
+    "original_auditor_sha256": "f2bf720a4706aef6dc17e7b96f3782ecad3beed3b87b540562c104ee28a4139b",
+    "portable_auditor_sha256": "cc3e788180b2e05fcb0f43e8df061836423f6a9b1441b760c768b1d6351bedc4"
+  },
+  "publication_tool_sha256": {
+    "reproduce.py": "527faaf4bd3ca8dd6d7f0d5631d69a71b46126ce4518922d8ac0152bac345e1b",
+    "tools/make_recap.py": "e085f9e2df89919dd05b370d792777c7907f417e5222d87496d1bc3a138671a6",
+    "tools/independent_energy_check.py": "cc3e788180b2e05fcb0f43e8df061836423f6a9b1441b760c768b1d6351bedc4",
+    "tools/final_review.py": "12554b52681f7b7d4e3cbf6ad23100ae581acaea7c94fe79bc1378cd2c354649"
+  },
+  "MC_files_written": false,
+  "new_simulations_launched": 0
+}

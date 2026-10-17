@@ -1,0 +1,865 @@
+{
+  "artifacts": {
+    "reason": "Report rendering deferred to the configured analysis environment",
+    "status": "pending"
+  },
+  "completed_at": "2026-10-16T16:01:52+00:00",
+  "status": "finished_with_unresolved_validation",
+  "validation": {
+    "checks": [
+      {
+        "check": "production_complete",
+        "detail": "1614/1614 full-cascade batches",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "statistical_convergence",
+        "detail": "330/330 energy/species/medium points meet QF/range SEM targets",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "impurity_qf_classification",
+        "detail": "110/110 requested-domain paired QF comparisons resolve the configured 2% band using nominal fixed 95% contrasts; no sequential or simultaneous coverage guarantee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "ioniz_energy_bounds",
+        "detail": "1939 actual batches checked",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "containment",
+        "detail": "Bulk source and endpoint/escape checks",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_baseline_H",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_baseline_H",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_baseline_He",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_baseline_He",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_baseline_C",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_baseline_C",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_baseline_F",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_baseline_F",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_baseline_O",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_baseline_O",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_contaminated_H",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_contaminated_H",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": false,
+        "severity": "failure"
+      },
+      {
+        "check": "coverage_contaminated_He",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_contaminated_He",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_contaminated_C",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_contaminated_C",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_contaminated_F",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_contaminated_F",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "coverage_contaminated_O",
+        "detail": "Target 0.25-1000 SRIM-electronic keV; not calibrated charge keVee",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "monotonic_contaminated_O",
+        "detail": "Raw direct means; no forced monotone fit",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "source_installation_preserved",
+        "detail": "Source installation fingerprint and mutable controls",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "physical_charge_calibration",
+        "detail": "Unknown recoil-specific W/charge calibration; numerical physical charge QF intentionally null",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "total_3d_track_length",
+        "detail": "EXYZ provides sampled primary paths; total primary/cascade path length not established",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "terminal_energy_closure_requested_domain",
+        "detail": "Require 1% IONIZ+PHONON+binding energy closure where SRIM electronic surrogate is at least0.25keV; raw excursions retained",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "low_energy_control_budget",
+        "detail": "Supplementary low-energy control points below requested0.25keV surrogate can show SRIM cutoff/transport overshoot; energy_budget_valid flags these rows",
+        "passed": false,
+        "severity": "warning"
+      },
+      {
+        "check": "srmodule_impurity_screen_C",
+        "detail": "117/117 native energy pairs; required quantities complete=True; all available changes within 2.0%=True; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "srmodule_impurity_screen_F",
+        "detail": "117/117 native energy pairs; required quantities complete=True; all available changes within 2.0%=True; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "srmodule_impurity_screen_H",
+        "detail": "117/117 native energy pairs; required quantities complete=True; all available changes within 2.0%=True; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "srmodule_impurity_screen_He",
+        "detail": "117/117 native energy pairs; required quantities complete=True; all available changes within 2.0%=True; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "srmodule_impurity_screen_O",
+        "detail": "117/117 native energy pairs; required quantities complete=True; all available changes within 2.0%=True; deterministic SRModule only, no TRIM/QF or charge-equivalence inference",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_H_1_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_H_1_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_1_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_1_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_1_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_H_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "systematics_batches_systematics_H_100_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_H_100_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_100_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_100_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_100_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_100_4_distinct_increment",
+        "detail": "coarse [100.0] eV; fine [25.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.010320094873428028; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_H_1000_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_H_1000_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_1000_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_H_1000_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_1000_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_1000_4_distinct_increment",
+        "detail": "coarse [1000.0] eV; fine [250.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_H_1000_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0019192094596594356; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_He_1_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_He_1_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_1_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_1_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_1_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_He_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "systematics_batches_systematics_He_100_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_He_100_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_100_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_100_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_100_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_100_4_distinct_increment",
+        "detail": "coarse [100.0] eV; fine [25.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.021286663863503304; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_He_1000_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_He_1000_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_1000_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_He_1000_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_1000_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_1000_4_distinct_increment",
+        "detail": "coarse [1000.0] eV; fine [250.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_He_1000_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.005102831545116134; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_C_1_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_C_1_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_1_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_1_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_1_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_C_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "systematics_batches_systematics_C_100_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_C_100_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_100_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_100_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_100_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_100_4_distinct_increment",
+        "detail": "coarse [100.0] eV; fine [25.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.058450879906865504; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "warning"
+      },
+      {
+        "check": "systematics_batches_systematics_C_1000_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_C_1000_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_1000_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_C_1000_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_1000_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_1000_4_distinct_increment",
+        "detail": "coarse [1000.0] eV; fine [250.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_C_1000_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.011296023439960553; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_F_1_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_F_1_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_1_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_1_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_1_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_F_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "systematics_batches_systematics_F_100_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_F_100_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_100_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_100_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_100_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_100_4_distinct_increment",
+        "detail": "coarse [100.0] eV; fine [25.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.010525097925104206; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_F_1000_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_F_1000_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_1000_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_F_1000_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_1000_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_1000_4_distinct_increment",
+        "detail": "coarse [1000.0] eV; fine [250.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_F_1000_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.010476880453776052; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_O_1_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_O_1_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_1_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_1_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_1_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_1_4_distinct_increment",
+        "detail": "coarse [1.0] eV; fine [1.0] eV; equal increments do not test refinement",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "track_sampling_O_1_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.0; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "limitation"
+      },
+      {
+        "check": "systematics_batches_systematics_O_100_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_O_100_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_100_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_100_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_100_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_100_4_distinct_increment",
+        "detail": "coarse [100.0] eV; fine [25.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_100_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.06783287902184987; criterion=0.03; exact/cascade lengths unknown",
+        "passed": false,
+        "severity": "warning"
+      },
+      {
+        "check": "systematics_batches_systematics_O_1000_10_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_systematics_O_1000_30_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_1000_21_1000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "systematics_batches_track_sampling_O_1000_21_4000",
+        "detail": "3/3 valid full-cascade batches; unique repeats/seeds and N=100 required",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_1000_4_pairs",
+        "detail": "3/3 valid paired batches with identical seeds",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_1000_4_distinct_increment",
+        "detail": "coarse [1000.0] eV; fine [250.0] eV; equal increments do not test refinement",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "track_sampling_O_1000_4_polyline_convergence",
+        "detail": "Absolute paired path change plus two SEM=0.005107265483011109; criterion=0.03; exact/cascade lengths unknown",
+        "passed": true,
+        "severity": "pass"
+      },
+      {
+        "check": "raw_archive_sha256",
+        "detail": "1939/1939 archives verified by content without extraction",
+        "passed": true,
+        "severity": "pass"
+      }
+    ],
+    "converged_points": 330,
+    "passed": false,
+    "point_count": 330,
+    "production_completed_batches": 1614,
+    "production_expected_batches": 1614,
+    "status": "incomplete",
+    "updated_at": "2026-10-16T16:01:52+00:00"
+  }
+}
