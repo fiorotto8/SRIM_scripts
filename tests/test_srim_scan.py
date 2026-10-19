@@ -3,11 +3,15 @@ import math
 import hashlib
 import io
 import os
+import sqlite3
+import stat
 import tarfile
 from dataclasses import replace
+from contextlib import closing
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 import sys
 from pathlib import Path
 
@@ -310,46 +314,129 @@ footer
 
 
 class CheckpointTests(unittest.TestCase):
+    def test_private_cleanup_handles_readonly_copies_and_preserves_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            reference = source / "reference.dat"
+            reference.write_bytes(b"installed data")
+            private = root / "private"
+            private.mkdir()
+            copied = private / "reference.dat"
+            copied.write_bytes(reference.read_bytes())
+            copied.chmod(stat.S_IREAD)
+            private.chmod(stat.S_IREAD | stat.S_IEXEC)
+            srim_scan.remove_private_workdir(private, parent=root)
+            self.assertFalse(private.exists())
+            self.assertEqual(reference.read_bytes(), b"installed data")
+
+    def test_private_cleanup_refuses_parent_and_unrelated_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            private = root / "private"
+            private.mkdir()
+            sentinel = root / "checkpoint"
+            sentinel.write_bytes(b"preserve")
+            for target, parent in ((root, root), (root, private), (ROOT, ROOT.parent)):
+                with self.subTest(target=target, parent=parent):
+                    with self.assertRaises(ValueError):
+                        srim_scan.remove_private_workdir(target, parent=parent)
+            self.assertEqual(sentinel.read_bytes(), b"preserve")
+
+    @unittest.skipUnless(os.name == "nt", "native Windows supervisor integration")
+    def test_native_trim_deadline_returns_job_to_pending(self):
+        config = srim_scan.load_config(CONFIG)
+        elements, _ = load_elements(SRIM_ROOT / "Data" / "ATOMDATA")
+        condition = srim_scan.generate_conditions(config, elements)[0]
+        job = srim_scan.make_trim_jobs([condition], config, "trim")[0]
+        predictions = {
+            (condition.condition_id, job.payload["ion"]): [{
+                "energy_kev": job.payload["energy_kev"],
+                "projected_range_cm": 0.01,
+                "longitudinal_straggling_cm": 0.002,
+            }]
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            runtime = root / "runtime"
+            runtime.mkdir()
+            with patch(
+                "scripts.cygno_native_run.supervise_trim",
+                side_effect=TimeoutError("session limit"),
+            ) as supervise:
+                with self.assertRaises(srim_scan.SessionBudgetExhausted):
+                    srim_scan.run_trim_job(
+                        job, runtime, root, config, elements, predictions,
+                        srim_scan.ExecutionContext("native"),
+                        hard_deadline=time.monotonic() + 62,
+                    )
+                self.assertEqual(supervise.call_args.args[3], job.payload["n_ions"])
+
+    def test_host_provenance_supports_native_storage_probe(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            provenance = srim_scan.host_provenance(root, root / "future-run")
+            self.assertEqual(len(provenance["storage"]), 2)
+            for storage in provenance["storage"]:
+                self.assertGreater(storage["bytes_total"], 0)
+                self.assertGreaterEqual(storage["bytes_available"], 0)
+
+    def test_database_read_errors_release_windows_file_handles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            database = root / "jobs.sqlite"
+            with closing(sqlite3.connect(database)):
+                pass
+            for read_database in (
+                lambda: srim_scan.command_status(root),
+                lambda: srim_scan.validate_run(root, srim_scan.load_config(CONFIG)),
+            ):
+                with self.assertRaises(sqlite3.OperationalError):
+                    read_database()
+                # Windows refuses this rename while a failed reader owns a handle.
+                renamed = root / "closed.sqlite"
+                database.rename(renamed)
+                renamed.rename(database)
+
     def test_interrupted_inflight_job_is_immediately_resumable(self):
         with tempfile.TemporaryDirectory() as directory:
             run_dir = Path(directory)
-            connection = srim_scan.open_database(run_dir)
-            job = srim_scan.JobSpec("interrupt-job", "trim", {"energy_kev": 1.0})
+            with closing(srim_scan.open_database(run_dir)) as connection:
+                job = srim_scan.JobSpec("interrupt-job", "trim", {"energy_kev": 1.0})
 
-            def interrupt(_job, _runtime):
-                raise KeyboardInterrupt
+                def interrupt(_job, _runtime):
+                    raise KeyboardInterrupt
 
-            with self.assertRaises(KeyboardInterrupt):
-                srim_scan.execute_stage(
-                    [job],
-                    "trim",
-                    connection,
-                    run_dir,
-                    [run_dir / "worker"],
-                    interrupt,
-                    True,
-                    3,
-                    None,
-                )
-            self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
-            connection.close()
+                with self.assertRaises(KeyboardInterrupt):
+                    srim_scan.execute_stage(
+                        [job],
+                        "trim",
+                        connection,
+                        run_dir,
+                        [run_dir / "worker"],
+                        interrupt,
+                        True,
+                        3,
+                        None,
+                    )
+                self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
 
     def test_cumulative_campaign_budget_survives_restarts(self):
         with tempfile.TemporaryDirectory() as directory:
-            connection = srim_scan.open_database(Path(directory))
-            first, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=1000.0)
-            self.assertIsNotNone(first)
-            self.assertEqual(usage["elapsed_seconds"], 0.0)
-            srim_scan.finish_campaign_session(connection, first, now_epoch=2800.0)
-            second, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=3000.0)
-            self.assertIsNotNone(second)
-            self.assertEqual(usage["elapsed_seconds"], 1800.0)
-            # Simulate an ungraceful stop. The next restart charges the entire
-            # interval conservatively before opening a fresh session.
-            third, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=8400.0)
-            self.assertIsNone(third)
-            self.assertGreaterEqual(usage["elapsed_seconds"], 7200.0)
-            connection.close()
+            with closing(srim_scan.open_database(Path(directory))) as connection:
+                first, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=1000.0)
+                self.assertIsNotNone(first)
+                self.assertEqual(usage["elapsed_seconds"], 0.0)
+                srim_scan.finish_campaign_session(connection, first, now_epoch=2800.0)
+                second, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=3000.0)
+                self.assertIsNotNone(second)
+                self.assertEqual(usage["elapsed_seconds"], 1800.0)
+                # Simulate an ungraceful stop. The next restart charges the entire
+                # interval conservatively before opening a fresh session.
+                third, usage = srim_scan.begin_campaign_session(connection, 2.0, now_epoch=8400.0)
+                self.assertIsNone(third)
+                self.assertGreaterEqual(usage["elapsed_seconds"], 7200.0)
 
     def test_launch_command_honors_interrupt_signal(self):
         srim_scan.SHUTDOWN_REQUESTED.set()
@@ -364,30 +451,52 @@ class CheckpointTests(unittest.TestCase):
         finally:
             srim_scan.SHUTDOWN_REQUESTED.clear()
 
+    def test_launch_command_handles_output_larger_than_pipe_buffers(self):
+        srim_scan.launch_command(
+            [sys.executable, "-c", "import sys; sys.stdout.write('x' * 1048576); sys.stderr.write('y' * 1048576)"],
+            ROOT,
+            10,
+        )
+
+    def test_launch_command_retains_failure_and_timeout_diagnostics(self):
+        for tail, timeout, expected in (
+            ("raise SystemExit(3)", 10, "exit code 3"),
+            ("import time; time.sleep(30)", 1, "timed out"),
+        ):
+            with self.subTest(expected=expected):
+                with self.assertRaises(RuntimeError) as caught:
+                    srim_scan.launch_command(
+                        [sys.executable, "-c", "import sys; print('stdout diagnostic', flush=True); print('stderr diagnostic', file=sys.stderr, flush=True); " + tail],
+                        ROOT,
+                        timeout,
+                    )
+                self.assertIn(expected, str(caught.exception))
+                self.assertIn("stdout diagnostic", str(caught.exception))
+                self.assertIn("stderr diagnostic", str(caught.exception))
+
     def test_wall_budget_leaves_unstarted_jobs_pending(self):
         with tempfile.TemporaryDirectory() as directory:
             run_dir = Path(directory)
-            connection = srim_scan.open_database(run_dir)
-            job = srim_scan.JobSpec("budget-job", "trim", {"energy_kev": 1.0})
+            with closing(srim_scan.open_database(run_dir)) as connection:
+                job = srim_scan.JobSpec("budget-job", "trim", {"energy_kev": 1.0})
 
-            def should_not_run(_job, _runtime):
-                self.fail("worker ran after the launch deadline")
+                def should_not_run(_job, _runtime):
+                    self.fail("worker ran after the launch deadline")
 
-            exhausted = srim_scan.execute_stage(
-                [job],
-                "trim",
-                connection,
-                run_dir,
-                [run_dir / "worker"],
-                should_not_run,
-                True,
-                3,
-                None,
-                time.monotonic() - 1.0,
-            )
-            self.assertTrue(exhausted)
-            self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
-            connection.close()
+                exhausted = srim_scan.execute_stage(
+                    [job],
+                    "trim",
+                    connection,
+                    run_dir,
+                    [run_dir / "worker"],
+                    should_not_run,
+                    True,
+                    3,
+                    None,
+                    time.monotonic() - 1.0,
+                )
+                self.assertTrue(exhausted)
+                self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
 
     def test_pressure_and_energy_derivation(self):
         base = srim_scan.load_config(FAST_CONFIG)
@@ -475,19 +584,23 @@ class CheckpointTests(unittest.TestCase):
     def test_database_state_and_atomic_result(self):
         with tempfile.TemporaryDirectory() as directory:
             run_dir = Path(directory)
-            connection = srim_scan.open_database(run_dir)
-            job = srim_scan.JobSpec("test-job", "srmodule", {"value": 1})
-            srim_scan.register_jobs(connection, [job])
-            self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
-            srim_scan.set_job_state(connection, job.job_id, "running")
-            result = run_dir / "job_results" / "result.json"
-            srim_scan.atomic_write_json(result, {"ok": True})
-            srim_scan.set_job_state(
-                connection, job.job_id, "complete", str(result.relative_to(run_dir))
-            )
-            self.assertEqual(srim_scan.job_status(connection, job.job_id), ("complete", "job_results/result.json"))
-            self.assertEqual(json.loads(result.read_text()), {"ok": True})
-            connection.close()
+            with closing(srim_scan.open_database(run_dir)) as connection:
+                job = srim_scan.JobSpec("test-job", "srmodule", {"value": 1})
+                srim_scan.register_jobs(connection, [job])
+                self.assertEqual(srim_scan.job_status(connection, job.job_id)[0], "pending")
+                srim_scan.set_job_state(connection, job.job_id, "running")
+                result = run_dir / "job_results" / "result.json"
+                srim_scan.atomic_write_json(result, {"ok": True})
+                srim_scan.set_job_state(
+                    connection, job.job_id, "complete", str(result.relative_to(run_dir))
+                )
+                self.assertEqual(srim_scan.job_status(connection, job.job_id), ("complete", "job_results/result.json"))
+                # Old Windows callers also pass native separators on other hosts.
+                srim_scan.set_job_state(
+                    connection, job.job_id, "complete", "job_results\\result.json"
+                )
+                self.assertEqual(srim_scan.job_status(connection, job.job_id), ("complete", "job_results/result.json"))
+                self.assertEqual(json.loads(result.read_text()), {"ok": True})
 
 
 if __name__ == "__main__":

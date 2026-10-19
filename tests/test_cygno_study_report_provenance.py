@@ -20,7 +20,7 @@ class ReportProvenanceTests(unittest.TestCase):
                 json.dumps({"revision": "revision-a", "manifest": manifest_contents}), encoding="utf-8")
             (root / "batches").mkdir()
             (root / "batches" / "legacy.json").write_text(json.dumps({
-                "job": {"job_id": "old-job"}, "raw_archive": "raw/pilot/old-job.tar.gz"}), encoding="utf-8")
+                "job": {"job_id": "old-job"}, "raw_archive": "raw\\pilot\\old-job.tar.gz"}), encoding="utf-8")
             (root / "batches" / "versioned.json").write_text(json.dumps({
                 "job": {"job_id": "new-job"}, "source_revision": "revision-a",
                 "raw_archive": "raw/production/new-job.tar.gz"}), encoding="utf-8")

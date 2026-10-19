@@ -1,9 +1,12 @@
 import importlib.util
 import csv
+import hashlib
 import math
 from pathlib import Path
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 from scipy.integrate import quad
@@ -12,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("export_cygno_mc", ROOT / "scripts/export_cygno_mc.py")
 export = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(export)
+sys.path.insert(0, str(ROOT / "scripts"))
+import validate_cygno_mc_export as validator
 
 
 class ResponseTests(unittest.TestCase):
@@ -66,6 +71,73 @@ class ResponseTests(unittest.TestCase):
         self.assertGreaterEqual(min(c), -1e-8)
         self.assertLessEqual(max(c), 1 + 1e-8)
         self.assertGreaterEqual(min(np.diff(c)), -1e-8)
+
+
+class NativeInterchangeTests(unittest.TestCase):
+    def test_publication_checksum_check_is_read_only_and_detects_tampering(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            table = root / "tables" / "H1.csv"
+            table.parent.mkdir()
+            payload = b"energy_keV,QF\n1,0.5\n"
+            table.write_bytes(payload)
+            (root / "SHA256SUMS").write_text(hashlib.sha256(payload).hexdigest() + "  tables/H1.csv\n",
+                                             encoding="utf-8", newline="\n")
+            before = {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()}
+            result = validator.verify_publication_checksums(root)
+            self.assertEqual(result["published_hashes_verified"], 1)
+            self.assertTrue(result["passed"])
+            self.assertEqual(before, {path.relative_to(root): path.read_bytes() for path in root.rglob("*") if path.is_file()})
+            table.write_bytes(payload.replace(b"0.5", b"0.6"))
+            with self.assertRaisesRegex(ValueError, "Published file changed"):
+                validator.verify_publication_checksums(root)
+            table.write_bytes(payload)
+            (root / "unlisted.txt").write_text("unexpected")
+            with self.assertRaisesRegex(ValueError, "inventory differs"):
+                validator.verify_publication_checksums(root)
+
+    def test_replay_text_has_portable_bytes_and_csv_has_single_crlf_records(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            export.write_json(root / "result.json", {"relative": "raw/batch.tar.gz"})
+            export.export_header(root / "response.hpp", [])
+            export.write_csv(root / "result.csv", [{"label": "oxygen", "value": .25}])
+            for name in ("result.json", "response.hpp"):
+                payload = (root / name).read_bytes()
+                self.assertNotIn(b"\r", payload)
+                self.assertTrue(payload.endswith(b"\n"))
+            self.assertEqual((root / "result.csv").read_bytes(), b"label,value\r\noxygen,0.25\r\n")
+
+    def test_native_compiler_writes_explicit_windows_executable(self):
+        with tempfile.TemporaryDirectory(prefix="cygno compiler ") as directory:
+            source = Path(directory) / "check_response.cpp"
+            with mock.patch.object(validator.shutil, "which", side_effect=lambda name: "clang++.exe" if name == "clang++" else None), \
+                 mock.patch.object(validator.sys, "platform", "win32"), \
+                 mock.patch.object(validator.subprocess, "run") as run:
+                binary = validator.compile_response(source)
+            self.assertEqual(binary, source.with_suffix(".exe"))
+            command = run.call_args.args[0]
+            self.assertEqual(command, ["clang++.exe", "-std=c++17", "-O2", str(source), "-o", str(binary)])
+            self.assertEqual(run.call_args.kwargs["cwd"], source.parent)
+            self.assertTrue(run.call_args.kwargs["check"])
+
+    def test_msvc_uses_native_flags_and_private_object_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "check_response.cpp"
+            with mock.patch.object(validator.shutil, "which", side_effect=lambda name: "cl.exe" if name == "cl" else None), \
+                 mock.patch.object(validator.sys, "platform", "win32"), \
+                 mock.patch.object(validator.subprocess, "run") as run:
+                binary = validator.compile_response(source)
+            command = run.call_args.args[0]
+            self.assertIn("/std:c++17", command)
+            self.assertIn("/Fe:" + str(binary), command)
+            self.assertIn("/Fo:" + str(source.with_suffix(".obj")), command)
+            self.assertNotIn("-o", command)
+
+    def test_missing_compiler_fails_instead_of_claiming_cpp_validation(self):
+        with mock.patch.object(validator.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "native C\\+\\+17 compiler"):
+                validator.compile_response(ROOT / "check_response.cpp")
 
 
 class EnergyAccountingTests(unittest.TestCase):

@@ -189,7 +189,7 @@ def main():
                 'bands':'±1 conditional statistical SEM; legacy fit errors unavailable',
                 'scope':'Analytic current-source functions vs derived TRIM fit; no new Geant4 events',
                 'sealed_handoff_modified':False,'script_sha256':sha(Path(__file__))}
-    (out/'provenance.json').write_text(json.dumps(provenance,indent=2)+'\n')
+    (out/'provenance.json').write_text(json.dumps(provenance,indent=2)+'\n',encoding='utf-8',newline='\n')
     (out/'README.md').write_text('''# Clear QF and derivative comparison
 
 Blue: completed full-cascade TRIM fit, including primary and secondary recoil
@@ -216,10 +216,10 @@ measured free-charge calibration. The existing sealed handoff/ZIP is unchanged.
 Reproduce with NumPy, SciPy and Matplotlib:
 
 ```
-python3 plot_cygno_mc_comparison.py --export-dir ../srim_results_20261016_final --mc-root ../../.. --out ../comparison_replay
+py -3.15 plot_cygno_mc_comparison.py --export-dir ../srim_results_20261016_final --mc-root ../../.. --out ../comparison_replay
 ```
-''')
-    (out/'SHA256SUMS').write_text(''.join(f'{sha(p)}  {p.name}\n' for p in sorted(out.iterdir()) if p.is_file() and p.name!='SHA256SUMS'))
+''',encoding='utf-8',newline='\n')
+    (out/'SHA256SUMS').write_text(''.join(f'{sha(p)}  {p.name}\n' for p in sorted(out.iterdir()) if p.is_file() and p.name!='SHA256SUMS'),encoding='utf-8',newline='\n')
     print(json.dumps({'output':str(out),'values':len(rows),'verified':True},indent=2))
 
 

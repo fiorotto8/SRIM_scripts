@@ -89,7 +89,7 @@ def merge_snapshot(extension, publication, destination):
             records.append(row)
     identities=[(b['job']['species'],b['job']['energy_kevnr'],b['job']['seed']) for b in records]
     assert len(identities)==len(set(identities))
-    with (destination/'batches.jsonl').open('w') as handle:
+    with (destination/'batches.jsonl').open('w',encoding='utf-8',newline='\n') as handle:
         for row in records:handle.write(json.dumps(row,sort_keys=True,allow_nan=False)+'\n')
     capture=json.loads((destination/'capture.json').read_text())
     capture.update(captured_at=core.utc_now(),full_simulated_support=True,
@@ -110,7 +110,8 @@ def response_diagnostics(frozen, previous_models, destination):
     """Basis/regularization sensitivity is not added to statistical SEM."""
     models=json.loads((frozen/'response_models.json').read_text())['models']
     _,_,records=exporter.load_snapshot(frozen/'snapshot')
-    source=Path(json.loads((frozen/'snapshot/capture.json').read_text())['source_study']).name
+    source_path=json.loads((frozen/'snapshot/capture.json').read_text())['source_study']
+    source=source_path.replace('\\','/').rstrip('/').rsplit('/',1)[-1]
     points=exporter.aggregate(records,source)
     previous={m['species']:m for m in previous_models['models']}
     comparison=[];stability=[];summaries=[];sensitivity_models={};no_low_models={};boundary_refinement={}
@@ -218,7 +219,7 @@ The [report](REPORT.md) explains the 21 eV setting, histogram-count anomaly,
 boundary checks and MC integration. The original MC configuration is kept
 as provenance; its primary-energy interval is not automatically rewritten.
 '''
-    readme.write_text(text)
+    readme.write_text(text,encoding='utf-8',newline='\n')
     report=publication/'REPORT.md';text=report.read_text()
     text=text.replace('This release starts no new simulations.',
                       'The bounded extension added exactly 45 batches; no adaptive campaign was launched.')
@@ -334,7 +335,7 @@ choose their energy interval explicitly. This work did not write to CYGNO-MC.
 Inclusive cascade response still requires ancestry/terminal-energy accounting
 and detector calibration. Numerical bounds do not certify low-energy physics.
 '''
-    report.write_text(text.rstrip()+'\n')
+    report.write_text(text.rstrip()+'\n',encoding='utf-8',newline='\n')
 
 
 def publish(extension, publication):
@@ -410,7 +411,7 @@ def publish(extension, publication):
 def seal(publication):
     files=[p for p in sorted(publication.rglob('*')) if p.is_file() and p.name!='SHA256SUMS'
            and '__pycache__' not in p.parts and p.suffix!='.pyc']
-    (publication/'SHA256SUMS').write_text(''.join(exporter.sha(p)+'  '+p.relative_to(publication).as_posix()+'\n' for p in files))
+    (publication/'SHA256SUMS').write_text(''.join(exporter.sha(p)+'  '+p.relative_to(publication).as_posix()+'\n' for p in files),encoding='utf-8',newline='\n')
 
 
 def qualify_publication(publication,extension):

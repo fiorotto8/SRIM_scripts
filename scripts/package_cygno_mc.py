@@ -34,7 +34,7 @@ def package(study, export, mc_root, out):
     validation = json.loads((export / 'validation.json').read_text())
     if not validation['passed']:
         raise ValueError('Numerical interchange validation has not passed')
-    shutil.copytree(export, out, ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'check_response'))
+    shutil.copytree(export, out, ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'check_response', 'check_response.exe', 'check_response.obj'))
     study_out = out / 'study'
     study_out.mkdir()
     names = ['metadata.json', 'campaign_state.json', 'campaign_completion.json',
@@ -80,7 +80,7 @@ def package(study, export, mc_root, out):
         job = batch['job']
         batches.append(job)
         archive = study / batch['raw_archive']
-        inventory.append({'job': job, 'raw_archive': batch['raw_archive'],
+        inventory.append({'job': job, 'raw_archive': str(batch['raw_archive']).replace('\\', '/'),
                           'archive_sha256': sha(archive), 'archive_bytes': archive.stat().st_size,
                           'member_sha256': batch['raw_sha256'], 'source_json_sha256': sha(path)})
         if (job['medium'] == 'baseline' and job['stage'] == 'track_sampling'
@@ -144,7 +144,7 @@ int main() {
               << "; QF = " << r.QF << "; QF SEM = " << r.QF_sem
               << "; d(E*QF)/dE = " << r.dRdE << '\\n';
 }
-''')
+''', encoding='utf-8', newline='\n')
     handoff = {'schema': 'CYGNO-MC-completed-SRIM-handoff-v1',
                'packaged_at': datetime.now(timezone.utc).isoformat(),
                'source_study': str(study), 'raw_archives_location': str(study / 'raw'),
@@ -180,14 +180,14 @@ int main() {
 def seal(out):
     paths = sorted(p for p in out.rglob('*') if p.is_file() and p != out / 'SHA256SUMS'
                    and '__pycache__' not in p.parts and p.suffix != '.pyc')
-    (out / 'SHA256SUMS').write_text(''.join(f'{sha(p)}  {p.relative_to(out).as_posix()}\n' for p in paths))
+    (out / 'SHA256SUMS').write_text(''.join(f'{sha(p)}  {p.relative_to(out).as_posix()}\n' for p in paths), encoding='utf-8', newline='\n')
     archive_path = out.with_name(out.name + '.zip')
     with zipfile.ZipFile(archive_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
         for path in paths + [out / 'SHA256SUMS']:
             archive.write(path, (Path(out.name) / path.relative_to(out)).as_posix())
     with zipfile.ZipFile(archive_path) as archive:
         assert archive.testzip() is None
-    archive_path.with_suffix('.zip.sha256').write_text(f'{sha(archive_path)}  {archive_path.name}\n')
+    archive_path.with_suffix('.zip.sha256').write_text(f'{sha(archive_path)}  {archive_path.name}\n', encoding='utf-8', newline='\n')
     return archive_path
 
 

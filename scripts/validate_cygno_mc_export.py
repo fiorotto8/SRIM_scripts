@@ -2,23 +2,68 @@
 """Validate a CYGNO-MC export without opening or controlling a SRIM worker."""
 import argparse
 import csv
+import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
-
-import numpy as np
-from scipy.integrate import quad
-
-from export_cygno_mc import FIELDS, SPECIES, evaluate, load_snapshot, sha, write_json
-
+import sys
 
 def rows(path):
     with path.open() as handle:
         return list(csv.DictReader(handle))
 
 
+def verify_publication_checksums(root):
+    """Read the sealed inventory without regenerating or changing any file."""
+    root = root.resolve()
+    expected = {}
+    for line in (root / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        relative = PurePosixPath(name)
+        path = root.joinpath(*relative.parts).resolve()
+        if (len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest)
+                or not name or relative.is_absolute() or ".." in relative.parts
+                or "\\" in name or name in expected or not path.is_relative_to(root)):
+            raise ValueError("Invalid publication checksum entry: " + name)
+        with path.open("rb") as handle:
+            actual = hashlib.file_digest(handle, "sha256").hexdigest()
+        if actual != digest:
+            raise ValueError("Published file changed: " + name)
+        expected[name] = digest
+    if not expected:
+        raise ValueError("Publication checksum inventory is empty")
+    actual_names = {path.relative_to(root).as_posix() for path in root.rglob("*")
+                    if path.is_file() and path.name != "SHA256SUMS"
+                    and "__pycache__" not in path.parts and path.suffix != ".pyc"}
+    if actual_names != set(expected):
+        raise ValueError("Published file inventory differs from SHA256SUMS")
+    return {"passed": True, "published_hashes_verified": len(expected),
+            "scope": "Stored file integrity only; no numerical regeneration or physics qualification"}
+
+
+def compile_response(cpp):
+    """Build the interchange check with an available native C++17 compiler."""
+    cpp = cpp.resolve()
+    compiler = next((found for name in ("g++", "clang++", "cl")
+                     if (found := shutil.which(name))), None)
+    if not compiler:
+        raise RuntimeError("A native C++17 compiler (g++, clang++, or cl) is required for interchange qualification")
+    binary = cpp.with_suffix(".exe" if sys.platform == "win32" else "")
+    if Path(compiler).stem.lower() == "cl":
+        command = [compiler, "/nologo", "/std:c++17", "/EHsc", "/O2", str(cpp),
+                   "/Fe:" + str(binary), "/Fo:" + str(cpp.with_suffix(".obj"))]
+    else:
+        command = [compiler, "-std=c++17", "-O2", str(cpp), "-o", str(binary)]
+    subprocess.run(command, check=True, capture_output=True, cwd=cpp.parent)
+    return binary
+
+
 def validate(root, compare=None):
+    import numpy as np
+    from scipy.integrate import quad
+    from export_cygno_mc import FIELDS, SPECIES, evaluate, load_snapshot, sha, write_json
+
     config, _, records = load_snapshot(root / "snapshot")
     manifest = json.loads((root / "manifest.json").read_text())
     checks = []
@@ -70,9 +115,6 @@ def validate(root, compare=None):
     checks.append("All five smooth models bounded and monotone; analytic derivative integrates to R(upper)-R(lower); outside-grid rejection")
     qualification = root / "qualification"
     qualification.mkdir(exist_ok=True)
-    compiler = shutil.which("g++")
-    if not compiler:
-        raise RuntimeError("g++ is required for the C++ interchange qualification")
     cpp = qualification / "check_response.cpp"
     lines = ['#include "../cygno_srim_response.hpp"', '#include <iostream>', '#include <iomanip>',
              'int main(){ std::cout<<std::setprecision(17);']
@@ -82,15 +124,14 @@ def validate(root, compare=None):
     lo,hi=model_map['H1']['valid_energy_keV']
     lines += [f'for(double e:{{0.0,{lo*.999:.17g},{hi*1.001:.17g}}}) {{bool caught=false;try{{cygno_srim::evaluate(1,1,e);}}catch(const std::out_of_range&){{caught=true;}}if(!caught)return 2;}}',
               'bool caught=false;try{cygno_srim::evaluate(3,7,10);}catch(const std::invalid_argument&){caught=true;}return caught?0:3;}']
-    cpp.write_text("\n".join(lines) + "\n")
-    binary = qualification / "check_response"
-    subprocess.run([compiler, "-std=c++17", "-O2", str(cpp), "-o", str(binary)], check=True, capture_output=True)
+    cpp.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    binary = compile_response(cpp)
     output = subprocess.check_output([str(binary)], text=True)
     for line in output.splitlines():
         species, e, *values = line.split()
         expected = [float(v[0]) for v in evaluate(model_map[species], np.array([float(e)]))]
         np.testing.assert_allclose(list(map(float, values)), expected, rtol=1e-9, atol=1e-12)
-    (qualification / "cpp_values.txt").write_text(output)
+    (qualification / "cpp_values.txt").write_text(output, encoding="utf-8", newline="\n")
     checks.append("Compiled C++17 header agrees with Python on205 isotope/energy cases including endpoints; bounds and unsupported species throw")
     replay_files = []
     if compare:
@@ -115,7 +156,16 @@ def validate(root, compare=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("export_dir", type=Path)
+    parser.add_argument("export_dir", type=Path, nargs="?")
     parser.add_argument("--compare", type=Path)
+    parser.add_argument("--publication-checksums", type=Path, metavar="PATH",
+                        help="Verify a sealed publication's file hashes/inventory without changing it; standard library only")
     args = parser.parse_args()
-    validate(args.export_dir.resolve(), args.compare.resolve() if args.compare else None)
+    if args.publication_checksums:
+        if args.export_dir or args.compare:
+            parser.error("--publication-checksums cannot be combined with export_dir or --compare")
+        print(json.dumps(verify_publication_checksums(args.publication_checksums), indent=2))
+    elif args.export_dir:
+        validate(args.export_dir.resolve(), args.compare.resolve() if args.compare else None)
+    else:
+        parser.error("Provide export_dir or --publication-checksums PATH")

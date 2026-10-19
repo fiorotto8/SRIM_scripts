@@ -1,273 +1,166 @@
 # SRIM scripts for native Windows
 
-The `windows` branch is the native-Windows version of this repository. Its
-primary input is `GasDensities.csv`; it launches the SRIM-2013 Windows
-executables directly and does not require Docker, Wine, WSL, or PySRIM.
-
-Ubuntu/PySRIM development remains on the
-[`main` branch](https://github.com/fiorotto8/SRIM_scripts/tree/main). Keep this
-checkout on `windows` for the native Windows CSV workflow.
+The `windows` branch runs SRIM-2013 directly with **64-bit Windows Python 3.15**.
+Simulation, campaign control, analysis and reports use the same system Python;
+WSL, Wine, Docker, PySRIM and a virtual environment are not required.
+The repository can share `C:\SRIM-2013` with the installed SRIM files. Workers
+use private runtime copies; keep installed executables and reference data intact.
 
 The completed **[CYGNO QF study](studies/cygno_qf_900mbar/README.md)** contains
-the five-ion QF/derivative tables, comparison plots against Di Giambattista's
-thesis, the technical report and a frozen replay. This is the canonical
-published result; superseded local export/report copies have been consolidated.
+the five-ion numerical tables, comparison plots, technical report and frozen
+replay. Existing completed runs and that publication remain reusable.
 
-Two entry points cover the original CSV workflow:
+## Requirements and setup
 
-- `srim_gas_sweep.py` runs SRModule stopping/range calculations and writes a
-  flat CSV plus optional plots.
-- `trim_qf_sweep.py` runs TRIM and derives the IONIZ electronic-energy
-  fraction, with quick-depth and full-cascade modes.
-
-## Install on Windows
-
-1. Install 64-bit Python 3.11 or newer and Git for Windows.
-2. Download SRIM-2013 from the official [SRIM site](https://www.srim.org/) and
-   extract it to a user-writable directory such as `C:\SRIM-2013`. Do not put
-   this automation copy under `Program Files`.
-3. Verify that both `C:\SRIM-2013\TRIM.exe` and
-   `C:\SRIM-2013\SR Module\SRModule.exe` exist.
-4. Clone this branch and create its virtual environment from PowerShell:
+Install Git, 64-bit Python 3.15 and [SRIM-2013](https://www.srim.org/) in a writable
+directory. Verify `C:\SRIM-2013\TRIM.exe` and
+`C:\SRIM-2013\SR Module\SRModule.exe`. Run these single-line commands in PowerShell:
 
 ```powershell
-git clone --branch windows https://github.com/fiorotto8/SRIM_scripts.git
-Set-Location SRIM_scripts
-py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install matplotlib
+Set-Location C:\SRIM-2013
+py -3.15 -m pip install numpy matplotlib scipy
+py -3.15 -c "import numpy, matplotlib, scipy; print(numpy.__version__, matplotlib.__version__, scipy.__version__)"
 ```
 
-Edit `srim-root.txt` so its first non-comment line is your installation path:
+NumPy and Matplotlib support analysis and reports. SciPy is the existing
+dependency for constrained response fits and export validation; it preserves
+the original fitting and integration algorithms. A native C++17 compiler
+(`g++`, `clang++`, or `cl` on PATH) is needed for the maintained export's C++
+interchange qualification. Run `cl` from a Visual Studio developer PowerShell.
 
-```text
-C:\SRIM-2013
-```
+`srim-root.txt` centralizes the installation path; its first non-comment line
+should be `C:\SRIM-2013`. CSV sweeps and `srim_scan.py` also accept `--srim-root`
+or `SRIM_ROOT`, with the explicit option taking priority. The CYGNO commands
+default to the repository's SRIM installation and accept `--srim-root`.
 
-You can instead pass `--srim-root C:\SRIM-2013` on every command or set the
-`SRIM_ROOT` environment variable. The explicit command-line option has the
-highest priority.
-
-If Windows asks for administrator privileges or denies writes, open a normal
-(non-administrator) PowerShell and run:
+SRIM needs an interactive Windows desktop for its dialogs. Use a normal
+PowerShell session. If administrator compatibility flags prevent execution:
 
 ```powershell
 .\fix_srim_no_admin.ps1 -Root C:\SRIM-2013 -ClearBatchCompatibility
 ```
 
-The helper grants the current user access inside the selected SRIM directory,
-removes `RUNASADMIN` compatibility flags from the batch executables, and
-refuses protected Windows installation folders.
+## CSV stopping/range and TRIM workflows
 
-## Minimal working example
-
-`examples\GasDensities_minimal.csv` contains one CF4 condition. First inspect
-the three-energy SRModule plan without launching SRIM:
+Preview the small SRModule workload, then run it with distinct output paths:
 
 ```powershell
-.\.venv\Scripts\python.exe srim_gas_sweep.py `
-  --gas-csv examples\GasDensities_minimal.csv `
-  --ions C,F --points 3 --dry-run --no-plots
+py -3.15 srim_gas_sweep.py --gas-csv examples\GasDensities_minimal.csv --ions C,F --points 3 --dry-run --no-plots
+py -3.15 srim_gas_sweep.py --gas-csv examples\GasDensities_minimal.csv --ions C,F --points 3 --out results\minimal_srmodule.csv --workdir work\minimal_srmodule --no-plots
+py -3.15 trim_qf_sweep.py --gas-csv examples\GasDensities_minimal.csv --ions C --energies-kev 10 --mode full-cascade-validation --n-ions 10 --out results\minimal_trim.csv --workdir work\minimal_trim --no-plots
 ```
 
-Then run the same small calculation:
+These low-statistics examples check installation. For the supplied CSV scan:
 
 ```powershell
-.\.venv\Scripts\python.exe srim_gas_sweep.py `
-  --gas-csv examples\GasDensities_minimal.csv `
-  --ions C,F --points 3 --no-plots `
-  --out results\minimal_srmodule.csv
+py -3.15 srim_gas_sweep.py --gas-csv GasDensities.csv --dry-run --no-plots
+py -3.15 srim_gas_sweep.py --gas-csv GasDensities.csv --out results\srim_gas_sweep_new.csv --workdir work\srmodule_new --plots-dir plots\srmodule_new
+py -3.15 trim_qf_sweep.py --gas-csv GasDensities.csv --mode quick-depth-and-qf --n-ions 100 --quick-n-ions 100 --out results\trim_qf_new.csv --workdir work\trim_qf_new --plots-dir plots\trim_qf_new --keep-work
 ```
 
-A minimal 10-ion full-cascade TRIM check at 10 keV is:
+The default CSV energy grid has 100 logarithmic points from 0.1 to 500 keV.
+Restrict trials with, for example, `--gases CF4 --ions C,F --points 5`. Preview
+TRIM with `--dry-run`; both CSV previews are read-only. Execution refuses an
+existing output file or nonempty work directory. Use fresh paths for each run.
 
-```powershell
-.\.venv\Scripts\python.exe trim_qf_sweep.py `
-  --gas-csv examples\GasDensities_minimal.csv `
-  --ions C --energies-kev 10 `
-  --mode full-cascade-validation --n-ions 10 `
-  --out results\minimal_trim.csv --no-plots
-```
-
-Use these low-statistics commands only to verify installation and understand
-the files; they are not production-quality physics runs.
-
-## Run the supplied GasDensities.csv scan
-
-Preview the complete SRModule workload, then run it:
-
-```powershell
-.\.venv\Scripts\python.exe srim_gas_sweep.py `
-  --gas-csv GasDensities.csv --dry-run --no-plots
-
-.\.venv\Scripts\python.exe srim_gas_sweep.py `
-  --gas-csv GasDensities.csv `
-  --out results\srim_gas_sweep_results.csv `
-  --plots-dir plots\srmodule
-```
-
-The default energy grid has 100 logarithmic points from 0.1 to 500 keV and
-uses every constituent element in each selected gas. Restrict a trial with,
-for example, `--gases CF4 --ions C,F --points 5`.
-
-For the original quick-depth plus production-QF TRIM workflow:
-
-```powershell
-.\.venv\Scripts\python.exe trim_qf_sweep.py `
-  --gas-csv GasDensities.csv `
-  --mode quick-depth-and-qf `
-  --n-ions 100 --quick-n-ions 100 `
-  --out results\trim_qf_results.csv `
-  --plots-dir plots\trim_qf --keep-work
-```
-
-Always run `--dry-run` with the same filters first. The legacy scripts rewrite
-their selected output/work paths when starting; use distinct paths for trials
-and production, and do not point two simultaneous runs at the same SRIM tree.
-
-## CSV format
-
-The required columns are:
+Required CSV columns are:
 
 ```csv
 Gas, density @ 293 K (g/cm3), Pressure (atm)
 CF4, 0.00361, 1
 ```
 
-Mixture labels encode volume/mole percentages, for example
-`HeCF4(60% He 40% CF4)`. Percentages must resolve to elements known by SRIM,
-and density is supplied in g/cm3. Keep commas out of the gas label unless the
-field is CSV-quoted.
+Mixture labels such as `HeCF4(60% He 40% CF4)` encode volume/mole fractions;
+density is in g/cm3. Quote gas labels that contain commas.
 
-## Outputs and interpretation
+## CYGNO campaign: plan, start, status, stop, resume, report
 
-Generated files are ignored by Git. By default they are placed under
-`results\`, `plots\`, and `work\`. Use `--keep-work` when raw SRModule/TRIM
-inputs are needed for auditing.
+The [central configuration](configs/cygno_hecf4_900mbar.toml) preserves the
+He/CF4 60/40 baseline at 900 mbar and 293 K, plus the medium with 1000 ppm H2O
+and 1000 ppm O2. The baseline density is 0.001389194959 g/cm3; elemental atomic
+fractions are He = 3/13, C = 2/13 and F = 8/13. Isotopes are H-1, He-4, C-12,
+F-19 and O-16. Bulk recoils use TRIM.DAT mode 5 and full secondary cascades.
 
-The TRIM quantity reported as `qf_ioniz` is the integrated electronic energy
-in the IONIZ outputs divided by initial recoil energy. The SRModule value is a
-stopping-power integral proxy. Neither is a detector charge/light calibration.
-SRIM also does not model drift, diffusion, attachment, recombination, gain,
-W-values, or Fano factors.
+Choose a new run directory for a new campaign. Planning creates configuration
+and provenance records without launching SRIM. The example campaign uses eight
+independent worker runtimes and can take substantial time:
 
-## Troubleshooting
-
-- Run commands from the repository root so relative CSV/output paths are
-  unambiguous.
-- Close interactive SRIM windows before automation starts.
-- Keep SRIM in a writable directory and run Python from a normal shell.
-- If a previous run was interrupted, end stray `TRIM.exe` or `SRModule.exe`
-  processes in Task Manager before retrying with fresh work/output paths.
-- Add `--no-plots` if Matplotlib is not installed.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks and Git file conventions.
-
-## CYGNO He/CF4 study at 900 mbar
-
-The dedicated [study configuration](configs/cygno_hecf4_900mbar.toml) uses the
-active CSV temperature of 293 K. The ideal-gas baseline density is
-0.001389194959 g/cm3; the elemental atomic fractions are He = 3/13,
-C = 2/13, and F = 8/13. These differ from the 60/40 molecular fractions.
-The second medium contains 1000 ppm H2O and 1000 ppm O2 by final molar fraction,
-with the remaining gas retaining the 60/40 He/CF4 ratio.
-The [methodology notes](docs/cygno_srim_methodology.md) document the repository
-workflow, primary CYGNO/SRIM sources, energy accounting, and charge calibration.
-
-The [study driver](scripts/cygno_study.py) reuses the existing installation,
-input writers, parsers, and raw-archive helpers. It runs all five explicit
-isotopic projectiles (H-1, He-4, C-12, F-19, O-16) in both media. Bulk starting
-positions use TRIM.DAT mode 5 with full secondary cascades. Private runtime
-copies protect the installed SRIM tree and previous results. The native
-[supervisor](scripts/cygno_native_run.py) checks the completed history count
-before acknowledging the mode-5 completion dialog automatically.
-
-The coordinator and SRIM calculations run natively on Windows. WSL supplies the
-available analysis and plotting packages. The WSL launcher delegates to the
-Windows launcher, so closing its WSL session does not remove the coordinator's
-connection to Windows. Inspect the plan, then launch the detached campaign:
-
-```bash
-python3 scripts/cygno_study.py plan
-./scripts/start_cygno_study.sh --workers 8
-python3 scripts/cygno_study.py status
+```powershell
+py -3.15 scripts\cygno_study.py plan --run-dir runs\cygno_native_new
+py -3.15 scripts\cygno_campaign.py start --run-dir runs\cygno_native_new --workers 8
+py -3.15 scripts\cygno_campaign.py status --run-dir runs\cygno_native_new
+py -3.15 scripts\cygno_campaign.py stop --run-dir runs\cygno_native_new
+py -3.15 scripts\cygno_campaign.py resume --run-dir runs\cygno_native_new
+py -3.15 scripts\cygno_study.py report --run-dir runs\cygno_native_new
 ```
 
-Alternatively, launch from PowerShell with
-`./scripts/start_cygno_study.ps1 -Workers 8`. The launcher prints the native
-Windows PID and timestamped output/error logs. The native coordinator writes
-numerical results and validation; report rendering is deferred to the WSL
-analysis command below. `simulations_complete_report_pending` means the
-numerical campaign passed and the report still needs rendering.
+Start and resume detach the coordinator with timestamped output/error logs in
+the run's `logs` directory. Closing PowerShell leaves it running. Stop requests
+that active batches finish and save; wait for `stopped` before shutting down.
+Resume reuses saved configuration, worker count and completed batches. After an
+interruption, inspect status and recover a verified stale coordinator record:
 
-For everyday Windows control, double-click **`scan.bat`** in the repository
-folder and choose **1 Stop**, **2 Resume**, or **3 Status**. Stop lets each
-worker save its current batch; wait for the recorded state to become `stopped`
-before shutting down. Resume reuses completed batches and the previous native
-Python, with eight workers. The same actions work from a command prompt as
-`scan.bat stop`, `scan.bat resume`, and `scan.bat status`.
-
-To request a stop after active
-jobs finish, create the marker below. After the campaign has stopped and its
-lock has been released, remove that marker and rerun the same launcher to
-resume completed jobs without overwriting them.
-
-```bash
-touch runs/cygno_hecf4_900mbar_20261015/.stop-requested
+```powershell
+py -3.15 scripts\cygno_campaign.py recover --run-dir runs\cygno_native_new
 ```
 
-Results, raw archives, frozen source/configuration snapshots, and the report
-are written under `runs/cygno_hecf4_900mbar_20261015/`. Regenerate the numerical
-tables and report from completed batches with:
+Recovery checks recorded process identity and private runtimes before releasing
+stale state. The supervisor checks the requested ion count before acknowledging
+the known TRIM completion dialog; unknown dialogs or mismatched counts fail.
+Use campaign control for recovery; do not kill all processes named TRIM or SRModule.
+The PowerShell wrappers and `scan.bat` remain convenience entry points.
 
-```bash
-python3 scripts/cygno_study.py report
+The initial campaign has 28 logarithmic energies from 0.1 to 3000 keVnr, with
+three independent 100-history batches per species/energy/medium. Adaptive grid
+refinement and paired batches retain the configured convergence targets and
+30-batch cap. Threshold and trajectory-sampling controls remain separate.
+Reports render natively by default. `simulations_complete_report_pending` means
+that numerical validation finished and a separately requested report remains.
+Check validation files for missing points and unresolved scientific limitations.
+
+For the general resumable `srim_scan.py` workflow:
+
+```powershell
+py -3.15 srim_scan.py plan --config configs\noble_cf4_standard.toml
+py -3.15 srim_scan.py preflight --config configs\noble_cf4_standard.toml --srim-root C:\SRIM-2013 --skip-canary
+py -3.15 srim_scan.py run --config configs\noble_cf4_standard.toml --srim-root C:\SRIM-2013 --run-dir runs\scan_native_new --stage all --workers 1
+py -3.15 srim_scan.py status --run-dir runs\scan_native_new
+py -3.15 srim_scan.py run --config configs\noble_cf4_standard.toml --srim-root C:\SRIM-2013 --run-dir runs\scan_native_new --stage all --workers 1 --resume
+py -3.15 srim_scan.py validate --run-dir runs\scan_native_new
+py -3.15 srim_scan.py report --run-dir runs\scan_native_new
 ```
 
-The campaign starts with 28 logarithmic energies from 0.1 to 3000 keVnr and
-three independent 100-history batches per species, energy, and medium. It
-then refines the grid and adds paired batches where the QF/range precision
-targets or in-domain impurity classifications are unmet, up to 30 batches. Separate runs test cascade thresholds
-and primary-path sampling. Missing points, low-energy conservation failures,
-and unresolved convergence remain explicit in the output.
+Ctrl+C stops active work in the general scan and returns unfinished jobs to
+pending. Resume with the same run directory to reuse completed checkpoints.
+Omit `--skip-canary` to include a small native executable check during preflight.
 
-The QF is the integrated IONIZ primary-plus-secondary electronic-energy
-fraction. Its electron-equivalent energy is an SRIM surrogate; physical charge
-quenching requires recoil-specific calibration. RANGE_3D gives endpoints;
-EXYZ gives sampled primary paths, with exact total cascade length left unknown.
-Energy-channel SEMs and straggling uncertainties are retained alongside means.
-The numerical export specifies the event-field units: native absolute X stays
-in Angstrom while displacements and sampled paths use mm. The separate
-`srmodule_medium_comparison` tables compare exact native stopping/range points
-between the two media; they do not establish full-cascade or charge equivalence.
+## Interpretation, export and replay
 
-## Export existing results for CYGNO-MC
+QF is the integrated primary-plus-secondary IONIZ electronic-energy fraction.
+Its electron-equivalent energy is an SRIM surrogate; physical charge/light
+calibration remains unresolved. SRModule's stopping integral is a separate
+proxy. SRIM does not model drift, attachment, recombination, gain or W-values.
+RANGE_3D supplies endpoints; EXYZ supplies sampled primary paths, with exact
+total cascade arc length unknown. See [methodology](docs/cygno_srim_methodology.md).
 
-The [read-only exporter](scripts/export_cygno_mc.py) reads the supplied local
-`geant4_config.json` and completed batches, with no changes to active scans:
+Create a new read-only export from completed batches, then qualify its C++ interface:
 
-```bash
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n 15 python3 scripts/export_cygno_mc.py \
-  --config studies/cygno_qf_900mbar/frozen/snapshot/geant4_config.json \
-  --out exports/new_export
+```powershell
+py -3.15 scripts\export_cygno_mc.py --study-dir runs\cygno_hecf4_900mbar_20261015 --config studies\cygno_qf_900mbar\frozen\snapshot\geant4_config.json --out exports\new_export
+py -3.15 scripts\validate_cygno_mc_export.py exports\new_export
+py -3.15 scripts\validate_cygno_mc_export.py --publication-checksums studies\cygno_qf_900mbar
 ```
 
-Use the existing WSL NumPy/SciPy/Matplotlib analysis environment. The export
-includes all five isotope CSVs in one table, separate primary/recoil energy
-channels, a bounded monotone smooth QF, its analytic response derivative,
-conditional Monte Carlo uncertainties, frozen replay inputs and a C++ header.
-The [export documentation](docs/cygno_mc_export.md) explains the methods and
-CYGNO-MC integration requirements. Existing direct points retain their actual
-293 K source conditions; reuse at the requested 293.15 K target is explicitly
-derived, with no exact-target direct simulations claimed.
+The export retains isotope identities, separate energy channels, constrained
+smooth QF and analytic response derivative, uncertainty, provenance and replay
+inputs. Source points remain at 293 K; transfer to 293.15 K is explicitly derived.
+See [export documentation](docs/cygno_mc_export.md) for packaging and methods.
+The publication checksum command is read-only and needs only Python's standard
+library; it checks the complete stored file inventory without regenerating tables.
+The frozen publication retains its historical tools and dependency versions.
+Its `reproduce.py --verify-only` also regenerates tables and requires byte
+identity; native numerical-library differences can fail that historical check
+even when every stored SHA256 hash passes. Full byte-identical historical replay
+requires the recorded environment and a C++17 `g++`. Keep the frozen data intact.
 
-To use or reproduce the completed result, start with
-[studies/cygno_qf_900mbar](studies/cygno_qf_900mbar/README.md):
-
-```bash
-python3 studies/cygno_qf_900mbar/reproduce.py --verify-only
-python3 studies/cygno_qf_900mbar/reproduce.py --out /tmp/cygno_qf_replay
-```
-
-This offline replay needs the recorded analysis packages and a C++17 compiler,
-but no SRIM installation, external thesis PDF or CYGNO-MC checkout.
+For local tests and file conventions, see [CONTRIBUTING.md](CONTRIBUTING.md).

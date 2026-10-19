@@ -38,17 +38,16 @@ from srim_gas_sweep import (
     default_srim_root,
     filter_gases,
     format_float,
-    is_wsl,
     load_compound_dictionary,
     load_elements,
     load_gases,
     normalize_name,
     normalize_srim_root_path,
+    prepare_isolated_runtime,
     resolve_inside_root,
     sanitize_filename,
     select_ions,
     script_dir,
-    to_windows_path,
 )
 
 
@@ -76,29 +75,6 @@ THESIS_ENERGIES_KEV = [
     300,
     400,
     500,
-]
-
-KNOWN_TRIM_OUTPUTS = [
-    "IONIZ.txt",
-    "IONIZ.TXT",
-    "RANGE.txt",
-    "RANGE.TXT",
-    "VACANCY.txt",
-    "VACANCY.TXT",
-    "PHONON.txt",
-    "PHONON.TXT",
-    "E2RECOIL.txt",
-    "E2RECOIL.TXT",
-    "BACKSCAT.txt",
-    "BACKSCAT.TXT",
-    "TRANSMIT.txt",
-    "TRANSMIT.TXT",
-    "SPUTTER.txt",
-    "SPUTTER.TXT",
-    "COLLISON.txt",
-    "COLLISON.TXT",
-    "EXYZ.txt",
-    "EXYZ.TXT",
 ]
 
 NUMBER_RE = re.compile(r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][-+]?\d+)?")
@@ -332,7 +308,7 @@ def mm_to_angstrom(value: float) -> float:
 
 
 def write_text_crlf(path: Path, lines: Sequence[str]) -> None:
-    path.write_text("\r\n".join(lines) + "\r\n", encoding="ascii", errors="strict")
+    path.write_bytes(("\r\n".join(lines) + "\r\n").encode("ascii", errors="strict"))
 
 
 def write_trim_auto(path: Path, mode: int = 1) -> None:
@@ -466,65 +442,28 @@ def write_job_inputs(job: TrimJob, elements: Dict[str, Element]) -> None:
 
 
 def clear_previous_outputs(root: Path) -> None:
-    for name in KNOWN_TRIM_OUTPUTS:
-        path = root / name
-        if path.exists():
-            path.unlink()
+    from srim_scan import clear_runtime_outputs
+
+    clear_runtime_outputs(root)
 
 
 def collect_outputs(root: Path, job_dir: Path) -> None:
-    for name in KNOWN_TRIM_OUTPUTS:
-        path = root / name
+    from srim_scan import collect_runtime_outputs
+
+    for name, path in collect_runtime_outputs(root).items():
+        shutil.copy2(path, job_dir / name)
+    for name, path in [('native_process.json', root / 'native_process.json'),
+                       ('TDATA.sav', root / 'SRIM Restore/TDATA.sav')]:
         if path.exists():
-            shutil.copy2(path, job_dir / path.name.upper())
-
-
-def stop_trim_processes() -> None:
-    command = [
-        "powershell.exe",
-        "-NoProfile",
-        "-Command",
-        "Get-Process TRIM -ErrorAction SilentlyContinue | Stop-Process -Force",
-    ]
-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            shutil.copy2(path, job_dir / name)
 
 
 def run_trim_exe(root: Path, timeout_s: int) -> None:
-    exe = root / "TRIM.exe"
-    if not exe.exists():
-        raise FileNotFoundError(f"Missing TRIM executable: {exe}")
-    # Direct WSL PE launch keeps SRIM's working directory intact; invoking via
-    # cmd.exe can make relative control/output paths resolve elsewhere.
-    cmd = [str(exe.resolve())]
-    cwd = str(root)
-    try:
-        completed = subprocess.run(
-            cmd,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=timeout_s,
-            check=False,
-        )
-    except subprocess.TimeoutExpired as exc:
-        stop_trim_processes()
-        raise RuntimeError(
-            "TRIM.exe timed out. If a UAC dialog was visible, run fix_srim_no_admin.ps1 once "
-            "and retry from a normal shell."
-        ) from exc
-    except OSError as exc:
-        raise RuntimeError(
-            "TRIM.exe could not be launched. If Windows reports that elevation is required, "
-            "run fix_srim_no_admin.ps1 once and check compatibility flags for RUNASADMIN."
-        ) from exc
-    if completed.returncode != 0:
-        stdout = completed.stdout.decode("latin-1", errors="replace").strip()
-        stderr = completed.stderr.decode("latin-1", errors="replace").strip()
-        raise RuntimeError(
-            f"TRIM.exe failed with exit code {completed.returncode}. "
-            "This often means RUNASADMIN compatibility is still set or TRIM cannot batch-run here.\n"
-            f"STDOUT:\n{stdout}\nSTDERR:\n{stderr}"
-        )
+    from scripts.cygno_native_run import supervise_trim
+
+    lines = (root / "TRIM.IN").read_text(encoding="ascii").splitlines()
+    ions = int(lines[2].split()[4])
+    supervise_trim(root / "TRIM.exe", root, timeout_s, ions, root / "native_process.json")
 
 
 def numeric_columns_from_line(line: str) -> Tuple[float, float, float] | None:
@@ -808,6 +747,11 @@ def run_job(root: Path, job: TrimJob, elements: Dict[str, Element], timeout_s: i
         clear_previous_outputs(root)
         run_trim_exe(root, timeout_s)
         collect_outputs(root, job.job_dir)
+        from scripts.cygno_study_physics import parse_effective_settings
+
+        effective = parse_effective_settings(job.job_dir / 'TDATA.sav')
+        if effective['n_ions_calculated'] != job.n_ions:
+            raise RuntimeError(f"TRIM completed {effective['n_ions_calculated']} of {job.n_ions} requested histories")
     finally:
         if original_trim_in:
             trim_in.write_bytes(original_trim_in)
@@ -870,43 +814,10 @@ def estimated_width_angstrom(
     return max(mm_to_angstrom(estimate_mm * args.target_width_margin), 1000.0)
 
 
-def prepare_launcher(root: Path, workdir: Path) -> None:
-    win_root = to_windows_path(root) if is_wsl() else str(root)
-    win_workdir = to_windows_path(workdir) if is_wsl() else str(workdir)
-    lines = [
-        "@echo off",
-        "setlocal enabledelayedexpansion",
-        f"set SRIM_ROOT={win_root}",
-        f"set WORKDIR={win_workdir}",
-        "if not exist \"%SRIM_ROOT%\\TRIM.exe\" (",
-        "  echo Missing TRIM.exe",
-        "  exit /b 1",
-        ")",
-        "for /f \"usebackq delims=\" %%J in (\"%WORKDIR%\\trim_run_list.txt\") do (",
-        "  echo Running %%J",
-        "  copy /Y \"%%J\\TRIM.IN\" \"%SRIM_ROOT%\\TRIM.IN\" >nul",
-        "  if exist \"%%J\\TRIMAUTO\" (",
-        "    copy /Y \"%%J\\TRIMAUTO\" \"%SRIM_ROOT%\\TRIMAUTO\" >nul",
-        "  ) else (",
-        "    > \"%SRIM_ROOT%\\TRIMAUTO\" echo 1",
-        "    >> \"%SRIM_ROOT%\\TRIMAUTO\" echo(",
-        "  )",
-        "  pushd \"%SRIM_ROOT%\"",
-        "  TRIM.exe",
-        "  popd",
-        "  for %%F in (IONIZ.TXT RANGE.TXT VACANCY.TXT PHONON.TXT E2RECOIL.TXT BACKSCAT.TXT TRANSMIT.TXT SPUTTER.TXT COLLISON.TXT EXYZ.TXT) do (",
-        "    if exist \"%SRIM_ROOT%\\%%F\" copy /Y \"%SRIM_ROOT%\\%%F\" \"%%J\\%%F\" >nul",
-        "  )",
-        ")",
-        "echo Done. Re-run trim_qf_sweep.py --parse-only --workdir %WORKDIR%",
-    ]
-    write_text_crlf(workdir / "run_trim_jobs.bat", lines)
-
-
 def append_run_list(workdir: Path, jobs: Sequence[TrimJob]) -> None:
     with (workdir / "trim_run_list.txt").open("a", encoding="utf-8", newline="") as handle:
         for job in jobs:
-            job_path = to_windows_path(job.job_dir) if is_wsl() else str(job.job_dir)
+            job_path = job.job_dir.relative_to(workdir).as_posix()
             handle.write(job_path + "\n")
 
 
@@ -1004,8 +915,6 @@ def generate_trim_plots(csv_path: Path, plots_dir: Path, srmodule_csv: Path | No
     rows = [row for row in read_rows(csv_path) if row.get("trim_mode") in {"qf_production", "full_cascade_validation"}]
     if not rows:
         return []
-    if plots_dir.exists():
-        shutil.rmtree(plots_dir)
     plots_dir.mkdir(parents=True, exist_ok=True)
     plt = import_pyplot()
     written: List[Path] = []
@@ -1180,7 +1089,7 @@ def parse_only(workdir: Path, output_csv: Path, elements: Dict[str, Element]) ->
             }
         )
     output_csv.parent.mkdir(parents=True, exist_ok=True)
-    with output_csv.open("w", encoding="utf-8", newline="") as handle:
+    with output_csv.open("x", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=output_fieldnames())
         writer.writeheader()
         writer.writerows(rows)
@@ -1239,17 +1148,22 @@ def main() -> int:
     compounds = load_compound_dictionary(root / "Data" / "Compound.dat")
     print_plan(gases, args.ions, energies, elements, args)
     if args.dry_run:
-        print("Dry run only: no TRIM.exe calls will be made.")
+        print("Dry run only: no files are changed and no TRIM.exe calls are made.")
+        return 0
 
-    if workdir.exists():
-        shutil.rmtree(workdir)
+    if output_csv.exists():
+        raise FileExistsError(f"Use a new --out; existing results are preserved: {output_csv}")
+    if workdir.exists() and any(workdir.iterdir()):
+        raise FileExistsError(f"Use a new --workdir; existing files are preserved: {workdir}")
+    if not args.no_plots and plots_dir.exists() and any(plots_dir.iterdir()):
+        raise FileExistsError(f"Use a new --plots-dir: {plots_dir}")
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "trim_run_list.txt").write_text("", encoding="utf-8")
-    prepare_launcher(root, workdir)
+    runtime = prepare_isolated_runtime(root, workdir / "runtime")
 
     output_csv.parent.mkdir(parents=True, exist_ok=True)
     rows_written = 0
-    with output_csv.open("w", encoding="utf-8", newline="") as handle:
+    with output_csv.open("x", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=output_fieldnames())
         writer.writeheader()
         for gas in gases:
@@ -1282,7 +1196,7 @@ def main() -> int:
                         )
                     append_run_list(workdir, quick_jobs)
                     for job in quick_jobs:
-                        row = run_job(root, job, elements, args.timeout_s, args.dry_run)
+                        row = run_job(runtime, job, elements, args.timeout_s, args.dry_run)
                         if row:
                             writer.writerow(row)
                             handle.flush()
@@ -1336,7 +1250,7 @@ def main() -> int:
                         )
                     append_run_list(workdir, production_jobs)
                     for job in production_jobs:
-                        row = run_job(root, job, elements, args.timeout_s, args.dry_run)
+                        row = run_job(runtime, job, elements, args.timeout_s, args.dry_run)
                         if row:
                             writer.writerow(row)
                             handle.flush()
@@ -1347,18 +1261,14 @@ def main() -> int:
                                 flush=True,
                             )
 
-    if args.dry_run:
-        print(f"Wrote TRIM.IN templates, manifests, run list, and launcher under {workdir}")
-        return 0
-
     print(f"Wrote {rows_written} TRIM rows to {output_csv}")
     if not args.keep_work:
-        # Keep only the run list and launcher if the user did not request raw files.
-        launcher = (workdir / "run_trim_jobs.bat").read_bytes()
+        # This directory was created empty by this invocation; retain the run list.
         run_list = (workdir / "trim_run_list.txt").read_bytes()
-        shutil.rmtree(workdir, ignore_errors=True)
+        from srim_scan import remove_private_workdir
+
+        remove_private_workdir(workdir, parent=workdir.parent)
         workdir.mkdir(parents=True, exist_ok=True)
-        (workdir / "run_trim_jobs.bat").write_bytes(launcher)
         (workdir / "trim_run_list.txt").write_bytes(run_list)
     if not args.no_plots and rows_written:
         report_qualitative_qf_order(read_rows(output_csv))

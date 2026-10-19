@@ -23,6 +23,7 @@ import re
 import signal
 import shutil
 import sqlite3
+import stat
 import statistics
 import subprocess
 import sys
@@ -31,6 +32,7 @@ import tempfile
 import threading
 import time
 import tomllib
+from contextlib import closing
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -227,6 +229,42 @@ def atomic_write_json(path: Path, value: Any) -> None:
     atomic_write_text(path, json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
+def remove_private_workdir(path: Path, *, parent: Path) -> None:
+    """Remove an owned work tree, including copied Windows read-only attributes."""
+    target, boundary = path.resolve(), parent.resolve()
+    repository = script_dir().resolve()
+    if (
+        path.is_symlink()
+        or target == boundary
+        or not target.is_relative_to(boundary)
+        or target == repository
+        or target in repository.parents
+    ):
+        raise ValueError(f"Refusing to remove a work directory outside its private parent: {path}")
+
+    def retry_readonly(function: Any, child: str, error: BaseException) -> None:
+        child_path = Path(child)
+        if (
+            not isinstance(error, PermissionError)
+            or not child_path.resolve().is_relative_to(target)
+        ):
+            raise error
+        # copy2/copytree preserve the installation's read-only file attributes.
+        # Change only the failed private copy; installed files remain untouched.
+        child_path.chmod(child_path.stat().st_mode | stat.S_IWRITE)
+        for attempt in range(20):
+            try:
+                function(child)
+                return
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(0.1)
+
+    if target.exists():
+        shutil.rmtree(target, onexc=retry_readonly)
+
+
 def canonical_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -380,6 +418,8 @@ def resolve_repo_path(value: str | Path) -> Path:
 def resolve_srim_root(explicit: Path | None, cfg: ScanConfig | None = None) -> Path:
     if explicit is not None:
         return normalize_srim_root_path(explicit).resolve()
+    if os.environ.get("SRIM_ROOT"):
+        return normalize_srim_root_path(os.environ["SRIM_ROOT"]).resolve()
     if cfg is not None and cfg.srim_root_hint:
         return normalize_srim_root_path(resolve_repo_path(cfg.srim_root_hint)).resolve()
     config = script_dir() / "srim-root.txt"
@@ -528,39 +568,43 @@ def write_csv_atomic(path: Path, rows: Sequence[Mapping[str, Any]], fieldnames: 
 def open_database(run_dir: Path) -> sqlite3.Connection:
     run_dir.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(run_dir / "jobs.sqlite", timeout=60)
-    connection.execute("PRAGMA journal_mode=WAL")
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS jobs (
-            job_id TEXT PRIMARY KEY,
-            stage TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            status TEXT NOT NULL,
-            attempts INTEGER NOT NULL DEFAULT 0,
-            result_path TEXT,
-            error TEXT,
-            created_at TEXT NOT NULL,
-            started_at TEXT,
-            finished_at TEXT
+    try:
+        connection.execute("PRAGMA journal_mode=WAL")
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS jobs (
+                job_id TEXT PRIMARY KEY,
+                stage TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                status TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                result_path TEXT,
+                error TEXT,
+                created_at TEXT NOT NULL,
+                started_at TEXT,
+                finished_at TEXT
+            )
+            """
         )
-        """
-    )
-    connection.execute(
-        "CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
-    )
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS campaign_sessions (
-            session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            started_at TEXT NOT NULL,
-            started_epoch REAL NOT NULL,
-            finished_at TEXT,
-            finished_epoch REAL,
-            elapsed_seconds REAL
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
         )
-        """
-    )
-    connection.commit()
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS campaign_sessions (
+                session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                started_at TEXT NOT NULL,
+                started_epoch REAL NOT NULL,
+                finished_at TEXT,
+                finished_epoch REAL,
+                elapsed_seconds REAL
+            )
+            """
+        )
+        connection.commit()
+    except BaseException:
+        connection.close()
+        raise
     return connection
 
 
@@ -675,7 +719,7 @@ def set_job_state(
     else:
         connection.execute(
             "UPDATE jobs SET status=?,result_path=?,error=?,finished_at=? WHERE job_id=?",
-            (status, result_path, error, utc_now(), job_id),
+            (status, result_path.replace("\\", "/"), error, utc_now(), job_id),
         )
     connection.commit()
 
@@ -991,57 +1035,67 @@ def launch_command(
     display_name: str | None = None,
 ) -> None:
     name = display_name or Path(command[0]).name
-    process = subprocess.Popen(
-        list(command),
-        cwd=str(cwd),
-        env=dict(environment) if environment is not None else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        start_new_session=process_group and os.name != "nt",
-    )
-    deadline = time.monotonic() + timeout_s
-    last_size = -1
-    stable_since: float | None = None
-    try:
-        while True:
-            if SHUTDOWN_REQUESTED.is_set():
-                raise RuntimeError(f"{name} stopped after an interrupt; resume the stage")
-            code = process.poll()
-            if code is not None:
-                stdout, stderr = process.communicate()
-                if code != 0:
+    # Polling a child with unread pipes can deadlock once either pipe fills.
+    # File-backed capture retains diagnostics without blocking its progress.
+    with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
+        process = subprocess.Popen(
+            list(command),
+            cwd=str(cwd),
+            env=dict(environment) if environment is not None else None,
+            stdout=stdout_file,
+            stderr=stderr_file,
+            start_new_session=process_group and os.name != "nt",
+        )
+        deadline = time.monotonic() + timeout_s
+        last_size = -1
+        stable_since: float | None = None
+
+        def captured_output() -> Tuple[bytes, bytes]:
+            stdout_file.seek(0)
+            stderr_file.seek(0)
+            return stdout_file.read(), stderr_file.read()
+
+        try:
+            while True:
+                if SHUTDOWN_REQUESTED.is_set():
+                    raise RuntimeError(f"{name} stopped after an interrupt; resume the stage")
+                code = process.poll()
+                if code is not None:
+                    if code != 0:
+                        stdout, stderr = captured_output()
+                        raise RuntimeError(
+                            f"{name} failed with exit code {code}. "
+                            f"stdout={stdout.decode('latin-1', errors='replace').strip()!r} "
+                            f"stderr={stderr.decode('latin-1', errors='replace').strip()!r}"
+                        )
+                    return
+                now = time.monotonic()
+                if expected_output is not None and expected_output.exists():
+                    size = expected_output.stat().st_size
+                    if size > 0 and size == last_size:
+                        stable_since = stable_since or now
+                        if now - stable_since >= 1.0:
+                            stop_process(process, process_group)
+                            return
+                    else:
+                        last_size = size
+                        stable_since = now
+                if now >= deadline:
+                    stop_process(process, process_group)
+                    stdout, stderr = captured_output()
+                    time.sleep(1.0)
+                    if expected_output is not None and expected_output.exists() and expected_output.stat().st_size > 0:
+                        return
                     raise RuntimeError(
-                        f"{name} failed with exit code {code}. "
+                        f"{name} timed out after {timeout_s}s. "
                         f"stdout={stdout.decode('latin-1', errors='replace').strip()!r} "
                         f"stderr={stderr.decode('latin-1', errors='replace').strip()!r}"
                     )
-                return
-            now = time.monotonic()
-            if expected_output is not None and expected_output.exists():
-                size = expected_output.stat().st_size
-                if size > 0 and size == last_size:
-                    stable_since = stable_since or now
-                    if now - stable_since >= 1.0:
-                        stop_process(process, process_group)
-                        return
-                else:
-                    last_size = size
-                    stable_since = now
-            if now >= deadline:
-                stdout, stderr = stop_process(process, process_group)
-                time.sleep(1.0)
-                if expected_output is not None and expected_output.exists() and expected_output.stat().st_size > 0:
-                    return
-                raise RuntimeError(
-                    f"{name} timed out after {timeout_s}s. "
-                    f"stdout={stdout.decode('latin-1', errors='replace').strip()!r} "
-                    f"stderr={stderr.decode('latin-1', errors='replace').strip()!r}"
-                )
-            time.sleep(0.2)
-    except BaseException:
-        if process.poll() is None:
-            stop_process(process, process_group)
-        raise
+                time.sleep(0.2)
+        except BaseException:
+            if process.poll() is None:
+                stop_process(process, process_group)
+            raise
 
 
 def launch_windows_executable(
@@ -1151,7 +1205,7 @@ def execution_provenance(context: ExecutionContext, require_runtime: bool = True
 
 def host_provenance(srim_root: Path, run_dir: Path) -> Dict[str, Any]:
     """Collect reproducibility and capacity facts without optional dependencies."""
-    cpu_model = "unknown"
+    cpu_model = platform.processor() or "unknown"
     physical_cores: set[Tuple[str, str]] = set()
     try:
         blocks = Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="replace").split("\n\n")
@@ -1180,12 +1234,12 @@ def host_provenance(srim_root: Path, run_dir: Path) -> Dict[str, Any]:
         existing = path
         while not existing.exists() and existing != existing.parent:
             existing = existing.parent
-        stats = os.statvfs(existing)
+        stats = shutil.disk_usage(existing)
         return {
             "path": str(path),
             "filesystem_probe": str(existing),
-            "bytes_total": stats.f_blocks * stats.f_frsize,
-            "bytes_available": stats.f_bavail * stats.f_frsize,
+            "bytes_total": stats.total,
+            "bytes_available": stats.free,
         }
 
     wine = (
@@ -1410,7 +1464,7 @@ def run_srmodule_job(
         },
     )
     output_path.unlink(missing_ok=True)
-    return str(result_path.relative_to(run_dir))
+    return result_path.relative_to(run_dir).as_posix()
 
 
 def parse_range_summary(path: Path) -> RangeSummary:
@@ -1729,8 +1783,20 @@ def run_trim_job(
                     surface_binding_energy_ev=cfg.surface_binding_energy_ev,
                 )
                 write_text_crlf(trim_auto, ["1", ""])
-                launch_windows_executable(runtime / "TRIM.exe", runtime, timeout_s)
-        except RuntimeError as exc:
+                if os.name == "nt":
+                    from scripts.cygno_native_run import supervise_trim
+
+                    supervise_trim(
+                        runtime / "TRIM.exe",
+                        runtime,
+                        timeout_s,
+                        n_ions,
+                        run_dir / "logs" / job.stage / f"{job.job_id}-width-{width_attempt}.json",
+                        stop_requested=SHUTDOWN_REQUESTED.is_set,
+                    )
+                else:
+                    launch_windows_executable(runtime / "TRIM.exe", runtime, timeout_s)
+        except (RuntimeError, TimeoutError) as exc:
             if deadline_limited and time.monotonic() >= hard_deadline - 65.0:
                 raise SessionBudgetExhausted(
                     "TRIM was stopped at the hard session deadline; the job remains pending"
@@ -1842,8 +1908,8 @@ def run_trim_job(
             else None
         ),
         "clipped": clipped,
-        "raw_archive": str(archive.relative_to(run_dir)),
-        "normalized_profiles": str(profiles_path.relative_to(run_dir)),
+        "raw_archive": archive.relative_to(run_dir).as_posix(),
+        "normalized_profiles": profiles_path.relative_to(run_dir).as_posix(),
         "standard_outputs_present": canonical_json(
             {name: name.upper() in outputs for name in STANDARD_TRIM_OUTPUTS}
         ),
@@ -1855,7 +1921,7 @@ def run_trim_job(
     result.update(range_dict)
     result_path = run_dir / "job_results" / job.stage / f"{job.job_id}.json"
     atomic_write_json(result_path, result)
-    return str(result_path.relative_to(run_dir))
+    return result_path.relative_to(run_dir).as_posix()
 
 
 def aggregate_stage(connection: sqlite3.Connection, run_dir: Path, stage: str) -> Path:
@@ -2348,50 +2414,49 @@ def validate_run(run_dir: Path, cfg: ScanConfig) -> Tuple[List[Dict[str, Any]], 
     if not database_path.exists():
         entries.append(validation_entry("failure", "database", "jobs.sqlite is missing"))
         return entries, False
-    connection = sqlite3.connect(database_path)
-    metadata = dict(connection.execute("SELECT key,value FROM metadata").fetchall())
-    expected = {
-        "srmodule": len(cfg.families) * len(cfg.noble_percent) * len(cfg.pressures_atm) * 3,
-        "trim": len(cfg.families)
-        * len(cfg.noble_percent)
-        * len(cfg.trim_pressures)
-        * 3
-        * cfg.trim_energy_points,
-        "convergence": len(cfg.families)
-        * len(cfg.convergence_percent)
-        * len(cfg.convergence_pressures)
-        * 3
-        * len(cfg.convergence_energies)
-        * cfg.convergence_repeats,
-    }
-    for stage, expected_jobs in expected.items():
-        counts = dict(
-            connection.execute(
-                "SELECT status,COUNT(*) FROM jobs WHERE stage=? GROUP BY status", (stage,)
-            ).fetchall()
-        )
-        complete = int(counts.get("complete", 0))
-        if complete == expected_jobs:
-            entries.append(
-                validation_entry("pass", f"{stage}_completeness", f"{complete}/{expected_jobs} jobs complete")
+    with closing(sqlite3.connect(database_path)) as connection:
+        metadata = dict(connection.execute("SELECT key,value FROM metadata").fetchall())
+        expected = {
+            "srmodule": len(cfg.families) * len(cfg.noble_percent) * len(cfg.pressures_atm) * 3,
+            "trim": len(cfg.families)
+            * len(cfg.noble_percent)
+            * len(cfg.trim_pressures)
+            * 3
+            * cfg.trim_energy_points,
+            "convergence": len(cfg.families)
+            * len(cfg.convergence_percent)
+            * len(cfg.convergence_pressures)
+            * 3
+            * len(cfg.convergence_energies)
+            * cfg.convergence_repeats,
+        }
+        for stage, expected_jobs in expected.items():
+            counts = dict(
+                connection.execute(
+                    "SELECT status,COUNT(*) FROM jobs WHERE stage=? GROUP BY status", (stage,)
+                ).fetchall()
             )
-        else:
-            entries.append(
-                validation_entry(
-                    "failure",
-                    f"{stage}_completeness",
-                    f"expected {expected_jobs} completed jobs; found {complete}; states={counts}",
-                    expected_jobs - complete,
+            complete = int(counts.get("complete", 0))
+            if complete == expected_jobs:
+                entries.append(
+                    validation_entry("pass", f"{stage}_completeness", f"{complete}/{expected_jobs} jobs complete")
                 )
-            )
-    connection.close()
+            else:
+                entries.append(
+                    validation_entry(
+                        "failure",
+                        f"{stage}_completeness",
+                        f"expected {expected_jobs} completed jobs; found {complete}; states={counts}",
+                        expected_jobs - complete,
+                    )
+                )
     config_hash = hashlib.sha256(cfg.path.read_bytes()).hexdigest()
     fingerprint_path = run_dir / "provenance" / "srim_fingerprint.json"
     provenance_error = ""
     try:
         fingerprint = json.loads(fingerprint_path.read_text(encoding="utf-8"))
         required_fingerprints = {
-            str(path.relative_to(Path(metadata.get("srim_root", "."))))
+            path.relative_to(Path(metadata.get("srim_root", "."))).as_posix()
             for path in required_source_paths(Path(metadata.get("srim_root", ".")))
         }
         missing_fingerprints = sorted(required_fingerprints - set(fingerprint))
@@ -2866,7 +2931,7 @@ def write_report(run_dir: Path, cfg: ScanConfig, entries: Sequence[Mapping[str, 
         f"<td>{html.escape(str(row['message']))}</td></tr>" for row in entries
     )
     images = "\n".join(
-        f'<figure><img src="{html.escape(str(path.relative_to(run_dir)))}" alt="{html.escape(path.stem)}"></figure>'
+        f'<figure><img src="{html.escape(path.relative_to(run_dir).as_posix())}" alt="{html.escape(path.stem)}"></figure>'
         for path in plots
     )
     derivation_note = (
@@ -3041,7 +3106,7 @@ def run_preflight(
         if keep:
             print(f"Failed canary artifacts retained at {temporary}", file=sys.stderr)
         else:
-            shutil.rmtree(temporary)
+            remove_private_workdir(temporary, parent=script_dir())
 
 
 def command_run(args: argparse.Namespace) -> int:
@@ -3167,31 +3232,32 @@ def command_run(args: argparse.Namespace) -> int:
                 break
         return 0
     finally:
-        finish_campaign_session(connection, campaign_session_id)
-        connection.close()
+        try:
+            finish_campaign_session(connection, campaign_session_id)
+        finally:
+            connection.close()
 
 
 def command_status(run_dir: Path) -> int:
     database = run_dir / "jobs.sqlite"
     if not database.exists():
         raise FileNotFoundError(f"No scan database at {database}")
-    connection = sqlite3.connect(database)
-    rows = connection.execute(
-        "SELECT stage,status,COUNT(*) FROM jobs GROUP BY stage,status ORDER BY stage,status"
-    ).fetchall()
-    for stage, status, count in rows:
-        print(f"{stage:12s} {status:10s} {count:8d}")
-    cfg_path = run_dir / "provenance" / "config.toml"
-    if cfg_path.exists():
-        cfg = load_config(cfg_path)
-        if cfg.campaign_max_cumulative_hours:
-            usage = campaign_usage(connection, cfg.campaign_max_cumulative_hours)
-            print(
-                f"campaign     runtime    {float(usage['elapsed_seconds']) / 3600.0:8.3f} h used; "
-                f"{float(usage['remaining_seconds']) / 3600.0:.3f} h remaining; "
-                f"open sessions={usage['open_sessions']}"
-            )
-    connection.close()
+    with closing(sqlite3.connect(database)) as connection:
+        rows = connection.execute(
+            "SELECT stage,status,COUNT(*) FROM jobs GROUP BY stage,status ORDER BY stage,status"
+        ).fetchall()
+        for stage, status, count in rows:
+            print(f"{stage:12s} {status:10s} {count:8d}")
+        cfg_path = run_dir / "provenance" / "config.toml"
+        if cfg_path.exists():
+            cfg = load_config(cfg_path)
+            if cfg.campaign_max_cumulative_hours:
+                usage = campaign_usage(connection, cfg.campaign_max_cumulative_hours)
+                print(
+                    f"campaign     runtime    {float(usage['elapsed_seconds']) / 3600.0:8.3f} h used; "
+                    f"{float(usage['remaining_seconds']) / 3600.0:.3f} h remaining; "
+                    f"open sessions={usage['open_sessions']}"
+                )
     return 0
 
 
@@ -3278,8 +3344,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         SHUTDOWN_REQUESTED.set()
         raise KeyboardInterrupt
 
-    if os.name != "nt":
-        signal.signal(signal.SIGTERM, handle_shutdown)
+    signal.signal(signal.SIGTERM, handle_shutdown)
+    if os.name == "nt":
+        signal.signal(signal.SIGBREAK, handle_shutdown)
+    else:
         signal.signal(signal.SIGHUP, handle_shutdown)
     parser = build_parser()
     args = parser.parse_args(argv)

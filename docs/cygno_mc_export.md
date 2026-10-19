@@ -16,24 +16,30 @@ The bounded native launcher uses `start_cygno_study.ps1 -Mode extend` with
 `-RunDir C:\SRIM-2013\runs\cygno_hecf4_900mbar_20261015\extensions\low_energy_20261017`.
 It detaches with file-backed logs and never invokes the adaptive campaign.
 The existing control script accepts this same `-RunDir` for status/stop/resume
-and preserves extension mode when resuming. WSL postprocessing is
-`python3 scripts/cygno_qf_extension.py finish --wait`; it starts no simulations
+and preserves extension mode when resuming. Native postprocessing is
+`py -3.15 scripts\cygno_qf_extension.py finish --wait`; it starts no simulations
 and returns immediately when the publication is already complete.
-`python3 scripts/cygno_qf_extension.py audit` repeats the independent audit of
+`py -3.15 scripts\cygno_qf_extension.py audit` repeats the independent audit of
 the 45 new archives. `inventory` prints a read-only current inventory; use
 `--output NEW_FILE.json` to save it separately.
 
-Run `scripts/export_cygno_mc.py` in the existing WSL analysis environment with
-NumPy, SciPy and Matplotlib. This is postprocessing only. It does not launch
+Run `scripts/export_cygno_mc.py` with system Windows Python 3.15 and
+NumPy, SciPy and Matplotlib (`py -3.15 -m pip install numpy scipy matplotlib`).
+SciPy supplies the existing constrained spline fit and quadrature; those
+scientific algorithms are unchanged. This is postprocessing only. It does not launch
 SRIM, touch a stop marker or lock, alter the installation, or regenerate the
 running campaign's tables. Use a new export directory outside the study tree:
 
-```bash
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n 15 python3 scripts/export_cygno_mc.py \
-  --study-dir runs/cygno_hecf4_900mbar_20261015 \
-  --config studies/cygno_qf_900mbar/frozen/snapshot/geant4_config.json \
-  --out exports/new_export
+```powershell
+py -3.15 scripts\export_cygno_mc.py --study-dir runs\cygno_hecf4_900mbar_20261015 --config studies\cygno_qf_900mbar\frozen\snapshot\geant4_config.json --out exports\new_export
+py -3.15 scripts\validate_cygno_mc_export.py exports\new_export
 ```
+
+The maintained validator uses a native C++17 compiler on PATH (`g++`, `clang++`
+or `cl`); MSVC requires a developer PowerShell. It creates a Windows `.exe`
+inside the new export's qualification directory. Relative manifest/archive
+references use `/`, and generated JSON/JSONL/C++/checksum text uses UTF-8/LF
+so changing the operating system alone does not change those bytes.
 
 The supplied local `geant4_config.json` is copied byte-for-byte into the export.
 It describes CYGNO-MC source and macros; its own provenance explicitly says
@@ -76,12 +82,8 @@ explicitly derived density-transferred ranges. Original raw archives stay in
 the SRIM study; their paths and SHA256 values are exported. This copies data
 and reproduction tools without changing the MC physics source. For example:
 
-```bash
-python3 scripts/package_cygno_mc.py \
-  --study runs/cygno_hecf4_900mbar_20261015 \
-  --export studies/cygno_qf_900mbar/frozen \
-  --mc-root /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC \
-  --out /mnt/c/Users/david/MyDrive/WORK/CYGNO-MC/tests/nuclear_recoils/srim_results_NEW
+```powershell
+py -3.15 scripts\package_cygno_mc.py --study runs\cygno_hecf4_900mbar_20261015 --export studies\cygno_qf_900mbar\frozen --mc-root C:\CYGNO-MC --out C:\CYGNO-MC\tests\nuclear_recoils\srim_results_NEW
 ```
 
 Use a new destination. Preserve the accompanying final review and work summary.
@@ -248,12 +250,26 @@ The export contains a standalone copy of the exporter and a hashed compact
 snapshot of the selected completed batch energies/settings. Reproduce the
 numerical export without accessing the live scan:
 
-```bash
-OPENBLAS_NUM_THREADS=1 python3 export_cygno_mc.py \
-  --snapshot snapshot --out ../cygno_mc_replay
+```powershell
+py -3.15 export_cygno_mc.py --snapshot snapshot --out ..\cygno_mc_replay
 ```
 
 The supplied release uses 400 bootstrap replicas, 401 grid points per species
 and base seed 20261016. Per-model seeds/counts are in `response_models.json`;
 NumPy/SciPy versions are in the manifest. Raw TRIM archives remain preserved in the original study;
 the snapshot references them rather than duplicating the entire campaign.
+
+The published study retains its historical frozen scripts and dependency
+versions. Verify its stored file integrity without regenerating numerical tables:
+
+```powershell
+py -3.15 scripts\validate_cygno_mc_export.py --publication-checksums studies\cygno_qf_900mbar
+```
+
+This read-only command uses only the standard library and checks file inventory
+as well as hashes. The frozen `reproduce.py --verify-only` checks hashes and then
+requires byte-identical regenerated tables. Native numerical-library differences
+can fail the latter check even if every stored hash passes. Full byte-identical
+historical replay needs the recorded numerical environment and the frozen
+validator's `g++`; the maintained validator's compiler support does not alter
+the frozen publication.

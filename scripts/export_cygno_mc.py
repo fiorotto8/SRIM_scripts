@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only SRIM snapshot and CYGNO-MC interchange export; never launches SRIM.
 
-Requires NumPy, SciPy and Matplotlib in the existing analysis environment.
+Requires NumPy, SciPy and Matplotlib in native Windows Python.
 Replay from the exported snapshot, rather than a changing live study directory.
 """
 from __future__ import annotations
@@ -33,12 +33,13 @@ def sha(path):
 
 
 def write_json(path, value):
-    path.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n")
+    path.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n",
+                    encoding="utf-8", newline="\n")
 
 
 def write_csv(path, rows, fields=None):
     fields = fields or list(dict.fromkeys(k for row in rows for k in row))
-    with path.open("w", newline="") as handle:
+    with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="raise")
         writer.writeheader()
         writer.writerows({k: int(v) if isinstance(v, bool) else v for k, v in row.items()} for row in rows)
@@ -134,7 +135,7 @@ def capture(study, config_path, snapshot):
         records.append({"job": job, "source_json": "batches/" + path.name,
                         "source_json_sha256": hashlib.sha256(payload).hexdigest(),
                         "source_revision": batch.get("source_revision"),
-                        "raw_archive": batch["raw_archive"], "raw_sha256": batch["raw_sha256"],
+                        "raw_archive": str(batch["raw_archive"]).replace("\\", "/"), "raw_sha256": batch["raw_sha256"],
                         "primary_keV": primary, "recoil_keV": recoil,
                         "phonon_keV": budget.get("phonon_energy_kev"),
                         "binding_keV": budget.get("binding_energy_sink_kev"),
@@ -172,7 +173,7 @@ def capture(study, config_path, snapshot):
         if p.exists():
             shutil.copy2(p, snapshot / name)
     shutil.copy2(study / "srmodule.csv", snapshot / "srmodule.csv")
-    with (snapshot / "batches.jsonl").open("w") as handle:
+    with (snapshot / "batches.jsonl").open("w", encoding="utf-8", newline="\n") as handle:
         for row in records:
             handle.write(json.dumps(row, sort_keys=True, allow_nan=False) + "\n")
     write_json(snapshot / "capture.json", {"captured_at": datetime.now(timezone.utc).isoformat(),
@@ -370,14 +371,15 @@ def export_header(path, models):
               "    for(int i=0;i<n;++i) for(int j=0;j<n;++j) { vq+=b[i]*m.cov[i*n+j]*b[j]; vr+=d[i]*m.cov[i*n+j]*d[j]; }",
               "    return {q,std::sqrt(std::fmax(0.,vq)),r,std::sqrt(std::fmax(0.,vr))}; }",
               "  throw std::invalid_argument(\"Unsupported SRIM isotope Z,A\"); }", "} // namespace cygno_srim"]
-    path.write_text("\n".join(lines) + "\n")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def build(snapshot, out, n_bootstrap=400, grid_points=401, seed=20261016):
     config, metadata, records = load_snapshot(snapshot)
     gas = next(x for x in metadata["gas_conditions"] if x["medium"] == "baseline")
     target = config["target"]
-    source_id = Path(json.loads((snapshot / "capture.json").read_text())["source_study"]).name
+    source_path = json.loads((snapshot / "capture.json").read_text())["source_study"]
+    source_id = source_path.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
     points = aggregate(records, source_id)
     lo, hi = config["primaries"]["energy_min_keV"], config["primaries"]["energy_max_keV"]
     full_support = json.loads((snapshot/'capture.json').read_text()).get('full_simulated_support', False)

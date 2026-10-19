@@ -164,7 +164,7 @@ def _provenance_references(study_dir: Path, problems: list[str]) -> dict[str, An
             continue
         revision = batch.get("source_revision") or None
         archive = batch.get("raw_archive")
-        archive_reference = f"../{Path(archive).as_posix()}" if isinstance(archive, str) and archive else None
+        archive_reference = "../" + archive.replace("\\", "/") if isinstance(archive, str) and archive else None
         batches.append({
             "job_id": batch.get("job", {}).get("job_id"),
             "batch_metadata": f"../{path.relative_to(study_dir).as_posix()}",

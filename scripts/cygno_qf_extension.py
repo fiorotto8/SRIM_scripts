@@ -2,7 +2,7 @@
 """Bounded CYGNO extension: only missing 25/40/63 eV baseline anchors.
 
 Native simulation code uses the existing coordinator and no scientific Python
-packages. Postprocessing is an explicit WSL/scientific-Python command.
+packages. Postprocessing uses the same native Python with NumPy/SciPy/Matplotlib.
 """
 from __future__ import annotations
 import argparse
@@ -151,7 +151,7 @@ def main():
         record = inventory()
         if args.output:
             if args.output.exists():parser.error('--output must be a new file')
-            args.output.write_text(json.dumps(record,indent=2)+'\n')
+            args.output.write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8',newline='\n')
         print(json.dumps({k:v for k,v in record.items() if k != 'points'}, indent=2))
     elif args.command=='audit':
         from cygno_qf_extension_analysis import check_new_archives

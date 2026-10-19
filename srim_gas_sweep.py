@@ -2,8 +2,8 @@
 """
 Batch SRIM/SRModule sweep for gas mixtures.
 
-This script is designed to run from WSL or Windows Python inside a SRIM-2013
-installation directory. It uses SRIM's headless "SR Module" executable to create
+This script runs with native Windows Python and a private copy of the SRIM-2013
+runtime. It uses the "SR Module" executable to create
 stopping/range tables, then interpolates SRIM's projected ranges onto a
 log-spaced energy grid. It also derives an electronic energy-fraction quenching
 proxy from SRIM's electronic and nuclear stopping powers.
@@ -595,12 +595,12 @@ def write_sr_in(
             f" {format_float(emin_kev, 12)}    {format_float(emax_kev, 12)}",
         ]
     )
-    path.write_text("\r\n".join(lines) + "\r\n", encoding="ascii")
+    path.write_bytes(("\r\n".join(lines) + "\r\n").encode("ascii"))
 
 
 def prepare_raw_workdir(workdir: Path, clean: bool = True) -> Path:
-    if clean and workdir.exists():
-        shutil.rmtree(workdir)
+    if clean and workdir.exists() and any(workdir.iterdir()):
+        raise FileExistsError(f"Use a new --workdir; existing files are preserved: {workdir}")
     workdir.mkdir(parents=True, exist_ok=True)
     raw_dir = workdir / "raw"
     raw_dir.mkdir(exist_ok=True)
@@ -637,24 +637,6 @@ def to_windows_path(path: Path) -> str:
     return completed.stdout.strip()
 
 
-def stop_srmodule_processes() -> None:
-    if is_wsl():
-        command = [
-            "powershell.exe",
-            "-NoProfile",
-            "-Command",
-            "Get-Process SRModule -ErrorAction SilentlyContinue | Stop-Process -Force",
-        ]
-    else:
-        command = [
-            "powershell.exe",
-            "-NoProfile",
-            "-Command",
-            "Get-Process SRModule -ErrorAction SilentlyContinue | Stop-Process -Force",
-        ]
-    subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-
-
 def unlink_with_retries(path: Path, attempts: int = 20, delay_s: float = 0.25) -> None:
     for attempt in range(attempts):
         try:
@@ -668,7 +650,6 @@ def unlink_with_retries(path: Path, attempts: int = 20, delay_s: float = 0.25) -
                     "Task Manager, then run fix_srim_no_admin.ps1; if XP compatibility is still set on "
                     "batch executables, rerun with -ClearBatchCompatibility."
                 )
-            stop_srmodule_processes()
             time.sleep(delay_s)
 
 
@@ -696,74 +677,17 @@ def prepare_srmodule_output_path(module_dir: Path, output_name: str) -> Tuple[st
 
 
 def run_srmodule(module_dir: Path, timeout_s: int = 60, expected_output: Path | None = None) -> None:
-    # WSL launches Windows PE files directly from /mnt/<drive>/... paths and
-    # preserves cwd.  cmd.exe does not reliably preserve the Linux Popen cwd,
-    # which breaks SRModule's relative control and data-file lookups.
-    exe = module_dir / "SRModule.exe"
-    proc = subprocess.Popen(
-        [str(exe.resolve())],
-        cwd=str(module_dir),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    # Reuse the scan launcher: it drains pipes and closes only its owned child.
+    from srim_scan import launch_windows_executable
 
-    deadline = time.monotonic() + timeout_s
-    last_size = -1
-    stable_since = 0.0
-    while True:
-        returncode = proc.poll()
-        if returncode is not None:
-            stdout, stderr = proc.communicate()
-            if returncode != 0:
-                raise RuntimeError(
-                    f"SRModule failed with exit code {returncode}\nSTDOUT:\n"
-                    f"{stdout.decode('latin-1', errors='replace').strip()}\nSTDERR:\n"
-                    f"{stderr.decode('latin-1', errors='replace').strip()}"
-                )
-            return
-
-        if expected_output is not None and expected_output.exists():
-            size = expected_output.stat().st_size
-            now = time.monotonic()
-            if size > 0 and size == last_size:
-                if stable_since and now - stable_since >= 0.8:
-                    stop_srmodule_processes()
-                    time.sleep(0.5)
-                    proc.terminate()
-                    try:
-                        proc.communicate(timeout=3)
-                    except subprocess.TimeoutExpired:
-                        proc.kill()
-                    return
-                if not stable_since:
-                    stable_since = now
-            else:
-                stable_since = now
-                last_size = size
-
-        if time.monotonic() > deadline:
-            stop_srmodule_processes()
-            try:
-                stdout, stderr = proc.communicate(timeout=3)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                stdout, stderr = proc.communicate()
-            if expected_output is not None and expected_output.exists() and expected_output.stat().st_size > 0:
-                return
-            stdout_text = stdout.decode("latin-1", errors="replace").strip()
-            stderr_text = stderr.decode("latin-1", errors="replace").strip()
-            raise subprocess.TimeoutExpired(str(proc.args), timeout_s, output=stdout_text, stderr=stderr_text)
-
-        time.sleep(0.2)
+    launch_windows_executable(module_dir / "SRModule.exe", module_dir, timeout_s, expected_output)
 
 
-def run_srmodule_legacy(module_dir: Path, timeout_s: int = 60) -> None:
-    try:
-        return run_srmodule(module_dir, timeout_s)
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(
-            f"SRModule timed out after {timeout_s} s.\nSTDOUT:\n{exc.output}\nSTDERR:\n{exc.stderr}"
-        ) from exc
+def prepare_isolated_runtime(source: Path, runtime: Path) -> Path:
+    from srim_scan import prepare_runtime, source_fingerprint
+
+    prepare_runtime(source, runtime, source_fingerprint(source))
+    return runtime
 
 
 def length_to_cm(value: float, unit: str) -> float:
@@ -1065,8 +989,6 @@ def generate_plots(csv_path: Path, plots_dir: Path) -> List[Path]:
     rows = read_result_rows(csv_path)
     if not rows:
         return []
-    if plots_dir.exists():
-        shutil.rmtree(plots_dir)
     plots_dir.mkdir(parents=True, exist_ok=True)
     written: List[Path] = []
     for _, gas_rows in sorted(grouped_result_rows(rows).items()):
@@ -1107,10 +1029,14 @@ def main() -> int:
     if args.dry_run:
         return 0
 
-    module_dir = srmodule_dir(root)
-    sr_in_path = module_dir / "SR.IN"
-    original_sr_in = sr_in_path.read_bytes()
+    if output_csv.exists():
+        raise FileExistsError(f"Use a new --out; existing results are preserved: {output_csv}")
+    if not args.no_plots and plots_dir.exists() and any(plots_dir.iterdir()):
+        raise FileExistsError(f"Use a new --plots-dir: {plots_dir}")
     raw_dir = prepare_raw_workdir(work_root, clean=True)
+    runtime = prepare_isolated_runtime(root, work_root / "runtime")
+    module_dir = srmodule_dir(runtime)
+    sr_in_path = module_dir / "SR.IN"
 
     fieldnames = [
         "gas_row",
@@ -1153,7 +1079,7 @@ def main() -> int:
     total_jobs = 0
     total_rows = 0
     try:
-        with output_csv.open("w", encoding="utf-8", newline="") as handle:
+        with output_csv.open("x", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=fieldnames)
             writer.writeheader()
             for gas in gases:
@@ -1246,9 +1172,10 @@ def main() -> int:
                             flush=True,
                         )
     finally:
-        sr_in_path.write_bytes(original_sr_in)
         if not args.keep_work:
-            shutil.rmtree(work_root, ignore_errors=True)
+            from srim_scan import remove_private_workdir
+
+            remove_private_workdir(work_root, parent=work_root.parent)
     print(f"Wrote {total_rows} rows from {total_jobs} SRModule jobs to {output_csv}")
     if not args.no_plots:
         plot_paths = generate_plots(output_csv, plots_dir)

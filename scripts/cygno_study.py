@@ -32,6 +32,7 @@ import srim_scan as core
 import srim_gas_sweep as stopping
 import trim_qf_sweep as trim
 import cygno_study_physics as physics
+import cygno_process as processes
 
 ISOTOPE_MASSES = {'H':1.00782503223,'He':4.00260325413,'C':12.0,'F':18.99840316273,'O':15.99491461957}
 FORMULAS = {'He':{'He':1}, 'CF4':{'C':1,'F':4}, 'H2O':{'H':2,'O':1}, 'O2':{'O':2}}
@@ -91,7 +92,7 @@ def prepare(out,cfg,config_path,source):
     else:
         core.atomic_write_json(path,metadata)
     provenance=out/'provenance'; provenance.mkdir(exist_ok=True)
-    sources=[config_path,Path(__file__),ROOT/'scripts/cygno_study_physics.py',ROOT/'scripts/cygno_native_run.py',ROOT/'scripts/cygno_study_adaptive.py',ROOT/'scripts/cygno_study_validation.py',ROOT/'scripts/start_cygno_study.sh',ROOT/'scripts/start_cygno_study.ps1',ROOT/'scripts/cygno_study_report.py',ROOT/'srim_scan.py',ROOT/'srim_gas_sweep.py',ROOT/'trim_qf_sweep.py',ROOT/'docs/cygno_srim_methodology.md']
+    sources=[config_path,Path(__file__),ROOT/'scripts/cygno_study_physics.py',ROOT/'scripts/cygno_native_run.py',ROOT/'scripts/cygno_study_adaptive.py',ROOT/'scripts/cygno_study_validation.py',ROOT/'scripts/cygno_campaign.py',ROOT/'scripts/cygno_process.py',ROOT/'scripts/start_cygno_study.ps1',ROOT/'scripts/control_cygno_study.ps1',ROOT/'scripts/cygno_study_report.py',ROOT/'srim_scan.py',ROOT/'srim_gas_sweep.py',ROOT/'trim_qf_sweep.py',ROOT/'docs/cygno_srim_methodology.md']
     manifest={path.name:core.sha256_file(path) for path in sources}
     revision=hashlib.sha256(core.canonical_json(manifest).encode()).hexdigest()
     snapshot=provenance/'source_revisions'/revision
@@ -197,24 +198,11 @@ def make_jobs(cfg,stage,out):
     return finalize_jobs(jobs,cfg)
 
 def invoke_native_trim(runtime,out,job,timeout):
-    helper=ROOT/'scripts/cygno_native_run.py'
-    if os.name=='nt':
-        executable=sys.executable
-        convert=lambda path:str(path.resolve())
-    else:
-        executable=os.environ.get('CYGNO_WINDOWS_PYTHON')
-        if not executable:
-            candidates=sorted(Path('/mnt/c/Users').glob('*/AppData/Roaming/uv/python/cpython-3.13*-windows-x86_64-none/python.exe'))
-            if not candidates:raise RuntimeError('Set CYGNO_WINDOWS_PYTHON to a native Windows Python executable')
-            executable=str(candidates[-1])
-        convert=stopping.to_windows_path
+    from cygno_native_run import supervise_trim
     log=out/'native_logs'/f"{job['job_id']}.json"
-    command=[str(executable),'-B',convert(helper),'--exe',convert(runtime/'TRIM.exe'),'--cwd',convert(runtime),
-        '--timeout',str(timeout),'--ions',str(job['n_ions']),'--log',convert(log)]
-    result=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout+30)
-    if result.returncode:
-        raise RuntimeError('Native TRIM supervisor failed: '+result.stderr.decode('utf-8',errors='replace')[-3000:])
+    supervise_trim(runtime/'TRIM.exe',runtime,timeout,job['n_ions'],log)
     return log
+
 
 def run_one(job,runtime,out,cfg,metadata,elements):
     result_path=out/'batches'/f"{job['job_id']}.json"
@@ -526,47 +514,46 @@ def load_batches(out):
 
 def campaign(source,out,cfg,metadata,elements,workers,defer_report=False):
     import cygno_study_adaptive as adaptive
-    with study_lock(out):
-        if (out/'.stop-requested').exists():raise RuntimeError('Remove .stop-requested to resume the campaign')
-        run_srmodule(source,out,cfg,metadata,elements)
-        # Actual pilot histories establish coverage before production statistics.
-        if not execute(source,out,cfg,metadata,elements,'pilot',workers):return False
+    if (out/'.stop-requested').exists():raise RuntimeError('Remove .stop-requested to resume the campaign')
+    run_srmodule(source,out,cfg,metadata,elements)
+    # Actual pilot histories establish coverage before production statistics.
+    if not execute(source,out,cfg,metadata,elements,'pilot',workers):return False
+    if (out/'.stop-requested').exists():return False
+    if not execute(source,out,cfg,metadata,elements,'production',workers):return False
+    analyse(out,cfg,source)
+    if (out/'.stop-requested').exists():return False
+    points=adaptive.refinement_points(load_batches(out),log_grid(cfg['grid']['energy_min_kevnr'],cfg['grid']['energy_max_kevnr'],cfg['grid']['energy_points']),
+       requested_eee=(cfg['grid']['requested_eee_min_kev'],cfg['grid']['requested_eee_max_kev']))
+    jobs=[]
+    for species,energies in points.items():
+        for energy in energies:
+            for repeat in range(cfg['simulation']['independent_batches']):
+                for medium in ['baseline','contaminated']:
+                    jobs.append({'stage':'refinement','species':species,'medium':medium,'energy_kevnr':energy,'repeat':repeat,
+                       'n_ions':cfg['simulation']['ions_per_batch'],'displacement_energy_ev':cfg['simulation']['displacement_energy_ev'],
+                       'exyz_energy_samples':cfg['simulation']['exyz_energy_samples']})
+    core.atomic_write_json(out/'refinement_screening.json',{'proposed_points':points,'diagnostics':adaptive.refinement_diagnostics(load_batches(out),log_grid(cfg['grid']['energy_min_kevnr'],cfg['grid']['energy_max_kevnr'],cfg['grid']['energy_points']),(cfg['grid']['requested_eee_min_kev'],cfg['grid']['requested_eee_max_kev'])),'interpretation':'Proposed simulation energies, not interpolated results'})
+    if jobs and not execute(source,out,cfg,metadata,elements,'refinement',workers,jobs_override=jobs):return False
+    analyse(out,cfg,source)
+    for iteration in range(cfg['simulation']['maximum_batches']):
         if (out/'.stop-requested').exists():return False
-        if not execute(source,out,cfg,metadata,elements,'production',workers):return False
+        batches=load_batches(out)
+        jobs=adaptive.adaptive_repeats(batches,cfg)
+        core.atomic_write_json(out/'convergence_diagnostics.json',adaptive.convergence_diagnostics(batches,cfg))
+        if not jobs:break
+        if not execute(source,out,cfg,metadata,elements,'production',workers,jobs_override=jobs,plan_name='adaptive'):return False
         analyse(out,cfg,source)
-        if (out/'.stop-requested').exists():return False
-        points=adaptive.refinement_points(load_batches(out),log_grid(cfg['grid']['energy_min_kevnr'],cfg['grid']['energy_max_kevnr'],cfg['grid']['energy_points']),
-           requested_eee=(cfg['grid']['requested_eee_min_kev'],cfg['grid']['requested_eee_max_kev']))
-        jobs=[]
-        for species,energies in points.items():
-            for energy in energies:
-                for repeat in range(cfg['simulation']['independent_batches']):
-                    for medium in ['baseline','contaminated']:
-                        jobs.append({'stage':'refinement','species':species,'medium':medium,'energy_kevnr':energy,'repeat':repeat,
-                           'n_ions':cfg['simulation']['ions_per_batch'],'displacement_energy_ev':cfg['simulation']['displacement_energy_ev'],
-                           'exyz_energy_samples':cfg['simulation']['exyz_energy_samples']})
-        core.atomic_write_json(out/'refinement_screening.json',{'proposed_points':points,'diagnostics':adaptive.refinement_diagnostics(load_batches(out),log_grid(cfg['grid']['energy_min_kevnr'],cfg['grid']['energy_max_kevnr'],cfg['grid']['energy_points']),(cfg['grid']['requested_eee_min_kev'],cfg['grid']['requested_eee_max_kev'])),'interpretation':'Proposed simulation energies, not interpolated results'})
-        if jobs and not execute(source,out,cfg,metadata,elements,'refinement',workers,jobs_override=jobs):return False
-        analyse(out,cfg,source)
-        for iteration in range(cfg['simulation']['maximum_batches']):
-            if (out/'.stop-requested').exists():return False
-            batches=load_batches(out)
-            jobs=adaptive.adaptive_repeats(batches,cfg)
-            core.atomic_write_json(out/'convergence_diagnostics.json',adaptive.convergence_diagnostics(batches,cfg))
-            if not jobs:break
-            if not execute(source,out,cfg,metadata,elements,'production',workers,jobs_override=jobs,plan_name='adaptive'):return False
-            analyse(out,cfg,source)
-        if (out/'.stop-requested').exists():return False
-        if not execute(source,out,cfg,metadata,elements,'systematics',workers):return False
-        validation=analyse(out,cfg,source)
-        if defer_report:
-            artifacts={'status':'pending','reason':'Report rendering deferred to the configured analysis environment'}
-        else:
-            from cygno_study_report import build_report
-            artifacts=build_report(out)
-        core.atomic_write_json(out/'campaign_completion.json',{'validation':validation,'artifacts':artifacts,'completed_at':core.utc_now(),
-           'status':('simulations_complete_report_pending' if defer_report else 'complete') if validation['passed'] else 'finished_with_unresolved_validation'})
-        return validation['passed']
+    if (out/'.stop-requested').exists():return False
+    if not execute(source,out,cfg,metadata,elements,'systematics',workers):return False
+    validation=analyse(out,cfg,source)
+    if defer_report:
+        artifacts={'status':'pending','reason':'Native report rendering deferred by request'}
+    else:
+        from cygno_study_report import build_report
+        artifacts=build_report(out)
+    core.atomic_write_json(out/'campaign_completion.json',{'validation':validation,'artifacts':artifacts,'completed_at':core.utc_now(),
+       'status':('simulations_complete_report_pending' if defer_report else 'complete') if validation['passed'] else 'finished_with_unresolved_validation'})
+    return validation['passed']
 
 @contextmanager
 def study_lock(out):
@@ -576,44 +563,46 @@ def study_lock(out):
         directory.mkdir()
     except FileExistsError:
         owner=json.loads((directory/'owner.json').read_text()) if (directory/'owner.json').exists() else {}
-        raise RuntimeError(f"Study is already locked: {owner}. Verify no active native TRIM before removing stale lock.")
-    core.atomic_write_json(directory/'owner.json',{'pid':os.getpid(),'host':socket.gethostname(),'started_at':core.utc_now()})
+        raise RuntimeError(f"Study is already locked: {owner}. Use cygno_campaign.py recover to verify stale owners.")
+    owner={'pid':os.getpid(),'host':socket.gethostname(),'coordinator_platform':os.name,
+           'process_identity':processes.process_identity(),'started_at':core.utc_now()}
+    core.atomic_write_json(directory/'owner.json',owner)
     try:yield
     finally:
         (directory/'owner.json').unlink(missing_ok=True)
         directory.rmdir()
 
+
 def run_campaign(source,out,cfg,metadata,elements,workers,defer_report=False):
-    """Record terminal state even when a detached campaign fails."""
-    state={'pid':os.getpid(),'host':socket.gethostname(),'coordinator_platform':os.name,'status':'running','started_at':core.utc_now(),
-           'source_revision':metadata.get('execution_source_revision')}
-    core.atomic_write_json(out/'campaign_state.json',state)
-    try:
-        success=campaign(source,out,cfg,metadata,elements,workers,defer_report=defer_report)
-        state['status']=('simulations_complete_report_pending' if defer_report else 'complete') if success else ('stopped' if (out/'.stop-requested').exists() else 'failed')
-        return success
-    except BaseException as error:
-        state.update(status='failed',error_type=type(error).__name__,error=str(error))
-        raise
-    finally:
-        state['finished_at']=core.utc_now()
+    """Record terminal state while holding exclusive ownership of this study."""
+    with study_lock(out):
+        state={'pid':os.getpid(),'host':socket.gethostname(),'coordinator_platform':os.name,
+               'process_identity':processes.process_identity(),'status':'running','started_at':core.utc_now(),
+               'source_revision':metadata.get('execution_source_revision')}
         core.atomic_write_json(out/'campaign_state.json',state)
+        try:
+            success=campaign(source,out,cfg,metadata,elements,workers,defer_report=defer_report)
+            state['status']=('simulations_complete_report_pending' if defer_report else 'complete') if success else ('stopped' if (out/'.stop-requested').exists() else 'failed')
+            return success
+        except BaseException as error:
+            state.update(status='failed',error_type=type(error).__name__,error=str(error))
+            raise
+        finally:
+            state['finished_at']=core.utc_now()
+            core.atomic_write_json(out/'campaign_state.json',state)
+
 
 def windows_campaign_active(pid,out):
-    """Verify native coordinator identity from Windows, including when queried in WSL."""
+    """Verify native coordinator identity, including its exact --run-dir value."""
     if not isinstance(pid,int) or isinstance(pid,bool) or pid<=0:return False
-    executable='powershell.exe' if os.name=='nt' else '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe'
-    command=f'Get-CimInstance Win32_Process -Filter "ProcessId = {pid}" | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress'
     try:
-        result=subprocess.run([executable,'-NoProfile','-Command',command],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=15,check=True)
-        value=json.loads(result.stdout.decode('utf-8-sig').strip() or 'null')
-        if not isinstance(value,dict) or value.get('ProcessId')!=pid:return False
-        text=(value.get('CommandLine') or '').lower().replace('/','\\')
-        driver=stopping.to_windows_path(Path(__file__).resolve()).lower().replace('/','\\')
-        directory=stopping.to_windows_path(out.resolve()).lower().replace('/','\\')
-        token=lambda value:bool(re.search(r'(?:^|\s)"?'+re.escape(value)+r'"?(?=\s|$)',text))
-        return token(driver) and token(directory) and (token('campaign') or token('extend'))
+        values=processes.windows_processes(pid)
+        driver=stopping.to_windows_path(Path(__file__).resolve())
+        directory=stopping.to_windows_path(out.resolve())
+        return any(value.get('ProcessId')==pid and processes.campaign_command_matches(
+            value.get('CommandLine'),driver,directory) for value in values)
     except (OSError,subprocess.SubprocessError,ValueError):return False
+
 
 def study_status(out):
     counts={}
@@ -622,20 +611,18 @@ def study_status(out):
     state_path=out/'campaign_state.json'
     state=json.loads(state_path.read_text()) if state_path.exists() else {}
     active=False
-    if state.get('coordinator_platform')=='nt':
+    if state.get('coordinator_platform')=='nt' and state.get('status')=='running':
         active=windows_campaign_active(state.get('pid'),out)
-    elif state.get('host')==socket.gethostname() and state.get('pid'):
-        proc=Path(f"/proc/{state['pid']}/cmdline")
-        if proc.exists():
+        if state.get('process_identity'):
             try:
-                argv=proc.read_bytes().split(b'\0')
-                active=(os.fsencode(str(Path(__file__).resolve())) in argv and b'campaign' in argv
-                        and os.fsencode(str(out.resolve())) in argv)
-            except OSError:pass
+                active=any(processes.same_identity(value,state['process_identity'])
+                           for value in processes.windows_processes(state['pid']))
+            except (OSError,subprocess.SubprocessError,ValueError):active=False
     if state.get('status')=='running' and not active:state={**state,'status':'interrupted_or_process_missing'}
     return {'campaign':state,'campaign_process_active':active,'completed':counts,
             'historical_failures':len(list((out/'failures').glob('*.json'))),
             'progress':[json.loads(p.read_text()) for p in sorted((out/'progress').glob('*.json'))]}
+
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -645,7 +632,7 @@ def main():
     parser.add_argument('--srim-root',type=Path,default=ROOT)
     parser.add_argument('--workers',type=int)
     parser.add_argument('--limit',type=int)
-    parser.add_argument('--defer-report',action='store_true',help='Finish simulations and numerical validation; render the report separately in the analysis environment')
+    parser.add_argument('--defer-report',action='store_true',help='Finish simulations and numerical validation; optionally render the native report later')
     args=parser.parse_args();cfg=load_configuration(args.config);out=args.run_dir.resolve();source=args.srim_root.resolve()
     if args.command=='status':
         print(json.dumps(study_status(out),indent=2))
